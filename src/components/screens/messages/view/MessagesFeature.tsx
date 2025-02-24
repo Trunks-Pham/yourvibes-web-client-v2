@@ -41,9 +41,9 @@ const MessagesFeature = () => {
     };
 
     return (
-        <div className="flex h-screen p-4">
+        <div className="flex h-[85vh] p-4">
             {/* Sidebar Friends List */}
-            <div className="w-1/4 border-r p-4 overflow-y-auto h-full">
+            <div className="w-1/4 border-r p-4 overflow-y-auto h-[80vh]">
                 <h2 className="text-xl font-bold mb-4">Bạn bè</h2>
                 <ul>
                     {friends.map((friend, index) => (
@@ -59,12 +59,11 @@ const MessagesFeature = () => {
                 </ul>
             </div>
 
-
             <div className="flex-1 flex flex-col p-4">
                 <h1 className="text-2xl font-bold mb-4">{activeFriend ? `Nhắn tin với ${activeFriend}` : 'Chọn một người bạn'}</h1>
 
                 {/* Messages List */}
-                <div className="h-72 overflow-y-auto border p-4 rounded-lg mb-4 bg-gray-100">
+                <div className="flex-1 overflow-y-auto border p-4 rounded-lg mb-4 bg-gray-100 max-h-[50vh]">
                     {activeFriend ? (
                         messages[activeFriend]?.length ? (
                             messages[activeFriend].map((message, index) => (
