@@ -9,8 +9,8 @@ import { FaHeart, FaRegHeart } from 'react-icons/fa';
 const MessagesFeature = () => {
     const { user } = useAuth();
     const friends = [
-        { name: 'Nguyễn Văn A', avatar: 'https://thumbs.dreamstime.com/b/avatar-icon-avatar-flat-symbol-isolated-white-avatar-icon-avatar-flat-symbol-isolated-white-background-avatar-simple-icon-124920496.jpg' },
-        { name: 'Trần Thị B', avatar: 'https://thumbs.dreamstime.com/b/avatar-icon-avatar-flat-symbol-isolated-white-avatar-icon-avatar-flat-symbol-isolated-white-background-avatar-simple-icon-124920496.jpg' }
+        { name: 'Nguyễn Văn A', avatar: 'https://thumbs.dreamstime.com/b/avatar-icon-avatar-flat-symbol-isolated-white-avatar-icon-avatar-flat-symbol-isolated-white-background-avatar-simple-icon-124920496.jpg', lastOnline: new Date() },
+        { name: 'Trần Thị B', avatar: 'https://thumbs.dreamstime.com/b/avatar-icon-avatar-flat-symbol-isolated-white-avatar-icon-avatar-flat-symbol-isolated-white-background-avatar-simple-icon-124920496.jpg', lastOnline: new Date(Date.now() - 5 * 60000) } // 5 minutes ago
     ];
 
     const {
@@ -35,6 +35,17 @@ const MessagesFeature = () => {
         handleAddReaction(message, reaction, newCount);
     };
 
+    const getStatus = (lastOnline: Date) => {
+        const now = new Date();
+        const diff = (now.getTime() - new Date(lastOnline).getTime()) / 1000; // difference in seconds
+        if (diff < 60) {
+            return 'online';
+        } else if (diff < 3600) {
+            return `online ${Math.floor(diff / 60)} minutes ago`;
+        } else {
+            return `online ${Math.floor(diff / 3600)} hours ago`;
+        }
+    };
 
     return (
         <div className="flex h-[85vh] p-4">
@@ -49,6 +60,9 @@ const MessagesFeature = () => {
                         >
                             <img src={friend.avatar} alt={`${friend.name}'s avatar`} className="w-10 h-10 rounded-full mr-2" />
                             <span className="font-medium">{friend.name}</span>
+                            <span className={`ml-2 text-sm ${getStatus(friend.lastOnline) === 'online' ? 'text-green-500' : 'text-gray-500'}`}>
+                                {getStatus(friend.lastOnline) === 'online' ? <strong>{getStatus(friend.lastOnline)}</strong> : getStatus(friend.lastOnline)}
+                            </span>
                         </li>
                     ))}
                 </ul>
@@ -85,7 +99,7 @@ const MessagesFeature = () => {
                                             <button onClick={() => setReplyTo(message)} className="text-sm text-blue-500">
                                                 Trả lời
                                             </button>
-                                        </div> 
+                                        </div>
                                     </div>
                                 </div>
                             ))
