@@ -61,7 +61,7 @@ export default function Layout({ children }: { children: React.ReactNode }): Rea
     const token = document.cookie.replace(/(?:(?:^|.*;\s*)accesstoken\s*=\s*([^;]*).*$)|^.*$/, "$1");
 
     const response = await fetch(`
-https://yourvibesapi.duckdns.org:8080/v1/2024/users/${user?.id}`, {
+https://yourvibes.duckdns.org:8080/v1/2024/users/${user?.id}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -81,7 +81,7 @@ https://yourvibesapi.duckdns.org:8080/v1/2024/users/${user?.id}`, {
   useEffect(() => {
     if (user?.id) {
       const closeWebSocket = connectWebSocket();
-      {}
+      { }
       fetchData(); // Gọi hàm fetchData khi component render
       return () => {
         closeWebSocket();
