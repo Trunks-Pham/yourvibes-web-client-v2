@@ -1,48 +1,43 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useAuth } from '@/context/auth/useAuth';
+import { useMessageViewModel, Message } from '@/components/screens/messages/viewModel/MessagesViewModel';
+import { formatDistanceToNow } from 'date-fns';
+import { FaHeart, FaRegHeart } from 'react-icons/fa';
 
 const MessagesFeature = () => {
-    const [messages, setMessages] = useState<{ [key: string]: string[] }>({});
-    const [newMessage, setNewMessage] = useState<string>('');
-    const [activeFriend, setActiveFriend] = useState<string | null>(null);
-
+    const { user } = useAuth();
     const friends = [
-        { name: 'Nguyễn Văn A', avatar: 'https://example.com/avatar1.jpg' },
-        { name: 'Trần Thị B', avatar: 'https://example.com/avatar2.jpg' },
-        { name: 'Lê Văn C', avatar: 'https://example.com/avatar3.jpg' },
-        { name: 'Phạm Thị D', avatar: 'https://example.com/avatar4.jpg' },
-        { name: 'Hoàng Văn E', avatar: 'https://example.com/avatar5.jpg' },
-        { name: 'Đặng Thị F', avatar: 'https://example.com/avatar6.jpg' },
-        { name: 'Bùi Văn G', avatar: 'https://example.com/avatar7.jpg' },
-        { name: 'Đỗ Thị H', avatar: 'https://example.com/avatar8.jpg' },
-        { name: 'Ngô Văn I', avatar: 'https://example.com/avatar9.jpg' },
-        { name: 'Vũ Thị K', avatar: 'https://example.com/avatar10.jpg' },
-        { name: 'Dương Văn L', avatar: 'https://example.com/avatar11.jpg' },
-        { name: 'Phan Thị M', avatar: 'https://example.com/avatar12.jpg' },
-        { name: 'Lý Văn N', avatar: 'https://example.com/avatar13.jpg' },
-        { name: 'Tô Thị O', avatar: 'https://example.com/avatar14.jpg' },
-        { name: 'Nguyễn Văn P', avatar: 'https://example.com/avatar15.jpg' },
-        { name: 'Trần Thị Q', avatar: 'https://example.com/avatar16.jpg' },
-        { name: 'Lê Văn R', avatar: 'https://example.com/avatar17.jpg' },
-        { name: 'Phạm Thị S', avatar: 'https://example.com/avatar18.jpg' },
-        { name: 'Hoàng Văn T', avatar: 'https://example.com/avatar19.jpg' },
-        { name: 'Đặng Thị U', avatar: 'https://example.com/avatar20.jpg' }
+        { name: 'Nguyễn Văn A', avatar: 'https://thumbs.dreamstime.com/b/avatar-icon-avatar-flat-symbol-isolated-white-avatar-icon-avatar-flat-symbol-isolated-white-background-avatar-simple-icon-124920496.jpg' },
+        { name: 'Trần Thị B', avatar: 'https://thumbs.dreamstime.com/b/avatar-icon-avatar-flat-symbol-isolated-white-avatar-icon-avatar-flat-symbol-isolated-white-background-avatar-simple-icon-124920496.jpg' }
     ];
 
-    const handleSendMessage = () => {
-        if (newMessage.trim() !== '' && activeFriend) {
-            setMessages(prev => ({
-                ...prev,
-                [activeFriend]: [...(prev[activeFriend] || []), newMessage]
-            }));
-            setNewMessage('');
-        }
+    const {
+        newMessage,
+        setNewMessage,
+        activeFriend,
+        setActiveFriend,
+        messages,
+        handleSendMessage,
+        handleAddReaction,
+    } = useMessageViewModel(user, friends);
+
+    const [replyTo, setReplyTo] = useState<Message | null>(null);
+
+    const toggleReaction = (message: Message, reaction: string) => {
+        const currentReactions = message.reactions || {};
+        const currentCount = currentReactions[reaction] || 0;
+
+        // Toggle logic: If the reaction count is 0, increment by 1; if greater than 0, set to 0
+        const newCount = currentCount === 0 ? 1 : 0;
+
+        handleAddReaction(message, reaction, newCount);
     };
+
 
     return (
         <div className="flex h-[85vh] p-4">
-            {/* Sidebar Friends List */}
             <div className="w-1/4 border-r p-4 overflow-y-auto h-[80vh]">
                 <h2 className="text-xl font-bold mb-4">Bạn bè</h2>
                 <ul>
@@ -61,14 +56,37 @@ const MessagesFeature = () => {
 
             <div className="flex-1 flex flex-col p-4">
                 <h1 className="text-2xl font-bold mb-4">{activeFriend ? `Nhắn tin với ${activeFriend}` : 'Chọn một người bạn'}</h1>
-
-                {/* Messages List */}
-                <div className="flex-1 overflow-y-auto border p-4 rounded-lg mb-4 bg-gray-100 max-h-[50vh]">
+                <div className="flex-1 overflow-y-auto border p-4 rounded-lg mb-4 bg-gray-100 max-h-[70vh]">
                     {activeFriend ? (
                         messages[activeFriend]?.length ? (
                             messages[activeFriend].map((message, index) => (
-                                <div key={index} className="p-2 bg-white rounded-lg shadow mb-2">
-                                    {message}
+                                <div key={index} className="p-2 bg-white rounded-lg shadow mb-2 flex items-center">
+                                    <img src={message.avatar} alt={`${message.sender}'s avatar`} className="w-8 h-8 rounded-full mr-2" />
+                                    <div>
+                                        <div className="font-bold">{message.sender}</div>
+                                        <div>{message.text}</div>
+                                        {message.replyTo && (
+                                            <div className="text-sm text-gray-500">
+                                                Trả lời: {message.replyTo.text}
+                                            </div>
+                                        )}
+                                        <div className="text-xs text-gray-500">{formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}</div>
+                                        <div className="flex gap-2 mt-2 items-center">
+                                            <button onClick={() => toggleReaction(message, '❤️')} className="flex items-center">
+                                                {message.reactions?.['❤️'] ? (
+                                                    <FaHeart className="text-red-500" />
+                                                ) : (
+                                                    <FaRegHeart className="text-black" />
+                                                )}
+                                                {message.reactions?.['❤️'] && (
+                                                    <span className="ml-1 text-sm">{message.reactions['❤️']}</span>
+                                                )}
+                                            </button>
+                                            <button onClick={() => setReplyTo(message)} className="text-sm text-blue-500">
+                                                Trả lời
+                                            </button>
+                                        </div> 
+                                    </div>
                                 </div>
                             ))
                         ) : (
@@ -79,8 +97,13 @@ const MessagesFeature = () => {
                     )}
                 </div>
 
-                {/* Input Section */}
                 <div className="flex gap-2">
+                    {replyTo && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500">Trả lời: {replyTo.text}</span>
+                            <button onClick={() => setReplyTo(null)} className="text-red-500">Hủy</button>
+                        </div>
+                    )}
                     <input
                         type="text"
                         value={newMessage}
@@ -90,7 +113,7 @@ const MessagesFeature = () => {
                         disabled={!activeFriend}
                     />
                     <button
-                        onClick={handleSendMessage}
+                        onClick={() => handleSendMessage(replyTo ?? undefined)}
                         className={`px-4 py-2 rounded-lg text-white ${newMessage.trim() && activeFriend ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400 cursor-not-allowed'}`}
                         disabled={!newMessage.trim() || !activeFriend}
                     >
