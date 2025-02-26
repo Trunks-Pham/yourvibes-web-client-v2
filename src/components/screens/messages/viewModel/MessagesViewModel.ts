@@ -1,4 +1,4 @@
-import { useState } from 'react'; 
+import { useState, useEffect,useRef } from 'react';
 
 const autoResponses = [
     'Đây là tin nhắn phản hồi tự động.',
@@ -83,81 +83,110 @@ const autoResponses = [
     'Tin nhắn tự động: Chúng tôi sẽ sớm trả lời.'
 ];
 
-export interface Message {
-    avatar: string;
-    sender: string;
-    text: string;
-    timestamp: Date;
-    reactions?: { [key: string]: number };
-    replyTo?: Message;
-  }
+export interface Friend {
+  name: string;
+  avatar: string;
+  lastOnline: Date;
+}
 
-  export const useMessageViewModel = (user: any, friends: any[]) => {
-    const [newMessage, setNewMessage] = useState('');
-    const [activeFriend, setActiveFriend] = useState<string | null>(null);
-    const [messages, setMessages] = useState<Record<string, Message[]>>({});
-  
-    const handleSendMessage = (replyTo?: Message) => {
-      if (newMessage.trim() !== '' && activeFriend) {
+export interface Message {
+  avatar: string;
+  sender: string;
+  text: string;
+  timestamp: Date;
+  reactions?: { [key: string]: number };
+  replyTo?: Message;
+}
+
+export const useMessageViewModel = (user: any, friends: Friend[]) => {
+  const [newMessage, setNewMessage] = useState('');
+  const [activeFriend, setActiveFriend] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Record<string, Message[]>>({});
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      friends.forEach(friend => {
+        if (friend.name === activeFriend) {
+          friend.lastOnline = new Date();
+        }
+      });
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, [activeFriend, friends]);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  const handleSendMessage = (replyTo?: Message) => {
+    if (newMessage.trim() !== '' && activeFriend) {
         const timestamp = new Date();
         setMessages((prev) => ({
-          ...prev,
-          [activeFriend]: [
-            ...(prev[activeFriend] || []),
-            {
-              sender: `${user?.family_name} ${user?.name}`,
-              avatar: user?.avatar_url || '',
-              text: newMessage,
-              timestamp,
-              replyTo,
-            },
-          ],
-        }));
-        setNewMessage('');
-  
-        setTimeout(() => {
-          const randomResponse = autoResponses[Math.floor(Math.random() * autoResponses.length)];
-          setMessages((prev) => ({
             ...prev,
             [activeFriend]: [
-              ...(prev[activeFriend] || []),
-              {
-                sender: activeFriend,
-                avatar: friends.find((friend) => friend.name === activeFriend)?.avatar || '',
-                text: randomResponse,
-                timestamp: new Date(),
-              },
+                ...(prev[activeFriend] || []),
+                {
+                    sender: `${user?.family_name} ${user?.name}`,
+                    avatar: user?.avatar_url || '',
+                    text: newMessage,
+                    timestamp,
+                    replyTo,
+                },
             ],
-          }));
-        }, 2000);
-      }
-    };
-  
-    const handleAddReaction = (message: Message, reaction: string, newCount?: number) => {
-        setMessages((prev) => ({
-          ...prev,
-          [activeFriend!]: prev[activeFriend!].map((msg) =>
-            msg === message
-              ? {
-                  ...msg,
-                  reactions: {
-                    ...msg.reactions,
-                    [reaction]: newCount ?? (msg.reactions?.[reaction] || 0) + 1,
-                  },
-                }
-              : msg
-          ),
         }));
-      };
-      
-  
-    return {
-      newMessage,
-      setNewMessage,
-      activeFriend,
-      setActiveFriend,
-      messages,
-      handleSendMessage,
-      handleAddReaction,
-    };
+        setNewMessage('');
+        setReplyTo(null); // Reset replyTo after sending the message
+
+        setTimeout(() => {
+            const randomResponse = autoResponses[Math.floor(Math.random() * autoResponses.length)];
+            setMessages((prev) => ({
+                ...prev,
+                [activeFriend]: [
+                    ...(prev[activeFriend] || []),
+                    {
+                        sender: activeFriend,
+                        avatar: friends.find((friend) => friend.name === activeFriend)?.avatar || '',
+                        text: randomResponse,
+                        timestamp: new Date(),
+                    },
+                ],
+            }));
+        }, 2000);
+    }
+};
+
+  const handleAddReaction = (message: Message, reaction: string, newCount?: number) => {
+    setMessages((prev) => ({
+      ...prev,
+      [activeFriend!]: prev[activeFriend!].map((msg) =>
+        msg === message
+          ? {
+              ...msg,
+              reactions: {
+                ...msg.reactions,
+                [reaction]: newCount ?? (msg.reactions?.[reaction] || 0) + 1,
+              },
+            }
+          : msg
+      ),
+    }));
   };
+
+  return {
+    newMessage,
+    setNewMessage,
+    activeFriend,
+    setActiveFriend,
+    messages,
+    handleSendMessage,
+    handleAddReaction,
+    replyTo,
+    setReplyTo,
+    messagesEndRef,
+  };
+};
