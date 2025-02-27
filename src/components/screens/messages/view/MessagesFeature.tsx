@@ -132,7 +132,7 @@ const MessagesFeature = () => {
                         />
                       )}
                         <div className={`p-2 rounded-lg shadow max-w-xs w-80 break-words 
-                            ${isUser ? 'bg-black bg-opacity-70 text-white' : 'bg-white text-black'}`}>
+                            ${isUser ? 'bg-white text-black' : 'bg-white text-black'}`}>
                             <div className="font-bold">{message.sender}</div>
                             <div>{message.text}</div>
                             {message.replyTo && (
