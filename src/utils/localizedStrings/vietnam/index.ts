@@ -62,6 +62,7 @@ export const VnLocalizedStrings = {
     Profile: "Tài khoản",
     LoginStatus:"Vui lòng đăng nhập lại",
     Messages: "Tin Nhắn",
+    SuggestedFriend: "Những người bạn có thể biết",
   },
   Form: {
     Label: {

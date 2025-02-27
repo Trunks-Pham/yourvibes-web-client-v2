@@ -11,10 +11,11 @@ import AddPostScreen from "../../addPost/view/AddPostScreen";
 import ProfileViewModel from "../../profile/viewModel/ProfileViewModel";
 import { LoadingOutlined } from '@ant-design/icons';
 import InfiniteScroll from "react-infinite-scroll-component";
+import FriendSuggestions from "@/components/common/Suggestions/friendSuggestions";
 
-const Homepage = () => {
+const Homepage = ({ friendSuggestions }: any) => {
   const { brandPrimary, backgroundColor, lightGray } = useColor();
-  const { loading, newFeeds, setNewFeeds,fetchNewFeeds, loadMoreNewFeeds, deleteNewFeed, hasMore, loadingDelete } = HomeViewModel(defaultNewFeedRepo);
+  const { loading, newFeeds, setNewFeeds, fetchNewFeeds, loadMoreNewFeeds, deleteNewFeed, hasMore } = HomeViewModel(defaultNewFeedRepo);
   const { user, localStrings } = useAuth();
   const router = useRouter();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -120,52 +121,53 @@ const Homepage = () => {
   return (
     <div className="lg:flex mt-4 ">
       {/* Content */}
-      {loading ?(
+      {loading ? (
         <div className="flex-auto w-auto flex items-center justify-center">
           <Spin indicator={<LoadingOutlined spin />} size="large" />
-        </div>):(<>
-         <div className="flex-auto w-auto flex flex-col items-center justify-center">
-        {renderAddPost()}
-        <div style={{ width: "100%" }}>
-        {newFeeds?.length > 0 ? (
-          <InfiniteScroll
-          className="flex flex-col items-center"
-            dataLength={newFeeds.length}
-            next={loadMoreNewFeeds}
-            hasMore={hasMore}
-            loader={<Spin indicator={<LoadingOutlined spin />} size="large" />}>
-               {newFeeds.map((item) => (
-            <div key={item?.id} style={{ width: "100%", maxWidth: "600px" }}>
-              <Post post={item} onDeleteNewFeed={handleDeleteNewFeed} />
-              {item?.parent_post && (
-                <div style={{ marginLeft: "20px" }}>
-                  <Post post={item?.parent_post} isParentPost />
+        </div>
+      ) : (
+        <>
+          <div className="flex-auto w-auto flex flex-col items-center justify-center">
+            {renderAddPost()}
+            <div style={{ width: "100%" }}>
+              {newFeeds?.length > 0 ? (
+                <InfiniteScroll
+                  className="flex flex-col items-center"
+                  dataLength={newFeeds.length}
+                  next={loadMoreNewFeeds}
+                  hasMore={hasMore}
+                  loader={<Spin indicator={<LoadingOutlined spin />} size="large" />}
+                >
+                  {newFeeds.map((item, index) => (
+                    <div key={item?.id} style={{ width: "100%", maxWidth: "600px" }}>
+                      <Post post={item} onDeleteNewFeed={handleDeleteNewFeed} />
+                      {item?.parent_post && (
+                        <div style={{ marginLeft: "20px" }}>
+                          <Post post={item?.parent_post} isParentPost />
+                        </div>
+                      )}
+                      {index === 4 && <FriendSuggestions friendSuggestions={friendSuggestions} />}
+                    </div>
+                  ))}
+                </InfiniteScroll>
+              ) : (
+                <div className="w-full h-screen flex justify-center items-center">
+                  <Empty description={
+                    <span style={{ color: 'gray', fontSize: 16 }}>
+                      {localStrings.Post.NoPosts}
+                    </span>
+                  } />
                 </div>
               )}
             </div>
-          ))}
-            </InfiniteScroll>
-          
-        ) : (
-          <div className="w-full h-screen flex justify-center items-center">
-            <Empty description={
-                <span style={{ color: 'gray', fontSize: 16 }}>
-                  {localStrings.Post.NoPosts}
-                </span>
-              }
-            />
+            <FriendSuggestions friendSuggestions={friendSuggestions} />
           </div>
-        )}
-        </div>
-        
-      </div>
-      <div className="flex-initial w-[300px] hidden xl:block">
-        {renderFriends()}
-      </div>
-        </>)}
-     
+          <div className="flex-initial w-[300px] hidden xl:block">
+            {renderFriends()}
+          </div>
+        </>
+      )}
     </div>
   );
 };
-
 export default Homepage;
