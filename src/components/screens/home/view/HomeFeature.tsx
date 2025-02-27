@@ -160,7 +160,7 @@ const Homepage = ({ friendSuggestions }: any) => {
                 </div>
               )}
             </div>
-            <FriendSuggestions friendSuggestions={friendSuggestions} />
+            {/* <FriendSuggestions friendSuggestions={friendSuggestions} /> */}
           </div>
           <div className="flex-initial w-[300px] hidden xl:block">
             {renderFriends()}

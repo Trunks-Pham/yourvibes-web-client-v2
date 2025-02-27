@@ -19,7 +19,7 @@ import { defaultNotificationRepo } from '@/api/features/notification/NotifiCatio
 import { useAuth } from '@/context/auth/useAuth';
 
 
-const NotificationScreen = () => {
+const NotificationScreen = ({setNotificationModal}:{setNotificationModal:React.Dispatch<React.SetStateAction<boolean>>}) => {
   const { brandPrimary, backgroundColor } = useColor();
   const { notifications, loading, fetchNotifications,  loadMoreNotifi, updateNotification,updateAllNotification } = NotifiCationViewModel(defaultNotificationRepo);
   const { localStrings } = useAuth();
@@ -40,25 +40,20 @@ const NotificationScreen = () => {
   };
 
   return (
-    <div className="mt-4 md:mx-16 xl:mx-64">
-        <div className='border rounded-md border-solidborder-gray-900'>
+    <div>
+        {/* <div className='border rounded-md border-solidborder-gray-900'> */}
             {/* Header */}
-            <div
+            {/* <div
                 className="w-full py-3 px-4 flex justify-between items-center"
                 style={{ backgroundColor }}
             >
-                <Space>
-                <span className="font-bold text-lg">
-                    {localStrings.Notification.Notification}
-                </span>
-                </Space>
 
                 <Button
                 type="text"
                 icon={<CheckOutlined />}
                 onClick={updateAllNotification}
                 />
-            </div>
+            </div> */}
 
             {/* Content */}
             <div className="flex-grow overflow-auto border-t border-gray-300">
@@ -69,13 +64,14 @@ const NotificationScreen = () => {
                     <NotificationItem
                         notifications={item}
                         onUpdate={() => updateNotification(item)}
+                        onClickModal={()=>setNotificationModal(false)}
                     />
                     )}
                     className="h-full"
                 />
                 </div>
             </div>
-        </div>
+        {/* </div> */}
     </div>
   );
 };

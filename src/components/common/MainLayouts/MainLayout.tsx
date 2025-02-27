@@ -20,6 +20,7 @@ import Sider from "antd/es/layout/Sider";
 import useColor from "@/hooks/useColor";
 import { IoMenu } from "react-icons/io5";
 import SettingsTab from "@/components/screens/profile/components/SettingTabs";
+import NotificationScreen from "@/components/screens/notification/views/Notification";
 
 const { useBreakpoint } = Grid;
 const siderStyle: React.CSSProperties = {
@@ -43,6 +44,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const searchParams = useSearchParams();
   const screens = useBreakpoint();
   const [settingModal, setSettingModal] = useState(false);
+  const [notificationModal, setNotificationModal] = useState(false);  
 
   const content = {
     nav: [
@@ -104,7 +106,10 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const handleItemClick = (link: string) => {
     if (link === '/settings') {
       setSettingModal(true);
-    } else {
+    }else if(link === '/notifications'){
+      setNotificationModal(true);
+    }
+     else {
       router.push(link); // Chuyển trang khi nhấn vào menu item
     }
     setVisible(false); // Đóng menu khi nhấn vào item
@@ -266,6 +271,17 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           <SettingsTab setSettingModal={setSettingModal}/>
         </Modal>
       )}
+      {notificationModal && (
+        <Modal
+          open={notificationModal}
+          onCancel={() => setNotificationModal(false)}
+          footer={null}
+          width={700}
+          centered
+          title={<span className="font-bold">{localStrings.Notification.Notification}</span>}
+        >
+           <NotificationScreen setNotificationModal={setNotificationModal}/> 
+        </Modal>)}
     </Layout>
   );
 };

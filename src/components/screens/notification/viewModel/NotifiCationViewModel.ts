@@ -9,7 +9,7 @@ const NotifiCationViewModel = (repo: NotifiCationRepo) => {
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [hasMore, setHasMore] = useState(true);
-    const limit = 20;
+    const limit = 6;
 
     const fetchNotifications = async (newPage: number = 1) => {
         try {
