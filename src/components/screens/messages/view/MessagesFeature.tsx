@@ -7,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import { AiOutlineSend, AiOutlineSearch } from "react-icons/ai";
 import { FaRegSmile } from 'react-icons/fa';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 const MessagesFeature = () => {
   const { user } = useAuth();
@@ -35,6 +36,9 @@ const MessagesFeature = () => {
     setReplyTo,
     messagesEndRef,
   } = useMessageViewModel(user, friends);
+
+  // State để quản lý hiển thị EmojiPicker
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Hàm kiểm tra xem tin nhắn có phải của người dùng đang đăng nhập hay không
   const isUserMessage = (message: Message) => {
@@ -68,8 +72,22 @@ const MessagesFeature = () => {
     scrollToBottom();
   }, [messages, activeFriend]);
 
+  // Hàm xử lý khi chọn emoji từ EmojiPicker
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    setNewMessage(prev => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+  };
+
+  // Gửi tin nhắn khi nhấn Enter trong ô input
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && newMessage.trim() && activeFriend) {
+      handleSendMessage(replyTo ?? undefined);
+      setReplyTo(null);
+    }
+  };
+
   return (
-    <div className="flex h-[85vh] p-4">
+    <div className="flex h-[85vh] p-4 relative">
       {/* Left Side Bar */}
       <div className="w-1/4 border-r p-4 overflow-y-auto h-[80vh] bg-white">
         <div className="flex items-center w-full">
@@ -131,34 +149,34 @@ const MessagesFeature = () => {
                           className="w-8 h-8 rounded-full mr-2"
                         />
                       )}
-                        <div className={`p-2 rounded-lg shadow max-w-xs w-80 break-words 
-                            ${isUser ? 'bg-white text-black' : 'bg-white text-black'}`}>
-                            <div className="font-bold">{message.sender}</div>
-                            <div>{message.text}</div>
-                            {message.replyTo && (
-                                <div className="text-sm text-gray-500">
-                                Trả lời: {message.replyTo.text}
-                                </div>
-                            )}
-                            <div className="text-xs text-gray-500">
-                                {formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}
-                            </div>
-                            <div className="flex gap-2 mt-2 items-center">
-                                <button onClick={() => toggleReaction(message, '❤️')} className="flex items-center">
-                                {message.reactions?.['❤️'] ? (
-                                    <FaHeart className="text-red-500" />
-                                ) : (
-                                    <FaRegHeart className="text-black" />
-                                )}
-                                {message.reactions?.['❤️'] && (
-                                    <span className="ml-1 text-sm">{message.reactions['❤️']}</span>
-                                )}
-                                </button>
-                                <button onClick={() => setReplyTo(message)} className="text-sm text-blue-500">
-                                Trả lời
-                                </button>
-                            </div>
+                      <div className={`p-2 rounded-lg shadow max-w-xs w-80 break-words 
+                          ${isUser ? 'bg-white text-black' : 'bg-white text-black'}`}>
+                        <div className="font-bold">{message.sender}</div>
+                        <div>{message.text}</div>
+                        {message.replyTo && (
+                          <div className="text-sm text-gray-500">
+                            Trả lời: {message.replyTo.text}
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-500">
+                          {formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}
                         </div>
+                        <div className="flex gap-2 mt-2 items-center">
+                          <button onClick={() => toggleReaction(message, '❤️')} className="flex items-center">
+                            {message.reactions?.['❤️'] ? (
+                              <FaHeart className="text-red-500" />
+                            ) : (
+                              <FaRegHeart className="text-black" />
+                            )}
+                            {message.reactions?.['❤️'] && (
+                              <span className="ml-1 text-sm">{message.reactions['❤️']}</span>
+                            )}
+                          </button>
+                          <button onClick={() => setReplyTo(message)} className="text-sm text-blue-500">
+                            Trả lời
+                          </button>
+                        </div>
+                      </div>
                       {/* Nếu tin nhắn của người dùng, hiển thị avatar bên phải */}
                       {isUser && (
                         <img
@@ -181,7 +199,7 @@ const MessagesFeature = () => {
         </div>
 
         {/* Conversation Send Message */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 relative">
           {replyTo && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Trả lời: {replyTo.text}</span>
@@ -191,15 +209,22 @@ const MessagesFeature = () => {
           <button
             title="Chọn emoji"
             aria-label="Chọn emoji"
-            className="p-1 mr-0"
+            className="p-1 mr-0 relative z-10"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           >
             <FaRegSmile className="text-2xl" />
           </button>
+          {showEmojiPicker && (
+            <div className="absolute bottom-16 left-0 z-20">
+              <EmojiPicker onEmojiClick={onEmojiClick} />
+            </div>
+          )}
           <div className="flex items-center p-2 border rounded-lg w-full">
             <input
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder={activeFriend ? "Nhập tin nhắn..." : "Chọn bạn để nhắn tin"}
               className="flex-1 outline-none"
               disabled={!activeFriend}
