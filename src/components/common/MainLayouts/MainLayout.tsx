@@ -9,6 +9,8 @@ import {
   FaCog,
   FaUser,
   FaFacebookMessenger,
+  FaAd,
+  FaBuysellads,
 } from "react-icons/fa";
 import { useAuth } from "@/context/auth/useAuth";
 import { usePathname, useRouter, useSearchParams } from "next/navigation"; // Sử dụng `next/navigation` thay vì `next/router`
@@ -65,10 +67,16 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         icon: FaBell,
       },
       {
+        link:"/adsmanager",
+        content: "Ads Managmement",
+        icon: FaAd, 
+      },
+      {
         link: "/settings",
         content: localStrings.Public.Settings,
         icon: FaCog,
       },
+
     ],
   };
 
@@ -140,7 +148,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       </Header>
       <Layout>
         <Sider
-          width={200}
+          width={300}
           style={{
             display: screens.lg ? "block" : "none",
             overflow: "auto",
