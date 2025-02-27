@@ -68,8 +68,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       },
       {
         link:"/adsmanager",
-        content: "Ads Managmement",
-        icon: FaAd, 
+        content: "Ads Management",
+        icon: FaAd,
       },
       {
         link: "/settings",
@@ -148,7 +148,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       </Header>
       <Layout>
         <Sider
-          width={300}
+          width={200}
           style={{
             display: screens.lg ? "block" : "none",
             overflow: "auto",

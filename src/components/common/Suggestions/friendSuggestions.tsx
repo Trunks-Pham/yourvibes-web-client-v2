@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Avatar, Button, Card, Dropdown, Menu } from "antd";
+import { Avatar, Button, Card, Dropdown, Menu, Modal } from "antd";
 import { useRouter } from "next/navigation";
 import { UsergroupAddOutlined, MoreOutlined } from "@ant-design/icons";
 
@@ -21,6 +21,19 @@ const mockFriendSuggestions = [
 
 const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ friendSuggestions = mockFriendSuggestions }) => {
     const router = useRouter();
+    const [isModalVisible, setIsModalVisible] = useState(false);
+
+    const showModal = () => {
+        setIsModalVisible(true);
+    };
+
+    const handleOk = () => {
+        setIsModalVisible(false);
+    };
+
+    const handleCancel = () => {
+        setIsModalVisible(false);
+    };
 
     const menu = (
         <Menu>
@@ -51,6 +64,23 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ friendSuggestions
                     </Card>
                 ))}
             </div>
+
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "10px" }}>
+                <Button type="link" onClick={showModal} style={{ color: "black" }}>Xem thêm</Button>
+            </div>
+
+            <Modal title="Những người bạn có thể biết" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                    {friendSuggestions.map((suggestion) => (
+                        <Card key={suggestion.id} hoverable style={{ width: 150, textAlign: "center", borderRadius: "10px", padding: "10px" }}>
+                            <Avatar src={suggestion.avatar_url} size={64} style={{ marginBottom: "10px" }} />
+                            <p style={{ fontWeight: "bold", margin: "5px 0" }}>{suggestion.family_name} {suggestion.name}</p>
+                            <Button type="primary" block style={{ marginBottom: "5px" }}>Kết Bạn</Button>
+                            <Button block>Gỡ</Button>
+                        </Card>
+                    ))}
+                </div>
+            </Modal>
         </div>
     );
 };
