@@ -25,6 +25,8 @@ import { useRouter } from "next/navigation";
 import ReportViewModel from "../../report/ViewModel/reportViewModel";
 import ReportScreen from "../../report/views/Report";
 import { IoFlagSharp } from "react-icons/io5";
+import UpdateProfileViewModel from "../../updateProfile/viewModel/UpdateProfileViewModel";
+import { defaultProfileRepo } from "@/api/features/profile/ProfileRepository";
 
 const ProfileHeader = ({
   total,
@@ -44,7 +46,16 @@ const ProfileHeader = ({
   const router = useRouter();
   const { showModal, setShowModal } = ReportViewModel();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const {objectPosition, setObjectPosition} = UpdateProfileViewModel(defaultProfileRepo);
 
+  useEffect(() => {
+    const savedPosition = localStorage.getItem("capwallPosition");
+    if (savedPosition) {
+      setObjectPosition(savedPosition);
+    }
+  }, []);
+  console.log("objectPosition", objectPosition);
+  
   const {
     sendFriendRequest,
     sendRequestLoading,
@@ -217,16 +228,22 @@ const ProfileHeader = ({
   }, [user]);
 
   return (
-    <div className="md:mx-16">
+    <div className="md:mx-16 xl:mx-32">
       <>
         {/* Cover Image */}
         <div style={{ backgroundColor: lightGray }}>
           <Image
             src={user?.capwall_url}
             alt="Cover"
-            className="w-full md:max-h-[375px] max-h-[250px] object-top object-cover"
+            className="w-full md:max-h-[375px] max-h-[250px] object-cover"
             width="100%"
+            style={{objectPosition:objectPosition}}
           />
+              {/* <img
+              src={ user?.capwall_url}
+              alt="cover"
+              className="w-full h-72 object-contain"
+            /> */}
         </div>
 
         {/* Profile Image */}
@@ -310,7 +327,7 @@ const ProfileHeader = ({
           <Col xs={24} md={6} className="md:mt-[60px] mt-0 pt-2 flex items-end">
             <div className="w-full flex justify-center md:justify-end flex-row">
               {/* Friend Button */}
-              {!isLoginUser(user?.id as string) && (
+              {!isLoginUser(user?.id as string) ? (
                 <>
                   <span className="mr-4">{renderFriendButton()}</span>
 
@@ -325,6 +342,16 @@ const ProfileHeader = ({
                     </span>
                   </Button>
                 </>
+              ):(
+                <Button
+                  type="primary"
+                  ghost
+                  onClick={() =>  router.push('/updateProfile')}
+                >
+                  <span className="font-bold text-base">
+                    {localStrings.Public.EditProfile}
+                  </span>
+                </Button>
               )}
             </div>
           </Col>
