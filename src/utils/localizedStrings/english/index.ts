@@ -65,6 +65,7 @@ export const ENGLocalizedStrings = {
     Profile: "Profile",
     LoginStatus: "Please log in again",
     Messages: "Messages",
+    SuggestedFriends: "Suggested Friends",
   },
   Form: {
     Label: {
