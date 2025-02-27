@@ -4,7 +4,7 @@ import { UserModel } from "@/api/features/authenticate/model/LoginModel";
 import { FriendResponseModel } from "@/api/features/profile/model/FriendReponseModel";
 import { useAuth } from "@/context/auth/useAuth";
 import useColor from "@/hooks/useColor";
-import { Avatar, Button, Col, Flex, Modal, Row, Spin } from "antd";
+import { Avatar, Button, Col, Flex, Modal, Row, Skeleton, Spin } from "antd";
 import {
   CreditCardFilled,
   LoadingOutlined,
@@ -25,6 +25,7 @@ import ListFriends from "./ListFriends";
 const AboutTab = ({
   user,
   loading,
+  
   friendCount,
   friends,
   resultCode,
@@ -82,15 +83,14 @@ const AboutTab = ({
   };
 
   return (
-    <div className="mt-4 lg:mx-16 ">
+    <div className="mt-4 lg:mx-16 xl:mx-32">
       <div>
-        {loading ? (
-          <Flex align="center" gap="middle">
-            <Spin indicator={<LoadingOutlined spin />} size="large" />
-          </Flex>
-        ) : (
+      
           <Row gutter={[16, 16]} align={"top"} justify={"center"}>
             <Col xs={24} xl={8} className="w-full xl:sticky xl:top-20" style={{ position: "sticky" }}>
+              {loading ? (
+          <Skeleton active />
+        ) : (
               <div
                 className="w-full mx-auto max-w-[600px] flex flex-col px-5 border rounded-md "
                 style={{ backgroundColor: backgroundColor }}
@@ -250,9 +250,12 @@ const AboutTab = ({
                     />
                   </Modal>
                 </div>
-              </div>
+              </div>)}
             </Col>
-            <Col xs={24} xl={16} className="w-full">
+          
+            <Col xs={24} xl={16} className="w-full">  {loading ? (
+         <Skeleton avatar paragraph={{ rows: 4 }} />
+        ) : (
               <PostList
                 loading={loading}
                 posts={posts}
@@ -261,10 +264,10 @@ const AboutTab = ({
                 fetchUserPosts={fetchUserPosts}
                 hasMore={hasMore}
                 setPosts={setPosts}
-              />
+              />)}
             </Col>
           </Row>
-        )}
+        
       </div>
     </div>
   );

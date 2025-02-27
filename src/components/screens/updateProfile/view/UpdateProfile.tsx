@@ -13,6 +13,8 @@ import {
   Radio,
   Modal,
   DatePicker,
+  Image,
+  Avatar,
 } from "antd";
 
 import {
@@ -28,6 +30,7 @@ import UpdateProfileViewModel from "../viewModel/UpdateProfileViewModel";
 import { useRouter } from "next/navigation";
 
 import useColor from "@/hooks/useColor";
+import { space } from "postcss/lib/list";
 
 const { Text } = Typography;
 
@@ -49,20 +52,35 @@ const UpdateProfileScreen = () => {
     file?: File;
   }>({ url: "", name: "", type: "" });
   const [loading, setLoading] = useState(false);
-  const { updateProfile } = UpdateProfileViewModel(defaultProfileRepo);
+  const { updateProfile, handleScroll, scrollContainerRef, objectPosition } =
+    UpdateProfileViewModel(defaultProfileRepo);
   const [showPicker, setShowPicker] = useState(false);
   const router = useRouter();
+
+  console.log(objectPosition);
 
   useEffect(() => {
     updatedForm.setFieldsValue({
       name: user?.name,
       family_name: user?.family_name,
       email: user?.email,
-      birthday: user?.birthday && dayjs(user.birthday).isValid() ? dayjs(user.birthday) : dayjs(user?.created_at),
+      birthday:
+        user?.birthday && dayjs(user.birthday).isValid()
+          ? dayjs(user.birthday)
+          : dayjs(user?.created_at),
       phone_number: user?.phone_number,
       biography: user?.biography,
     });
-  }, [user]);
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+    }
+    return () => {
+      if (container) {
+        container.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, [user, handleScroll]);
 
   const pickAvatarImage = (file: File) => {
     // Kiểm tra loại tệp (nếu cần)
@@ -115,9 +133,6 @@ const UpdateProfileScreen = () => {
         ) + "Z"
       ).toString(),
     };
-
-    console.log("data đuoc update", data);
-
     // Gọi hàm updateProfile với dữ liệu đã chuẩn bị
     updateProfile(data);
   };
@@ -134,40 +149,70 @@ const UpdateProfileScreen = () => {
           {localStrings.UpdateProfile.UpdateProfile}
         </Text>
       </div>
-
-      <div className="flex flex-col lg:flex-row justify-between mb-6">
-        <div className="flex-auto mr-2 xl:mr-6 xl:w-[550px]">
-          {/* Cover Image */}
-          <div className="relative mb-6"  style={{ backgroundColor: lightGray }}>
-            <img
+      <div className="md:mx-16 xl:mx-32">
+        {/* Cove Image */}
+        <div className="relative" style={{ backgroundColor: lightGray }}>
+          <div
+            ref={scrollContainerRef}
+            className="w-full md:h-[375px] h-[250px] overflow-y-auto"
+          >
+            <Image
               src={newCapwall?.url || user?.capwall_url}
-              alt="cover"
-              className="w-full h-72 object-contain"
+              alt="Cover"
+              className="w-full md:h-[375px] h-[250px] object-cover object-center"
+              width="100%"
+              style={{ objectPosition: objectPosition }}
             />
-            <div className="absolute top-4 left-4">
-              <Upload showUploadList={false} beforeUpload={pickCapwallImage}  accept=".jpg, .jpeg, .gif, .png, .svg">
-                <Button icon={<CameraOutlined />} />
-              </Upload>
-            </div>
-            {newCapwall?.url && (
-              <div className="absolute top-4 right-4">
-                <Button
-                  icon={<CloseOutlined />}
-                  onClick={() => setNewCapwall({ url: "", name: "", type: "" })}
-                />
-              </div>
-            )}
           </div>
-
-          {/* Profile Image */}
-          <div className="flex flex-col lg:flex-row items-center lg:items-start  ml-6 mt-[-80px]">
-            <div className="w-44 h-44 relative rounded-full border border-gray-950">
-              <img
-                src={newAvatar?.url || user?.avatar_url}
-                alt="avatar"
-                className="w-44 h-44 rounded-full object-cover"
+          <div className="absolute top-4 left-4">
+            <Upload
+              showUploadList={false}
+              beforeUpload={pickCapwallImage}
+              accept=".jpg, .jpeg, .gif, .png, .svg"
+            >
+              <Button icon={<CameraOutlined />} />
+            </Upload>
+          </div>
+          {newCapwall?.url && (
+            <div className="absolute top-4 right-4">
+              <Button
+                icon={<CloseOutlined />}
+                onClick={() => setNewCapwall({ url: "", name: "", type: "" })}
               />
-              <div className="absolute top-0 left-2.5">
+            </div>
+          )}
+        </div>
+        {/* Profile Image */}
+        <Row className="mt-[-60px]">
+          {/* Avatar */}
+          <Col xs={24} md={18}>
+            <Row justify={"space-between"}>
+              <Col
+                xs={24}
+                md={10}
+                xl={8}
+                style={{ display: "flex", justifyContent: "center" }}
+              >
+                <div className="relative">
+                  <Avatar
+                  src={newAvatar?.url || user?.avatar_url}
+                  alt="Profile"
+                  shape="circle"
+                  size={{
+                    xs: 150,
+                    sm: 150,
+                    md: 200,
+                    lg: 200,
+                    xl: 200,
+                    xxl: 200,
+                  }}
+                  style={{
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                    border: "2px solid #f0f0f0",
+                    cursor: "pointer",
+                  }}
+                />
+                <div className="absolute top-2 left-2.5">
                 <Upload showUploadList={false} beforeUpload={pickAvatarImage}  accept=".jpg, .jpeg, .gif, .png, .svg">
                   <Button icon={<CameraOutlined />} />
                 </Upload>
@@ -182,16 +227,33 @@ const UpdateProfileScreen = () => {
                   />
                 </div>
               )}
-            </div>
-            <span className="font-bold text-lg ml-2 lg:mt-[60px]">
-              {`${user?.family_name} ${user?.name}` ||
-                localStrings.Public.Username}
-            </span>
+                </div>
+                
+              </Col>
+              <Col xs={24} md={14} xl={16} className="md:mt-[60px] mt-0 pt-4">
+          <div className="md:text-left text-center mt-2">
+                  <text className="text-lg font-bold">
+                    {`${user?.family_name} ${user?.name}` ||
+                      localStrings.Public.Username}
+                  </text>
+                  </div>
+          </Col>
+            </Row>
+          </Col>
+          <Col xs={24} md={6} className="md:mt-[60px] mt-0 pt-2 flex items-end">
+          <div className="md:block hidden">
+              <p>{localStrings.Public.Language}</p>
+          <Radio.Group value={language} onChange={changeLanguage}>
+            <Space direction="vertical">
+              <Radio value="en">{localStrings.Public.English}</Radio>
+              <Radio value="vi">{localStrings.Public.Vietnamese}</Radio>
+            </Space>
+          </Radio.Group>
           </div>
-        </div>
-
-        <div className="flex-auto xl:mr-6">
-          {/* Form */}
+        
+          </Col>
+        </Row>
+    
           <Form form={updatedForm} layout="vertical">
             <Row gutter={16}>
               <Col span={12}>
@@ -243,7 +305,9 @@ const UpdateProfileScreen = () => {
                     ? dayjs(updatedForm.getFieldValue("birthday"))
                     : null
                 }
-                disabledDate={(current) => current && current > dayjs().endOf('day')}
+                disabledDate={(current) =>
+                  current && current > dayjs().endOf("day")
+                }
               />
             </Form.Item>
 
@@ -262,23 +326,18 @@ const UpdateProfileScreen = () => {
               <Input.TextArea placeholder={localStrings.Form.Label.Biography} />
             </Form.Item>
           </Form>
+          
+        
+      </div>
+
+    
           <div className="flex justify-end">
             <Button type="primary" onClick={UpdateProfile} loading={loading}>
               {localStrings.Public.Save}
             </Button>
           </div>
-        </div>
-        <div className="flex-initial w-52 xl:block hidden">
-          <p>{localStrings.Public.Language}</p>
-          <Radio.Group value={language} onChange={changeLanguage}>
-            <Space direction="vertical">
-              <Radio value="en">{localStrings.Public.English}</Radio>
-              <Radio value="vi">{localStrings.Public.Vietnamese}</Radio>
-            </Space>
-          </Radio.Group>
-        </div>
+        
       </div>
-    </div>
   );
 };
 
