@@ -77,7 +77,7 @@ const PostList = ({ loading, posts, loadMorePosts, user, fetchUserPosts, hasMore
   }, [user, backgroundColor, lightGray, localStrings, isModalVisible]);
 
   return (
-    <div className="w-auto flex flex-col items-center justify-center">
+    <div className="w-auto flex flex-col items-center justify-center xl:items-end">
       {/* Add Post Button */}
       {isLoginUser(user?.id as string) && renderAddPost()}
 
@@ -97,7 +97,7 @@ const PostList = ({ loading, posts, loadMorePosts, user, fetchUserPosts, hasMore
           >
 
             {posts.map((item) => (
-              <div key={item?.id} className='w-full flex flex-col items-center' >
+              <div key={item?.id} className='w-full flex flex-col items-center xl:items-end' >
                 <Post post={item} fetchUserPosts={fetchUserPosts} onDeletePost={handleDeletePost}>
                   {item?.parent_post && <Post post={item?.parent_post} isParentPost />}
                 </Post>

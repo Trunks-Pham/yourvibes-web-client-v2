@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from "react";
 const HomeViewModel = (repo: NewFeedRepo) => {
   const [newFeeds, setNewFeeds] = useState<NewFeedResponseModel[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -47,7 +48,7 @@ const HomeViewModel = (repo: NewFeedRepo) => {
 
   const deleteNewFeed = async (id: string) => {
     try {
-      setLoading(true);
+      setLoadingDelete(true);
       const res = await repo.deleteNewFeed(id);
       setNewFeeds((newFeeds) =>
         newFeeds.filter((post) => post.id !== id)
@@ -60,7 +61,7 @@ const HomeViewModel = (repo: NewFeedRepo) => {
     } catch (err: any) {
       console.error(err);
     } finally {
-      setLoading(false);
+      setLoadingDelete(false);
     }
   };
 
@@ -101,6 +102,8 @@ const HomeViewModel = (repo: NewFeedRepo) => {
     deleteNewFeed,
     hasMore,
     setNewFeeds,
+    loadingDelete,
+    setLoadingDelete,
   };
 };
 

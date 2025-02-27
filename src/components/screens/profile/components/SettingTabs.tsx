@@ -105,4 +105,3 @@ const SettingsTab = ({ setSettingModal }: { setSettingModal: React.Dispatch<Reac
 };
 
 export default SettingsTab;
-

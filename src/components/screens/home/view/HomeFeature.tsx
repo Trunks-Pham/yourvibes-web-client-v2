@@ -14,7 +14,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 
 const Homepage = () => {
   const { brandPrimary, backgroundColor, lightGray } = useColor();
-  const { loading, newFeeds, setNewFeeds,fetchNewFeeds, loadMoreNewFeeds, deleteNewFeed, hasMore } = HomeViewModel(defaultNewFeedRepo);
+  const { loading, newFeeds, setNewFeeds,fetchNewFeeds, loadMoreNewFeeds, deleteNewFeed, hasMore, loadingDelete } = HomeViewModel(defaultNewFeedRepo);
   const { user, localStrings } = useAuth();
   const router = useRouter();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -83,7 +83,7 @@ const Homepage = () => {
         marginInline: "10px",
         position: 'fixed',
         width: '280px',
-        maxHeight: '600px',
+        maxHeight: '400px',
         overflowY: 'auto',
         backgroundColor,
         boxShadow: '0 4px 6px rgba(0,0,0,0.1)',

@@ -24,6 +24,9 @@ const updateProfile = async (data: UpdateProfileRequestModel) => {
       onUpdateProfile(response?.data);
       message.success(localStrings.UpdateProfile.UpdateSuccess);
       router.push("/profile?tab=info");
+
+      localStorage.setItem("capwallPosition", objectPosition);
+
     } else { 
       
       message.error(localStrings.UpdateProfile.UpdateFailed);
@@ -55,6 +58,7 @@ const handleScroll = () => {
     handleScroll,
     scrollContainerRef,
     objectPosition,
+    setObjectPosition
     
   };
 };
