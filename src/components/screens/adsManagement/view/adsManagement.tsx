@@ -1,13 +1,90 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useAdsManagement } from "../viewModel/adsManagementViewModel";
-import { FaEdit, FaTrash, FaPlus, FaSearch, FaFileExport } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPlus, FaFileExport } from "react-icons/fa";
+import { Line } from 'react-chartjs-2';
+import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+
+// Register the required components
+Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+// Modal component
+const AdDetailsModal = ({ ad, onClose }: { ad: any; onClose: () => void }) => {
+    const data = {
+        labels: ad.dates,
+        datasets: [
+            {
+                label: 'Results',
+                data: ad.resultsData,
+                borderColor: 'blue',
+                fill: false,
+            },
+            {
+                label: 'Reach',
+                data: ad.reachData,
+                borderColor: 'green',
+                fill: false,
+            },
+            {
+                label: 'Impressions',
+                data: ad.impressionsData,
+                borderColor: 'red',
+                fill: false,
+            },
+        ],
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={onClose}>
+            <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-4xl relative flex" onClick={(e) => e.stopPropagation()}>
+                {/* Close Button */}
+                <button className="absolute top-4 right-4 text-gray-500 hover:text-gray-700" onClick={onClose}>
+                    &times;
+                </button>
+
+                {/* Left Side - Image */}
+                <div className="w-1/2 flex justify-center items-center p-4">
+                    <img src={ad.imageUrl} alt={ad.content} className="w-full h-auto max-h-96 object-cover rounded-md shadow-md" />
+                </div>
+
+                {/* Right Side - Content */}
+                <div className="w-1/2 flex flex-col justify-between p-4">
+                    <h2 className="text-2xl font-semibold mb-4 text-center">{ad.content}</h2>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+                        <p><strong>Status:</strong> {ad.status}</p>
+                        <p><strong>Start Date:</strong> {ad.startDate}</p>
+                        <p><strong>End Date:</strong> {ad.endDate}</p>
+                        <p><strong>Days Remaining:</strong> {ad.daysRemaining}</p>
+                        <p><strong>Results:</strong> {ad.results}</p>
+                        <p><strong>Reach:</strong> {ad.reach}</p>
+                        <p><strong>Impressions:</strong> {ad.impressions}</p>
+                        <p><strong>Cost:</strong> ${ad.cost}</p>
+                    </div>
+
+                    {/* Chart Section */}
+                    <div className="mt-6">
+                        <h3 className="text-lg font-semibold mb-2 text-center">Performance Over Time</h3>
+                        <Line data={data} />
+                    </div>
+
+                    {/* Close Button */}
+                    <div className="mt-6 text-right mr-4">
+                        <button className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-700" onClick={onClose}>
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const AdsManagementFeature = () => {
     const { ads, fetchAds, deleteAd } = useAdsManagement();
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredAds, setFilteredAds] = useState(ads);
+    const [selectedAd, setSelectedAd] = useState<any | null>(null);
 
     useEffect(() => {
         fetchAds();
@@ -18,6 +95,14 @@ const AdsManagementFeature = () => {
             ads.filter((ad) => ad.content.toLowerCase().includes(searchTerm.toLowerCase()))
         );
     }, [searchTerm, ads]);
+
+    const openModal = (ad: any) => {
+        setSelectedAd(ad);
+    };
+
+    const closeModal = () => {
+        setSelectedAd(null);
+    };
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
@@ -34,9 +119,9 @@ const AdsManagementFeature = () => {
             </div>
 
             <div className="mb-6">
-                <input 
-                    type="text" 
-                    placeholder="Search ads..." 
+                <input
+                    type="text"
+                    placeholder="Search ads..."
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -48,34 +133,28 @@ const AdsManagementFeature = () => {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {filteredAds.map((ad) => (
-                        <div 
-                            key={ad.id} 
-                            className="p-5 rounded-xl bg-white shadow-md hover:shadow-lg transition-all border border-gray-200"
+                        <div
+                            key={ad.id}
+                            className="p-5 rounded-xl bg-white shadow-md hover:shadow-lg transition-all border border-gray-200 cursor-pointer"
+                            onClick={() => openModal(ad)} // Open modal on ad card click
                         >
+                            <img src={ad.imageUrl} alt={ad.content} className="w-full h-32 object-cover rounded-md mb-4" />
                             <h2 className="font-semibold">{ad.content}</h2>
                             <p className="text-gray-600">Status: <span className="font-semibold">{ad.status}</span></p>
                             <p className="text-gray-600">Start Date: <span className="font-semibold">{ad.startDate}</span></p>
-                            <p className="text-gray-600">End Date: <span className="font-semibold">{ad.endDate}</span></p>
-                            <p className="text-gray-600">Days Remaining: <span className="font-semibold">{ad.daysRemaining}</span></p>
-                            <p className="text-gray-600">Results: <span className="font-semibold">{ad.results}</span></p>
-                            <p className="text-gray-600">Reach: <span className="font-semibold">{ad.reach}</span></p>
-                            <p className="text-gray-600">Impressions: <span className="font-semibold">{ad.impressions}</span></p>
-                            <p className="text-gray-600">Cost: <span className="font-semibold">${ad.cost}</span></p> 
+                            <p className="text-gray-600">Cost: <span className="font-semibold">${ad.cost}</span></p>
                             <div className="flex justify-between items-center mt-4">
                                 <button className="text-blue-500 hover:text-blue-700">
                                     <FaEdit size={18} />
-                                </button>
-                                <button
-                                    className="text-red-500 hover:text-red-700"
-                                    onClick={() => deleteAd(ad.id)}
-                                >
-                                    <FaTrash size={18} />
                                 </button>
                             </div>
                         </div>
                     ))}
                 </div>
             )}
+
+            {/* Modal for displaying full ad details */}
+            {selectedAd && <AdDetailsModal ad={selectedAd} onClose={closeModal} />}
         </div>
     );
 };
