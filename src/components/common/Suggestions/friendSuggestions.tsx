@@ -10,16 +10,19 @@ interface FriendSuggestionsProps {
         family_name: string;
         name: string;
     }>;
+    postIndex: number;
 }
 
 const mockFriendSuggestions = [
-    { id: "1", avatar_url: "https://th.bing.com/th/id/OIP.QZIRZKUSWt1HBifjDRKGzAHaFj?rs=1&pid=ImgDetMain", family_name: "Nguyễn", name: "An" },
-    { id: "2", avatar_url: "https://th.bing.com/th/id/OIP.QZIRZKUSWt1HBifjDRKGzAHaFj?rs=1&pid=ImgDetMain", family_name: "Trần", name: "Bình" },
-    { id: "3", avatar_url: "https://th.bing.com/th/id/OIP.QZIRZKUSWt1HBifjDRKGzAHaFj?rs=1&pid=ImgDetMain", family_name: "Lê", name: "Cường" },
-    { id: "4", avatar_url: "https://th.bing.com/th/id/OIP.QZIRZKUSWt1HBifjDRKGzAHaFj?rs=1&pid=ImgDetMain", family_name: "Phạm", name: "Duy" },
+    { id: "1", avatar_url: "https://th.bing.com/th/id/OIP.QZIRZKUSWt1HBifjDRKGzAHaFj?rs=1&pid=ImgDetMain", family_name: "Nguyễn", name: "A" },
+    { id: "2", avatar_url: "https://th.bing.com/th/id/OIP.QZIRZKUSWt1HBifjDRKGzAHaFj?rs=1&pid=ImgDetMain", family_name: "Trần", name: "B" },
+    { id: "3", avatar_url: "https://th.bing.com/th/id/OIP.QZIRZKUSWt1HBifjDRKGzAHaFj?rs=1&pid=ImgDetMain", family_name: "Lê", name: "C" },
+    { id: "4", avatar_url: "https://th.bing.com/th/id/OIP.QZIRZKUSWt1HBifjDRKGzAHaFj?rs=1&pid=ImgDetMain", family_name: "Phạm", name: "D" },
+    { id: "5", avatar_url: "https://th.bing.com/th/id/OIP.QZIRZKUSWt1HBifjDRKGzAHaFj?rs=1&pid=ImgDetMain", family_name: "Nguyễn", name: "E" },
+    { id: "6", avatar_url: "https://th.bing.com/th/id/OIP.QZIRZKUSWt1HBifjDRKGzAHaFj?rs=1&pid=ImgDetMain", family_name: "Trần", name: "F" },
 ];
 
-const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ friendSuggestions = mockFriendSuggestions }) => {
+const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ friendSuggestions = mockFriendSuggestions, postIndex }) => {
     const router = useRouter();
     const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -41,6 +44,10 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ friendSuggestions
             <Menu.Item key="2">Tôi không muốn thấy những người bạn này</Menu.Item>
         </Menu>
     );
+
+    if (postIndex >= 5) {
+        return null;
+    }
 
     return (
         <div style={{ width: "100%", padding: "15px", backgroundColor: "#fff", marginTop: "10px", borderRadius: "10px", boxShadow: "0px 2px 5px rgba(0,0,0,0.1)" }}>

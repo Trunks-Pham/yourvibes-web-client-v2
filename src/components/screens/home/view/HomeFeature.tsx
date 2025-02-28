@@ -146,7 +146,7 @@ const Homepage = ({ friendSuggestions }: any) => {
                           <Post post={item?.parent_post} isParentPost />
                         </div>
                       )}
-                      {index === 4 && <FriendSuggestions friendSuggestions={friendSuggestions} />}
+                      {index === 4 && <FriendSuggestions friendSuggestions={friendSuggestions} postIndex={index} />}
                     </div>
                   ))}
                 </InfiniteScroll>
@@ -159,8 +159,7 @@ const Homepage = ({ friendSuggestions }: any) => {
                   } />
                 </div>
               )}
-            </div>
-            {/* <FriendSuggestions friendSuggestions={friendSuggestions} /> */}
+            </div> 
           </div>
           <div className="flex-initial w-[300px] hidden xl:block">
             {renderFriends()}
