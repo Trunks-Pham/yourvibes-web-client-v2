@@ -19,7 +19,6 @@ const PostList = ({ loading, posts, loadMorePosts, user, fetchUserPosts, hasMore
   fetchUserPosts: () => void;
   hasMore: boolean; // Biến để kiểm tra có còn dữ liệu hay không
   setPosts: React.Dispatch<React.SetStateAction<PostResponseModel[]>>;
-  noFooter: boolean;
 }) => {
   const { backgroundColor, lightGray } = useColor();
   const { isLoginUser, localStrings } = useAuth();
