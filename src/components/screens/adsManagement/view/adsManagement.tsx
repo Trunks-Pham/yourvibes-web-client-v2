@@ -175,8 +175,7 @@ const AdsManagementFeature = () => {
                         user={{ id: '', name: '', family_name: '', avatar_url: '' }}
                         fetchUserPosts={fetchUserPosts}
                         hasMore={false}
-                        setPosts={setPosts}
-                        noFooter={true}
+                        setPosts={setPosts} 
                     />
                 </div>
             </Modal>
