@@ -4,6 +4,11 @@ import { useAdsManagement } from "../viewModel/adsManagementViewModel";
 import { FaEdit, FaTrash, FaPlus, FaFileExport } from "react-icons/fa";
 import { Line } from 'react-chartjs-2';
 import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import Post from '@/components/common/post/views/Post';
+import { Modal, Empty } from 'antd';
+import { PostResponseModel } from "@/api/features/post/models/PostResponseModel";
+import ProfileViewModel from "@/components/screens/profile/viewModel/ProfileViewModel";
+import PostList from "@/components/screens/profile/components/PostList";
 
 // Register the required components
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -85,6 +90,16 @@ const AdsManagementFeature = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredAds, setFilteredAds] = useState(ads);
     const [selectedAd, setSelectedAd] = useState<any | null>(null);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isPostListModalVisible, setIsPostListModalVisible] = useState(false);
+    const { fetchUserPosts, posts, setPosts } = ProfileViewModel();
+
+    useEffect(() => {
+        if (isPostListModalVisible) {
+            fetchUserPosts();
+        }
+    }, [isPostListModalVisible]);
+
 
     useEffect(() => {
         fetchAds();
@@ -109,14 +124,62 @@ const AdsManagementFeature = () => {
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h1 className="text-3xl font-semibold text-gray-800">Ads Management</h1>
                 <div className="flex gap-3">
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-all">
-                        <FaPlus /> Create Ad
+                    <button
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+                        onClick={() => setIsPostListModalVisible(true)}
+                    > Create New Ad
                     </button>
                     <button className="bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-700 transition-all">
                         <FaFileExport /> Export
                     </button>
                 </div>
             </div>
+
+            <Modal
+                title="Select a Post for Ad"
+                open={isModalVisible}
+                onCancel={() => setIsModalVisible(false)}
+                footer={null}
+                width={800}
+            >
+                <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+                    {posts.length > 0 ? (
+                        posts.map((post) => (
+                            <div key={post.id} className="p-3 border rounded-lg mb-3 cursor-pointer hover:bg-gray-100">
+                                <Post post={post} />
+                            </div>
+                        ))
+                    ) : (
+                        <Empty description="No Posts Available" />
+                    )}
+                </div>
+            </Modal>
+
+            <Modal title={
+                <div style={{ textAlign: "center", fontSize: 24, fontWeight: "bold" }}>
+                    Chọn bài viết cho quảng cáo
+                </div>
+            }
+                open={isPostListModalVisible}
+                onCancel={() => setIsPostListModalVisible(false)}
+                footer={null}
+                width={700} // Độ rộng cố định
+                centered
+                bodyStyle={{ maxHeight: '700px', overflowY: 'auto', padding: '16px' }} // Giữ modal gọn hơn
+            >
+                <div style={{ maxHeight: '650px', overflowY: 'auto', padding: '8px' }}>
+                    <PostList
+                        loading={false}
+                        posts={posts}
+                        loadMorePosts={fetchUserPosts}
+                        user={{ id: '', name: '', family_name: '', avatar_url: '' }}
+                        fetchUserPosts={fetchUserPosts}
+                        hasMore={false}
+                        setPosts={setPosts}
+                        noFooter={true}
+                    />
+                </div>
+            </Modal>
 
             <div className="mb-6">
                 <input
