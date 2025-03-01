@@ -25,7 +25,6 @@ const PostList = ({ loading, posts, loadMorePosts, user, fetchUserPosts, hasMore
   const [isModalVisible, setIsModalVisible] = useState(false);
   const {deletePost} = EditPostViewModel(defaultPostRepo, user?.id || "", "");
   
-
   const handlePostSuccess = () => {
     setIsModalVisible(false);
     fetchUserPosts();
@@ -36,7 +35,6 @@ const PostList = ({ loading, posts, loadMorePosts, user, fetchUserPosts, hasMore
       setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
     
   };
-  
 
   const renderAddPost = useCallback(() => {
     return (
