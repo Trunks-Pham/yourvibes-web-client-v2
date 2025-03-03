@@ -1,3 +1,6 @@
+import { UserModel } from '@/api/features/authenticate/model/LoginModel';
+import { FriendResponseModel } from '@/api/features/profile/model/FriendReponseModel';
+import { defaultProfileRepo } from '@/api/features/profile/ProfileRepository';
 import { useState, useEffect,useRef } from 'react';
 
 const autoResponses = [
@@ -83,11 +86,11 @@ const autoResponses = [
     'Tin nhắn tự động: Chúng tôi sẽ sớm trả lời.'
 ];
 
-export interface Friend {
-  name: string;
-  avatar: string;
-  lastOnline: Date;
-}
+// export interface Friend {
+//   name: string;
+//   avatar: string;
+//   lastOnline: Date;
+// }
 
 export interface Message {
   avatar: string;
@@ -98,24 +101,21 @@ export interface Message {
   replyTo?: Message;
 }
 
-export const useMessageViewModel = (user: any, friends: Friend[]) => {
+export const useMessageViewModel = (user: any) => {
   const [newMessage, setNewMessage] = useState('');
   const [activeFriend, setActiveFriend] = useState<string | null>(null);
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [userInfo, setUserInfo] = useState<UserModel | null>(null);
+  const [ friends, setFriends ] = useState<FriendResponseModel[]>([]);
+
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      friends.forEach(friend => {
-        if (friend.name === activeFriend) {
-          friend.lastOnline = new Date();
-        }
-      });
-    }, 60000); // Update every minute
-
-    return () => clearInterval(interval);
-  }, [activeFriend, friends]);
+    if (user) {
+      setUserInfo(user);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -150,7 +150,7 @@ export const useMessageViewModel = (user: any, friends: Friend[]) => {
                     ...(prev[activeFriend] || []),
                     {
                         sender: activeFriend,
-                        avatar: friends.find((friend) => friend.name === activeFriend)?.avatar || '',
+                        avatar: friends.find((friend) => friend.name === activeFriend)?.avatar_url || '',
                         text: randomResponse,
                         timestamp: new Date(),
                     },
@@ -177,6 +177,34 @@ export const useMessageViewModel = (user: any, friends: Friend[]) => {
     }));
   };
 
+  const fetchFriends = async (page: number) => {
+      try {
+        const response = await defaultProfileRepo.getListFriends({
+          page: page,
+          limit: 10,
+          user_id: user?.id,
+        });
+  
+        if (response?.data) {
+          if (Array.isArray(response?.data)) {
+              const friends = response?.data.map(
+                (friendResponse: UserModel) => ({
+                  id: friendResponse.id,
+                  family_name: friendResponse.family_name,
+                  name: friendResponse.name,
+                  avatar_url: friendResponse.avatar_url,
+                })
+              ) as UserModel[];
+              setFriends(friends);
+            } else{
+          console.error("response.data is null");
+          setFriends([]);
+        }}
+      } catch (error: any) {
+        console.error(error);
+      }
+    };
+
   return {
     newMessage,
     setNewMessage,
@@ -188,5 +216,7 @@ export const useMessageViewModel = (user: any, friends: Friend[]) => {
     replyTo,
     setReplyTo,
     messagesEndRef,
+    fetchFriends,
+    friends,
   };
 };
