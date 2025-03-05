@@ -269,30 +269,30 @@ const Ads = ({ postId }: { postId: string }) => {
 
               {/* New Advertisement Button */}
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}>
-        <Button
-          type="primary"
-          icon={<FaAd />}
-          onClick={() => {
-            advertisePost({
-              post_id: postId,
-              redirect_url: `${window.location.origin}/ads/${postId}`,
-              end_date: (
-                dayjs(date).format('YYYY-MM-DDT00:00:00') + 'Z'
-              ).toString(),
-              start_date: (
-                dayjs().format('YYYY-MM-DDT00:00:00') + 'Z'
-              ).toString(),
-            });
-          }}
-          style={{
-            borderRadius: 8,
-            backgroundColor: brandPrimary,
-            color: 'white',
-          }}
-        >
-          {localStrings.Ads.Ads}
-        </Button>
-      </div>
+                <Button
+                  type="primary"
+                  icon={<FaAd />}
+                  onClick={() => {
+                    advertisePost({
+                      post_id: postId,
+                      redirect_url: `${window.location.origin}/ads/${postId}`,
+                      end_date: (
+                        dayjs(date).format('YYYY-MM-DDT00:00:00') + 'Z'
+                      ).toString(),
+                      start_date: (
+                        dayjs().format('YYYY-MM-DDT00:00:00') + 'Z'
+                      ).toString(),
+                    });
+                  }}
+                  style={{
+                    borderRadius: 8,
+                    backgroundColor: brandPrimary,
+                    color: 'white',
+                  }}
+                >
+                  {localStrings.Ads.Ads}
+                </Button>
+              </div>
             </div>
           </>
         )}
@@ -318,9 +318,9 @@ const Ads = ({ postId }: { postId: string }) => {
         </Post>
 
         <div style={{ maxWidth: 600 }}>{renderAds()}
-        <div onClick={() => setShowCampaign(true)} className="cursor-pointer pl-2.5 mt-2.5 text-blue-500 font-bold text-[16px]">
-          {localStrings.Ads.ShowCampaign}
-        </div>
+          <div onClick={() => setShowCampaign(true)} className="cursor-pointer pl-2.5 mt-2.5 text-blue-500 font-bold text-[16px]">
+            {localStrings.Ads.ShowCampaign}
+          </div>
         </div>
       </div>
       <Modal
@@ -333,7 +333,7 @@ const Ads = ({ postId }: { postId: string }) => {
       >
         {(adsAll?.length ?? 0) > 0 ? (
           (adsAll ?? []).map((item, index) => (
-            <div key={index} style={{ marginTop: 10}} >
+            <div key={index} style={{ marginTop: 10 }} >
               <div
                 style={{
                   backgroundColor: "#f7f7f7",

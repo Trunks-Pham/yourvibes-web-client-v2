@@ -1,84 +1,176 @@
 "use client";
+
 import { useState, useEffect } from "react";
-import { useAdsManagement } from "../viewModel/adsManagementViewModel";
-import { FaEdit, FaTrash, FaPlus, FaFileExport } from "react-icons/fa";
+import { FaFileExport } from "react-icons/fa";
 import { Line } from 'react-chartjs-2';
 import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-import Post from '@/components/common/post/views/Post';
-import { Modal, Empty } from 'antd';
-import { PostResponseModel } from "@/api/features/post/models/PostResponseModel";
+import { Modal, Spin, Button } from 'antd';
 import ProfileViewModel from "@/components/screens/profile/viewModel/ProfileViewModel";
 import PostList from "@/components/screens/profile/components/PostList";
+import { Ad } from "../viewModel/adsManagementViewModel";
+import { DateTransfer } from "@/utils/helper/DateTransfer";
+import { CurrencyFormat } from "@/utils/helper/CurrencyFormat";
+import useAdsManagement from "../viewModel/adsManagementViewModel";
+import Post from "@/components/common/post/views/Post";
+import AdsViewModel from "@/components/screens/ads/viewModel/AdsViewModel";
+import { defaultPostRepo } from "@/api/features/post/PostRepo";
+import dayjs from 'dayjs';
 
 // Register the required components
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 // Modal component
-const AdDetailsModal = ({ ad, onClose }: { ad: any; onClose: () => void }) => {
+const AdDetailsModal = ({ ad, onClose }: { ad: Ad; onClose: () => void }) => {
     const data = {
-        labels: ad.dates,
+        labels: ad.labels,
         datasets: [
             {
                 label: 'Results',
                 data: ad.resultsData,
-                borderColor: 'blue',
+                borderColor: '#3498db', // Blue
                 fill: false,
+                tension: 0.3,
             },
             {
                 label: 'Reach',
                 data: ad.reachData,
-                borderColor: 'green',
+                borderColor: '#2ecc71', // Green
                 fill: false,
+                tension: 0.3,
             },
             {
                 label: 'Impressions',
                 data: ad.impressionsData,
-                borderColor: 'red',
+                borderColor: '#e67e22', // Orange
                 fill: false,
-            },
+                tension: 0.3,
+            }
         ],
     };
 
+    const options = {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.5, // Adjust aspect ratio for a smaller chart
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Date',
+                },
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Value',
+                },
+                beginAtZero: true,
+            },
+        },
+        plugins: {
+            legend: {
+                position: 'top' as const,
+                labels: {
+                    boxWidth: 10, // Smaller legend box
+                    padding: 10, // Less padding
+                },
+            },
+            tooltip: {
+                mode: 'index' as const,
+                intersect: false,
+            },
+        },
+    };
+    const handleCloseModal = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onClose();
+    }
+
+    const { getPostDetail, post } = AdsViewModel(defaultPostRepo)
+    const [loading, setLoading] = useState(false);
+    useEffect(() => {
+        const fetchData = async () => {
+            if (ad.postId) {
+                setLoading(true)
+                await getPostDetail(ad.postId)
+                setLoading(false)
+            }
+        };
+        fetchData();
+    }, [ad.postId]);
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={onClose}>
-            <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-4xl relative flex" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-4xl relative" onClick={(e) => e.stopPropagation()}>
                 {/* Close Button */}
-                <button className="absolute top-4 right-4 text-gray-500 hover:text-gray-700" onClick={onClose}>
-                    &times;
+                <button className="absolute top-2 right-2 text-gray-600 hover:text-gray-800 focus:outline-none" onClick={handleCloseModal}>
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                 </button>
 
-                {/* Left Side - Image */}
-                <div className="w-1/2 flex justify-center items-center p-4">
-                    <img src={ad.imageUrl} alt={ad.content} className="w-full h-auto max-h-96 object-cover rounded-md shadow-md" />
+                {/* Content */}
+                <div className="flex flex-col md:flex-row gap-4">
+                    {/* Image */}
+                    <div className="md:w-1/2 flex justify-center items-center">
+                        {/*Replaced img by Post Component*/}
+                        {loading ? <Spin /> : post && <Post post={post} noFooter />}
+                    </div>
+                    {/* Details */}
+                    <div className="md:w-1/2 flex flex-col gap-2">
+                        <div className="flex justify-center items-center">
+                            <h2 className="text-xl font-bold text-center text-gray-800">{ad.content}</h2>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-700">
+                            <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                                <p><strong className="text-gray-800">Status:</strong> {ad.status || 'N/A'}</p>
+                            </div>
+                            <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                                <p><strong className="text-gray-800">Start:</strong> {ad.startDate ? DateTransfer(ad.startDate) : 'N/A'}</p>
+                            </div>
+                            <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                                <p><strong className="text-gray-800">End:</strong> {ad.endDate ? DateTransfer(ad.endDate) : 'N/A'}</p>
+                            </div>
+                            <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                                <p><strong className="text-gray-800">Days:</strong> {ad.daysRemaining !== undefined ? ad.daysRemaining : 'N/A'}</p>
+                            </div>
+                            <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                                <p><strong className="text-gray-800">Price:</strong> {ad.price !== undefined ? CurrencyFormat(ad.price) : 'N/A'}</p>
+                            </div>
+                            <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                                <p><strong className="text-gray-800">Bill Status:</strong> {ad.billStatus || 'N/A'}</p>
+                            </div>
+                        </div>
+                        {/* Display stats from chart data */}
+                        <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
+                            <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                                <p>
+                                    <strong className="text-gray-800">Total Results:</strong>{' '}
+                                    {ad.resultsData.reduce((sum, num) => sum + num, 0)}
+                                </p>
+                            </div>
+                            <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                                <p>
+                                    <strong className="text-gray-800">Total Reach:</strong>{' '}
+                                    {ad.reachData.reduce((sum, num) => sum + num, 0)}
+                                </p>
+                            </div>
+                            <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                                <p>
+                                    <strong className="text-gray-800">Total Impressions:</strong>{' '}
+                                    {ad.impressionsData.reduce((sum, num) => sum + num, 0)}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="h-[250px]">
+                            <Line data={data} options={options} />
+                        </div>
+                    </div>
                 </div>
-
-                {/* Right Side - Content */}
-                <div className="w-1/2 flex flex-col justify-between p-4">
-                    <h2 className="text-2xl font-semibold mb-4 text-center">{ad.content}</h2>
-
-                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-                        <p><strong>Status:</strong> {ad.status}</p>
-                        <p><strong>Start Date:</strong> {ad.startDate}</p>
-                        <p><strong>End Date:</strong> {ad.endDate}</p>
-                        <p><strong>Days Remaining:</strong> {ad.daysRemaining}</p>
-                        <p><strong>Results:</strong> {ad.results}</p>
-                        <p><strong>Reach:</strong> {ad.reach}</p>
-                        <p><strong>Impressions:</strong> {ad.impressions}</p>
-                        <p><strong>Cost:</strong> ${ad.cost}</p>
-                    </div>
-
-                    {/* Chart Section */}
-                    <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-2 text-center">Performance Over Time</h3>
-                        <Line data={data} />
-                    </div>
-
-                    {/* Close Button */}
-                    <div className="mt-6 text-right mr-4">
-                        <button className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-700" onClick={onClose}>
-                            Close
-                        </button>
-                    </div>
+                <div className="mt-2 text-center">
+                    <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none" onClick={handleCloseModal}>
+                        Close
+                    </button>
                 </div>
             </div>
         </div>
@@ -86,38 +178,77 @@ const AdDetailsModal = ({ ad, onClose }: { ad: any; onClose: () => void }) => {
 };
 
 const AdsManagementFeature = () => {
-    const { ads, fetchAds, deleteAd } = useAdsManagement();
+    const { loading, ads, error, fetchAds, deleteAd, loadMoreAds, page, setPage,getPostDetail,postDetail } = useAdsManagement();
     const [searchTerm, setSearchTerm] = useState("");
-    const [filteredAds, setFilteredAds] = useState(ads);
-    const [selectedAd, setSelectedAd] = useState<any | null>(null);
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [filteredAds, setFilteredAds] = useState<Ad[]>([]);
+    const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
     const [isPostListModalVisible, setIsPostListModalVisible] = useState(false);
-    const { fetchUserPosts, posts, setPosts } = ProfileViewModel();
+    const { fetchUserPosts, posts, setPosts } = ProfileViewModel(); // Removed isLoading
+    const [postLoading,setPostLoading] = useState<boolean>(false);
+    const [currentPostId, setCurrentPostId] = useState<string | null>(null);
 
     useEffect(() => {
         if (isPostListModalVisible) {
             fetchUserPosts();
         }
-    }, [isPostListModalVisible]);
-
-
-    useEffect(() => {
-        fetchAds();
-    }, []);
+    }, [isPostListModalVisible, fetchUserPosts]); // Added fetchUserPosts to dependency array
 
     useEffect(() => {
-        setFilteredAds(
-            ads.filter((ad) => ad.content.toLowerCase().includes(searchTerm.toLowerCase()))
+        fetchAds()
+    }, [fetchAds])
+
+    //Consolidate filtering logic
+    useEffect(() => {
+        const filter = ads.filter((ad: Ad) =>
+            ad.content.toLowerCase().includes(searchTerm.toLowerCase())
         );
+        setFilteredAds(filter);
     }, [searchTerm, ads]);
 
-    const openModal = (ad: any) => {
+    const openModal = (ad: Ad) => {
         setSelectedAd(ad);
     };
 
     const closeModal = () => {
         setSelectedAd(null);
     };
+
+    // Function to check if an ad is active
+    const isAdActive = (ad: Ad): boolean => {
+        if (ad.billStatus !== 'success') {
+            return false
+        }
+        const now = dayjs();
+        const end = dayjs(ad.endDate, 'DD/MM/YYYY');
+        return now.isBefore(end);
+    };
+
+    useEffect(() => {
+        return () => {
+            setSelectedAd(null)
+        };
+    }, []);
+
+    const handleLoadMore = () => {
+        loadMoreAds();
+    }
+    const handleGetPostDetail = async (postId:string) =>{
+        setPostLoading(true)
+        setCurrentPostId(postId);
+        await getPostDetail(postId)
+        setPostLoading(false);
+    }
+
+    useEffect(() => {
+        if (ads.length > 0) {
+            ads.forEach(async (ad) => {
+                if (ad.postId && (!postDetail || postDetail.id !== ad.postId) && !currentPostId) {
+                   await handleGetPostDetail(ad.postId);
+                }
+             });
+        }
+       
+      }, [ads]);
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
@@ -136,46 +267,27 @@ const AdsManagementFeature = () => {
             </div>
 
             <Modal
-                title="Select a Post for Ad"
-                open={isModalVisible}
-                onCancel={() => setIsModalVisible(false)}
-                footer={null}
-                width={800}
-            >
-                <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-                    {posts.length > 0 ? (
-                        posts.map((post) => (
-                            <div key={post.id} className="p-3 border rounded-lg mb-3 cursor-pointer hover:bg-gray-100">
-                                <Post post={post} />
-                            </div>
-                        ))
-                    ) : (
-                        <Empty description="No Posts Available" />
-                    )}
-                </div>
-            </Modal>
-
-            <Modal title={
-                <div style={{ textAlign: "center", fontSize: 24, fontWeight: "bold" }}>
-                    Chọn bài viết cho quảng cáo
-                </div>
-            }
+                title={
+                    <div style={{ textAlign: "center", fontSize: 24, fontWeight: "bold" }}>
+                        Chọn bài viết cho quảng cáo
+                    </div>
+                }
                 open={isPostListModalVisible}
                 onCancel={() => setIsPostListModalVisible(false)}
                 footer={null}
-                width={700} // Độ rộng cố định
+                width={700}
                 centered
-                bodyStyle={{ maxHeight: '700px', overflowY: 'auto', padding: '16px' }} // Giữ modal gọn hơn
+                bodyStyle={{ maxHeight: '700px', overflowY: 'auto', padding: '16px' }}
             >
                 <div style={{ maxHeight: '650px', overflowY: 'auto', padding: '8px' }}>
                     <PostList
-                        loading={false}
+                        loading={false} // Removed isLoading here
                         posts={posts}
                         loadMorePosts={fetchUserPosts}
                         user={{ id: '', name: '', family_name: '', avatar_url: '' }}
                         fetchUserPosts={fetchUserPosts}
                         hasMore={false}
-                        setPosts={setPosts} 
+                        setPosts={setPosts}
                     />
                 </div>
             </Modal>
@@ -190,33 +302,69 @@ const AdsManagementFeature = () => {
                 />
             </div>
 
-            {filteredAds.length === 0 ? (
-                <p className="text-center text-gray-500">No ads found.</p>
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {filteredAds.map((ad) => (
-                        <div
-                            key={ad.id}
-                            className="p-5 rounded-xl bg-white shadow-md hover:shadow-lg transition-all border border-gray-200 cursor-pointer"
-                            onClick={() => openModal(ad)} // Open modal on ad card click
-                        >
-                            <img src={ad.imageUrl} alt={ad.content} className="w-full h-32 object-cover rounded-md mb-4" />
-                            <h2 className="font-semibold">{ad.content}</h2>
-                            <p className="text-gray-600">Status: <span className="font-semibold">{ad.status}</span></p>
-                            <p className="text-gray-600">Start Date: <span className="font-semibold">{ad.startDate}</span></p>
-                            <p className="text-gray-600">Cost: <span className="font-semibold">${ad.cost}</span></p>
-                            <div className="flex justify-between items-center mt-4">
-                                <button className="text-blue-500 hover:text-blue-700">
-                                    <FaEdit size={18} />
-                                </button>
+            {loading ? (<div className="flex justify-center"><Spin /></div>) :
+                filteredAds.length === 0 ? (
+                    <p className="text-center text-gray-500">No ads found.</p>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {filteredAds.map((ad: Ad, index) => (
+                            <div
+                                key={ad.id}
+                                className="p-5 rounded-xl bg-white shadow-md hover:shadow-lg transition-all border border-gray-200 cursor-pointer"
+                                onClick={() => openModal(ad)}
+                            >
+                                {/* Image */}
+                                <div className=" flex justify-center items-center">
+                                    {/*Replaced img by Post Component*/}
+                                    {postLoading && currentPostId === ad.postId ? <Spin /> : 
+                                        postDetail && postDetail.id === ad.postId ?
+                                            <Post post={postDetail} noFooter /> : null}
+                                </div>
+                               
+                                {isAdActive(ad) && (
+                                    <div className="mt-2">
+                                        <div className="flex items-center">
+                                            <div
+                                                style={{
+                                                    height: 10,
+                                                    width: 10,
+                                                    backgroundColor: "green",
+                                                    borderRadius: 5,
+                                                    marginRight: 5,
+                                                }}
+                                            />
+                                            <span className="text-green-600 font-semibold">Active Campaign</span>
+                                        </div>
+                                        <div className="mt-1">
+                                            <span className="text-gray-600">Campaign #{index + 1}</span>
+                                        </div>
+                                        <div className="text-gray-600">
+                                            Start:  {ad.startDate}
+                                        </div>
+                                        <div className="text-gray-600">
+                                            End: {ad.endDate}
+                                        </div>
+                                        <div className="text-gray-600">
+                                            Days Remaining: {ad.daysRemaining}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                        ))}
+                    </div>
+                )}
+                {/* Load more button */}
+                {ads.length % 10 === 0 && ads.length !== 0 ? (
+                    <div className="flex justify-center mt-4">
+                        <Button type="primary" onClick={handleLoadMore} loading={loading}>
+                            Load more
+                        </Button>
+                    </div>
+                 ) : null}
 
-            {/* Modal for displaying full ad details */}
-            {selectedAd && <AdDetailsModal ad={selectedAd} onClose={closeModal} />}
+            {selectedAd && (
+                <AdDetailsModal ad={selectedAd} onClose={closeModal} />
+            )}
         </div>
     );
 };
