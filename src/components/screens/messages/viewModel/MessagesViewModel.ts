@@ -109,7 +109,8 @@ export const useMessageViewModel = (user: any) => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [userInfo, setUserInfo] = useState<UserModel | null>(null);
   const [ friends, setFriends ] = useState<FriendResponseModel[]>([]);
-
+  const [activeFriendProfile, setActiveFriendProfile] = useState<UserModel | null>(null); 
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -205,6 +206,18 @@ export const useMessageViewModel = (user: any) => {
       }
     };
 
+    const fetchUserProfile = async (userId: string) => {
+      try {
+        const response = await defaultProfileRepo.getProfile(userId);
+        if (response?.data) {
+          setActiveFriendProfile(response.data);
+          setIsProfileModalOpen(true); 
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy thông tin hồ sơ:", error);
+      }
+    };
+
   return {
     newMessage,
     setNewMessage,
@@ -218,5 +231,9 @@ export const useMessageViewModel = (user: any) => {
     messagesEndRef,
     fetchFriends,
     friends,
+    fetchUserProfile, 
+    activeFriendProfile, 
+    isProfileModalOpen, 
+    setIsProfileModalOpen,
   };
 };

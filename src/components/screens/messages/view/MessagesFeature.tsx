@@ -14,7 +14,7 @@ import { Modal } from 'antd';
 import { useRouter } from 'next/navigation';
 
 const MessagesFeature = () => {
-  const { user } = useAuth();
+  const { user, localStrings } = useAuth();
   const {
     newMessage,
     setNewMessage,
@@ -28,6 +28,10 @@ const MessagesFeature = () => {
     messagesEndRef,
     fetchFriends,
     friends,
+    fetchUserProfile,
+    setIsProfileModalOpen,
+    isProfileModalOpen,
+    activeFriendProfile,
   } = useMessageViewModel(user);
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -35,6 +39,8 @@ const MessagesFeature = () => {
   const [groupSearch, setGroupSearch] = useState("");
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const router = useRouter();
+
+  let hoverTimeout: NodeJS.Timeout | null = null;
 
   const isUserMessage = (message: Message) => {
     return message.sender === `${user?.family_name} ${user?.name}`;
@@ -79,19 +85,19 @@ const MessagesFeature = () => {
           <AiOutlineSearch className="mr-[10px]" />
           <input
             type="text"
-            placeholder="Nhập tên người liên hệ"
+            placeholder={localStrings.Messages.SearchUser}
             className="flex-1 p-2 border rounded-lg"
           />
           <button
-            title="Tạo nhóm chat"
-            aria-label="Tạo nhóm chat"
+            title={localStrings.Messages.CreateChatGroup}
+            aria-label={localStrings.Messages.CreateChatGroup}
             onClick={() => setShowGroupModal(true)}
             className="ml-2 p-1"
           >
             <AiOutlineUsergroupAdd className="text-2xl" />
           </button>
         </div>
-        <h2 className="text-xl font-bold mb-4 mt-4">Bạn bè</h2>
+        <h2 className="text-xl font-bold mb-4 mt-4">{localStrings.Messages.FriendBar}</h2>
         <ul>
           {friends.map((friend: UserModel, index: number) => {
             const friendName = friend.name || "";
@@ -111,6 +117,7 @@ const MessagesFeature = () => {
       </div>
       {/* Conversation Area */}
       <div className="flex-1 flex flex-col px-2">
+        {/* Conversation Header */}
         {activeFriend ? (
           (() => {
             const activeFriendData = friends.find((friend: UserModel) => friend.name === activeFriend);
@@ -119,12 +126,22 @@ const MessagesFeature = () => {
                 <img
                   src={activeFriendData?.avatar_url || "https://via.placeholder.com/64"}
                   alt={activeFriendData?.name || "Friend avatar"}
-                  className="mt-2 mr-15 ml-2 w-16 h-16 rounded-full object-cover"
+                  className="mt-2 mr-15 ml-2 w-16 h-16 rounded-full object-cover cursor-pointer"
+                  onMouseEnter={() => {
+                    hoverTimeout = setTimeout(() => {
+                      fetchUserProfile(activeFriendData?.id!);
+                    }, 200); 
+                  }}
+                  onMouseLeave={() => {
+                    if (hoverTimeout) {
+                      clearTimeout(hoverTimeout); 
+                    }
+                  }}
                 />
                 <div className='grow'>
-                <h3 className='mt-6 mb-2 ml-3 text-xl font-bold'>
-                  {activeFriendData ? `${activeFriendData.family_name || ""} ${activeFriendData.name || ""}`.trim() : "Chọn bạn để chat"}
-                </h3>
+                  <h3 className='mt-6 mb-2 ml-3 text-xl font-bold'>
+                    {activeFriendData ? `${activeFriendData.family_name || ""} ${activeFriendData.name || ""}`.trim() : "Chọn bạn để chat"}
+                  </h3>
                 </div>
               </div>
             );
@@ -132,10 +149,11 @@ const MessagesFeature = () => {
         ) : (
           <div className='sticky bg-white z-100 top-0 flex h-20 rounded-xl'>
             <div className='grow p-4'>
-              <h3 className='mt-2 mb-3 ml-3 text-xl font-bold'>Chọn bạn để chat</h3>
+              <h3 className='mt-2 mb-3 ml-3 text-xl font-bold'>{localStrings.Messages.ChooseFriendToChat}</h3>
             </div>
           </div>
         )}
+
         <div className="flex-1 overflow-y-auto border p-4 rounded-lg mb-4 bg-gray-100 max-h-[70vh]">
           {activeFriend ? (
             messages[activeFriend]?.length ? (
@@ -191,10 +209,10 @@ const MessagesFeature = () => {
                 <div ref={messagesEndRef} />
               </>
             ) : (
-              <p className="text-gray-500">Chưa có tin nhắn nào</p>
+              <p className="text-gray-500">{localStrings.Messages.NoMessages}</p>
             )
           ) : (
-            <p className="text-gray-500">Chọn bạn để nhắn tin</p>
+            <p className="text-gray-500">{localStrings.Messages.ChooseFriendToConnect}</p>
           )}
         </div>
         <div className="flex gap-2 relative">
@@ -223,7 +241,7 @@ const MessagesFeature = () => {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={activeFriend ? "Nhập tin nhắn..." : "Chọn bạn để nhắn tin"}
+              placeholder={activeFriend ? localStrings.Messages.EnterMessage : localStrings.Messages.ChooseFriendToConnect}
               className="w-full p-2 border rounded-lg outline-none"
               disabled={!activeFriend}
             />
@@ -244,7 +262,7 @@ const MessagesFeature = () => {
       </div>
       {/* Modal tạo nhóm chat */}
       <Modal
-        title="Tạo nhóm chat"
+        title={localStrings.Messages.CreateChatGroup}
         open={showGroupModal}
         onCancel={() => setShowGroupModal(false)}
         footer={null}
@@ -254,7 +272,7 @@ const MessagesFeature = () => {
           type="text"
           value={groupSearch}
           onChange={(e) => setGroupSearch(e.target.value)}
-          placeholder="Tìm kiếm bạn bè..."
+          placeholder={localStrings.Messages.FindFriendInModal}
           className="w-full p-2 border rounded-lg mb-4"
         />
         <ul className="max-h-60 overflow-y-auto mb-4">
@@ -297,7 +315,7 @@ const MessagesFeature = () => {
             onClick={() => setShowGroupModal(false)}
             className="px-4 py-2 rounded-lg border border-gray-400 text-gray-700"
           >
-            Hủy Bỏ
+            {localStrings.Messages.Cancel}
           </button>
           <button
             onClick={() => {
@@ -312,9 +330,44 @@ const MessagesFeature = () => {
               selectedFriends.length === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"
             }`}
           >
-            Xác Nhận
+            {localStrings.Messages.Confirm}
           </button>
         </div>
+      </Modal>
+      {/* Modal hiển thị thông tin hồ sơ */}
+      <Modal
+        title={localStrings.Messages.UserProfile}
+        open={isProfileModalOpen}
+        onCancel={() => setIsProfileModalOpen(false)}
+        footer={null}
+      >
+        {activeFriendProfile ? (
+          <div className="flex flex-col items-center p-4">
+            <img
+              src={activeFriendProfile.avatar_url || "https://via.placeholder.com/100"}
+              alt="Avatar"
+              className="w-24 h-24 rounded-full border border-gray-300"
+            />
+            <h3 className="mt-2 text-lg font-bold">{activeFriendProfile.family_name} {activeFriendProfile.name}</h3>
+            <p className="text-gray-600">{activeFriendProfile.email}</p>
+            <div className="w-full mt-4">
+              <button
+                className="w-full py-2 border border-black text-black rounded-md hover:bg-gray-100"
+                onClick={() => window.open(`/user/${activeFriendProfile.id}`, "_parent")}
+              >
+                {localStrings.Messages.ProfilePage}
+              </button>
+              <button
+                className="w-full py-2 mt-2 border border-black text-black rounded-md hover:bg-gray-100"
+                onClick={() => alert("Tính năng chặn chưa được triển khai")}
+              >
+                {localStrings.Messages.Block}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-center">Đang tải thông tin...</p>
+        )}
       </Modal>
     </div>
   );

@@ -305,6 +305,7 @@ Report: {
   Note: "Nếu bạn nhận thấy sự đe dọa hoặc ai đó dang gặp nguy hiểm, đừng chần chừ mà hãy tìm ngay sự giúp đỡ và báo cho dịch vụ khẩn cấp ở địa phương trước khi báo cáo với YourVibes.",
   placeholder:"Viết lý do báo cáo của bạn ở đây...",
 },
+
 ChangePassword:{
   ChangePassword: "Thay đổi mật khẩu",
   ChangePasswordFailed: "Thay đổi mật khẩu thất bại, vui lòng kiểm tra lại mật khẩu!",
@@ -316,5 +317,21 @@ ChangePassword:{
   SendOTP: "Nhận OTP",
   OTP: "Mã OTP",
   ConformChangePassword: "Xác nhận thay đổi mật khẩu",
+},
+
+Messages: {
+  SearchUser: "Nhập tên người mà bạn muốn liên hệ",
+  FriendBar: "Bạn bè",
+  CreateChatGroup: "Tạo nhóm chat",
+  ChooseFriendToChat: "Chọn bạn để chat",
+  ChooseFriendToConnect: "Chọn bạn để nhắn tin",
+  NoMessages: "Chưa có tin nhắn nào",
+  EnterMessage: "Nhập tin nhắn",
+  FindFriendInModal: "Tìm kiếm bạn bè",
+  Cancel: "Hủy bỏ",
+  Confirm: "Xác nhận",
+  UserProfile: "Thông tin người dùng",
+  ProfilePage: "Trang cá nhân",
+  Block: "Chặn",
 }
 };
