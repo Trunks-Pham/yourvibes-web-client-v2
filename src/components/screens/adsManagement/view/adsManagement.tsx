@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { FaFileExport } from "react-icons/fa";
 import { Line } from 'react-chartjs-2';
 import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { Modal, Spin, Button } from 'antd';
 import ProfileViewModel from "@/components/screens/profile/viewModel/ProfileViewModel";
 import PostList from "@/components/screens/profile/components/PostList";
-import { Ad } from "../viewModel/adsManagementViewModel";
 import { DateTransfer } from "@/utils/helper/DateTransfer";
 import { CurrencyFormat } from "@/utils/helper/CurrencyFormat";
 import useAdsManagement from "../viewModel/adsManagementViewModel";
@@ -15,12 +14,13 @@ import Post from "@/components/common/post/views/Post";
 import AdsViewModel from "@/components/screens/ads/viewModel/AdsViewModel";
 import { defaultPostRepo } from "@/api/features/post/PostRepo";
 import dayjs from 'dayjs';
+import { AdvertisePostResponseModel } from "@/api/features/post/models/AdvertisePostModel";
 
 // Register the required components
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 // Modal component
-const AdDetailsModal = ({ ad, onClose }: { ad: Ad; onClose: () => void }) => {
+const AdDetailsModal = ({ ad, onClose }: { ad: AdvertisePostResponseModel; onClose: () => void }) => {
     const data = {
         labels: ad.labels,
         datasets: [
@@ -88,16 +88,18 @@ const AdDetailsModal = ({ ad, onClose }: { ad: Ad; onClose: () => void }) => {
 
     const { getPostDetail, post } = AdsViewModel(defaultPostRepo)
     const [loading, setLoading] = useState(false);
+    const postRef = useRef<any>(null);
     useEffect(() => {
         const fetchData = async () => {
-            if (ad.postId) {
-                setLoading(true)
-                await getPostDetail(ad.postId)
-                setLoading(false)
+            if (ad.postId && !postRef.current) {
+                setLoading(true);
+                const res = await getPostDetail(ad.postId);
+                postRef.current = res;
+                setLoading(false);
             }
         };
         fetchData();
-    }, [ad.postId]);
+    }, [ad.postId, getPostDetail]);
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={onClose}>
@@ -114,7 +116,7 @@ const AdDetailsModal = ({ ad, onClose }: { ad: Ad; onClose: () => void }) => {
                     {/* Image */}
                     <div className="md:w-1/2 flex justify-center items-center">
                         {/*Replaced img by Post Component*/}
-                        {loading ? <Spin /> : post && <Post post={post} noFooter />}
+                        {loading ? <Spin /> : postRef.current && <Post post={postRef.current} noFooter />}
                     </div>
                     {/* Details */}
                     <div className="md:w-1/2 flex flex-col gap-2">
@@ -146,19 +148,19 @@ const AdDetailsModal = ({ ad, onClose }: { ad: Ad; onClose: () => void }) => {
                             <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                                 <p>
                                     <strong className="text-gray-800">Total Results:</strong>{' '}
-                                    {ad.resultsData.reduce((sum, num) => sum + num, 0)}
+                                    {ad.resultsData.reduce((sum: number, num: number) => sum + num, 0)}
                                 </p>
                             </div>
                             <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                                 <p>
                                     <strong className="text-gray-800">Total Reach:</strong>{' '}
-                                    {ad.reachData.reduce((sum, num) => sum + num, 0)}
+                                    {ad.reachData.reduce((sum: number, num: number) => sum + num, 0)}
                                 </p>
                             </div>
                             <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                                 <p>
                                     <strong className="text-gray-800">Total Impressions:</strong>{' '}
-                                    {ad.impressionsData.reduce((sum, num) => sum + num, 0)}
+                                    {ad.impressionsData.reduce((sum: number, num: number) => sum + num, 0)}
                                 </p>
                             </div>
                         </div>
@@ -178,34 +180,38 @@ const AdDetailsModal = ({ ad, onClose }: { ad: Ad; onClose: () => void }) => {
 };
 
 const AdsManagementFeature = () => {
-    const { loading, ads, error, fetchAds, deleteAd, loadMoreAds, page, setPage,getPostDetail,postDetail } = useAdsManagement();
+    const { loading, ads, error, fetchAds, deleteAd, loadMoreAds, page, setPage, getPostDetail, postDetail } = useAdsManagement();
     const [searchTerm, setSearchTerm] = useState("");
-    const [filteredAds, setFilteredAds] = useState<Ad[]>([]);
-    const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
+    const [filteredAds, setFilteredAds] = useState<AdvertisePostResponseModel[]>([]);
+    const [selectedAd, setSelectedAd] = useState<AdvertisePostResponseModel | null>(null);
     const [isPostListModalVisible, setIsPostListModalVisible] = useState(false);
     const { fetchUserPosts, posts, setPosts } = ProfileViewModel(); // Removed isLoading
-    const [postLoading,setPostLoading] = useState<boolean>(false);
+    const [postLoading, setPostLoading] = useState<boolean>(false);
     const [currentPostId, setCurrentPostId] = useState<string | null>(null);
+    const [postDetailsCache, setPostDetailsCache] = useState<{ [postId: string]: any }>({});
+
+    const memoizedFetchAds = useCallback(fetchAds, []);
+    const postDetailRefs = useRef<{ [key: string]: any }>({})
 
     useEffect(() => {
         if (isPostListModalVisible) {
             fetchUserPosts();
         }
-    }, [isPostListModalVisible, fetchUserPosts]); // Added fetchUserPosts to dependency array
+    }, [isPostListModalVisible, fetchUserPosts]);
 
     useEffect(() => {
-        fetchAds()
-    }, [fetchAds])
+        memoizedFetchAds();
+    }, [memoizedFetchAds])
 
     //Consolidate filtering logic
     useEffect(() => {
-        const filter = ads.filter((ad: Ad) =>
+        const filter = ads.filter((ad: AdvertisePostResponseModel) =>
             ad.content.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setFilteredAds(filter);
     }, [searchTerm, ads]);
 
-    const openModal = (ad: Ad) => {
+    const openModal = (ad: AdvertisePostResponseModel) => {
         setSelectedAd(ad);
     };
 
@@ -214,7 +220,7 @@ const AdsManagementFeature = () => {
     };
 
     // Function to check if an ad is active
-    const isAdActive = (ad: Ad): boolean => {
+    const isAdActive = (ad: AdvertisePostResponseModel): boolean => {
         if (ad.billStatus !== 'success') {
             return false
         }
@@ -232,23 +238,38 @@ const AdsManagementFeature = () => {
     const handleLoadMore = () => {
         loadMoreAds();
     }
-    const handleGetPostDetail = async (postId:string) =>{
-        setPostLoading(true)
-        setCurrentPostId(postId);
-        await getPostDetail(postId)
-        setPostLoading(false);
+    const handleGetPostDetail = async (postId: string) => {
+        if (!postDetailRefs.current[postId]) {
+            setPostLoading(true)
+            setCurrentPostId(postId);
+            try {
+                const postData = await getPostDetail(postId);
+                postDetailRefs.current[postId] = postData
+                setPostDetailsCache((prevCache) => ({
+                    ...prevCache,
+                    [postId]: postData,
+                }));
+            } finally {
+                setPostLoading(false);
+            }
+        }
     }
 
     useEffect(() => {
         if (ads.length > 0) {
-            ads.forEach(async (ad) => {
-                if (ad.postId && (!postDetail || postDetail.id !== ad.postId) && !currentPostId) {
-                   await handleGetPostDetail(ad.postId);
-                }
-             });
+            const fetchAllPostDetail = async () => {
+                const promises = ads.map(async (ad) => {
+                    if (ad.postId && !postDetailRefs.current[ad.postId]) {
+                        await handleGetPostDetail(ad.postId)
+                    }
+                })
+                await Promise.all(promises);
+            }
+            fetchAllPostDetail();
+
         }
-       
-      }, [ads]);
+
+    }, [ads]);
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
@@ -281,7 +302,7 @@ const AdsManagementFeature = () => {
             >
                 <div style={{ maxHeight: '650px', overflowY: 'auto', padding: '8px' }}>
                     <PostList
-                        loading={false} // Removed isLoading here
+                        loading={false}
                         posts={posts}
                         loadMorePosts={fetchUserPosts}
                         user={{ id: '', name: '', family_name: '', avatar_url: '' }}
@@ -307,20 +328,21 @@ const AdsManagementFeature = () => {
                     <p className="text-center text-gray-500">No ads found.</p>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {filteredAds.map((ad: Ad, index) => (
+                        {filteredAds.map((ad: AdvertisePostResponseModel, index) => (
                             <div
                                 key={ad.id}
-                                className="p-5 rounded-xl bg-white shadow-md hover:shadow-lg transition-all border border-gray-200 cursor-pointer"
+                                className="p-5 rounded-xl bg-white shadow-md hover:shadow-lg transition-all border border-gray-200 cursor-pointer w-[300px] h-[300px] overflow-hidden"
                                 onClick={() => openModal(ad)}
                             >
+
                                 {/* Image */}
                                 <div className=" flex justify-center items-center">
                                     {/*Replaced img by Post Component*/}
-                                    {postLoading && currentPostId === ad.postId ? <Spin /> : 
-                                        postDetail && postDetail.id === ad.postId ?
-                                            <Post post={postDetail} noFooter /> : null}
+                                    {postLoading && currentPostId === ad.postId ? <Spin /> :
+                                        postDetailRefs.current[ad.postId] ?
+                                            <Post post={postDetailRefs.current[ad.postId]} noFooter /> : null}
                                 </div>
-                               
+
                                 {isAdActive(ad) && (
                                     <div className="mt-2">
                                         <div className="flex items-center">
@@ -353,14 +375,14 @@ const AdsManagementFeature = () => {
                         ))}
                     </div>
                 )}
-                {/* Load more button */}
-                {ads.length % 10 === 0 && ads.length !== 0 ? (
-                    <div className="flex justify-center mt-4">
-                        <Button type="primary" onClick={handleLoadMore} loading={loading}>
-                            Load more
-                        </Button>
-                    </div>
-                 ) : null}
+            {/* Load more button */}
+            {ads.length % 10 === 0 && ads.length !== 0 ? (
+                <div className="flex justify-center mt-4">
+                    <Button type="primary" onClick={handleLoadMore} loading={loading}>
+                        Load more
+                    </Button>
+                </div>
+            ) : null}
 
             {selectedAd && (
                 <AdDetailsModal ad={selectedAd} onClose={closeModal} />

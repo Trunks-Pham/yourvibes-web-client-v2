@@ -1,3 +1,4 @@
+import { PostMediaModel } from "./PostResponseModel";
 export interface AdvertisePostRequestModel {
   post_id?: string;
   start_date?: string;
@@ -19,6 +20,12 @@ export interface AdvertisePostResponseModel {
   end_date?: string;
   bill?: BillModel;
   day_remaining?: number;
+  status?: string;
+  resultsData: number[]; 
+  reachData: number[]; 
+  impressionsData: number[];
+  labels: string[];
+  is_advertisement: boolean;
 }
 
 export interface BillModel {
@@ -27,5 +34,5 @@ export interface BillModel {
   price?: number;
   created_at?: string;
   updated_at?: string;
-  status?: boolean;
+  status?: string;  
 }
