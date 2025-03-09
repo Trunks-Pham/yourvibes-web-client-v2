@@ -7,95 +7,81 @@ import { PostResponseModel } from '@/api/features/post/models/PostResponseModel'
 import {
   AdvertisePostRequestModel,
   AdvertisePostResponseModel,
-  GetAdvertiseRequestModel
 } from '@/api/features/post/models/AdvertisePostModel';
-import AdsViewModel from '@/components/screens/ads/viewModel/AdsViewModel';
 
 const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
   const { user } = useAuth();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [adsLoading, setAdsLoading] = useState<boolean>(false);
   const [ads, setAds] = useState<AdvertisePostResponseModel[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
-  const [adsSummaryList, setAdsSummaryList] = useState<AdvertisePostResponseModel[]>([]);
-  const [adsDetail, setAdsDetail] = useState<AdvertisePostResponseModel | undefined>(undefined);
-
-  const {
-    getPostDetail: getPostDetailFromAdsView,
-    advertisePost: advertisePostFromAdsView,
-    getAdvertisePost: getAdvertisePostFromAdsView,
-    adsAll,
-    post: postDetail
-  } = AdsViewModel(repo);
-
-  const advertisePost = async (params: AdvertisePostRequestModel) => {
-    await advertisePostFromAdsView(params);
-  };
+  const [postDetails, setPostDetails] = useState<Record<string, PostResponseModel>>({}); // Lưu chi tiết bài viết theo post_id
 
   const fetchAds = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const request: GetUsersPostsRequestModel = {
-        is_advertisement: true,
         user_id: user?.id,
         sort_by: 'created_at',
         isDescending: true,
         limit: 10,
         page: page,
+        is_advertisement: true,
       };
-      const res = await repo.getPosts(request);
+      const res = await repo.getAdvertisementPosts(request);
       if (res?.data) {
-        const mappedAds: AdvertisePostResponseModel[] = res.data
-          .filter((ad) => ad.is_advertisement)
-          .map((item: PostResponseModel) => {
-            let daysRemaining = 0;
-            let startDate = '';
-            let endDate = '';
+        const filteredAds = res.data.filter((item) => item.is_advertisement === true);
+        const mappedAds: AdvertisePostResponseModel[] = filteredAds.map((item: PostResponseModel) => {
+          let daysRemaining = 0;
+          let startDate = '';
+          let endDate = '';
 
-            if (item.bill?.end_date && item.bill?.start_date) {
-              startDate = dayjs(item.bill.start_date).format('DD/MM/YYYY');
-              endDate = dayjs(item.bill.end_date).format('DD/MM/YYYY');
-              daysRemaining = dayjs(item.bill.end_date).diff(dayjs(), 'day');
-              daysRemaining = daysRemaining < 0 ? 0 : daysRemaining;
-            }
+          if (item.created_at) {
+            startDate = dayjs(item.created_at).format('DD/MM/YYYY');
+            endDate = item.is_advertisement ? dayjs(item.created_at).add(7, 'day').format('DD/MM/YYYY') : '';
+            daysRemaining = dayjs(endDate).diff(dayjs(), 'day');
+            daysRemaining = daysRemaining < 0 ? 0 : daysRemaining;
+          }
 
-            const resultsData = Array.from({ length: 7 }, () =>
-              Math.floor(Math.random() * 50)
-            );
-            const reachData = Array.from({ length: 7 }, () =>
-              Math.floor(Math.random() * 200)
-            );
-            const impressionsData = Array.from({ length: 7 }, () =>
-              Math.floor(Math.random() * 500)
-            );
-            const labels = Array.from({ length: 7 }, (_, i) =>
-              dayjs().subtract(i, 'day').format('DD/MM/YYYY')
-            ).reverse();
+          const resultsData = Array.from({ length: 7 }, () => Math.floor(Math.random() * 50));
+          const reachData = Array.from({ length: 7 }, () => Math.floor(Math.random() * 200));
+          const impressionsData = Array.from({ length: 7 }, () => Math.floor(Math.random() * 500));
+          const labels = Array.from({ length: 7 }, (_, i) =>
+            dayjs().subtract(i, 'day').format('DD/MM/YYYY')
+          ).reverse();
 
-            return {
-              id: item.id,
-              post_id: item.id,
-              status: item.status?.toString(),
-              start_date: startDate,
-              end_date: endDate,
-              bill: item.bill,
-              day_remaining: daysRemaining,
-              resultsData,
-              reachData,
-              impressionsData,
-              labels,
-              is_advertisement: item.is_advertisement
-            };
-          });
+          return {
+            id: item.id,
+            post_id: item.id,
+            status: item.status?.toString(),
+            start_date: startDate,
+            end_date: endDate,
+            bill: item.bill || { price: 0, status: 'complete' },
+            day_remaining: daysRemaining,
+            resultsData,
+            reachData,
+            impressionsData,
+            labels,
+            is_advertisement: item.is_advertisement,
+          };
+        });
 
-        setAdsSummaryList(mappedAds);
         if (page === 1) {
           setAds(mappedAds);
         } else {
-          setAds(prevAds => [...prevAds, ...mappedAds]);
+          setAds((prevAds) => [...prevAds, ...mappedAds]);
+        }
+
+        // Tải chi tiết bài viết cho tất cả quảng cáo khi vào trang
+        for (const ad of mappedAds) {
+          if (ad.post_id && !postDetails[ad.post_id]) {
+            const post = await repo.getPostById(ad.post_id);
+            if (post?.data && post.data.is_advertisement) {
+              setPostDetails((prev) => ({ ...prev, [ad.post_id!]: post.data }));
+            }
+          }
         }
       } else {
         setError('Không thể lấy dữ liệu quảng cáo');
@@ -105,22 +91,36 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, page, repo]);
+  }, [user?.id, page, repo, postDetails]);
 
   const loadMoreAds = () => {
-    setPage(prevPage => prevPage + 1);
+    setPage((prevPage) => prevPage + 1);
   };
 
-  const deleteAd = (id: string) => {
-    setAds(currentAds => currentAds.filter(ad => ad.id !== id));
+  const advertisePost = async (params: AdvertisePostRequestModel) => {
+    try {
+      const res = await repo.advertisePost(params);
+      if (res?.data) {
+        fetchAds();
+      }
+    } catch (err: any) {
+      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi tạo quảng cáo');
+    }
   };
 
   const getPostDetail = async (id: string) => {
-    return await getPostDetailFromAdsView(id);
-  };
-
-  const getAdvertisePost = async (params: GetAdvertiseRequestModel) => {
-    await getAdvertisePostFromAdsView(params.page || 1, params.post_id || '');
+    try {
+      const res = await repo.getPostById(id);
+      if (res?.data && res.data.is_advertisement) {
+        setPostDetails((prev) => ({ ...prev, [id]: res.data }));
+        return res.data;
+      } else {
+        setError('Bài viết không phải là quảng cáo');
+      }
+    } catch (err: any) {
+      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi lấy chi tiết bài viết');
+    }
+    return null;
   };
 
   useEffect(() => {
@@ -129,20 +129,13 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
 
   return {
     loading,
-    adsLoading,
     ads,
     error,
     advertisePost,
     fetchAds,
-    deleteAd,
     loadMoreAds,
-    page,
-    setPage,
-    adsSummaryList,
     getPostDetail,
-    getAdvertisePost,
-    adsAll,
-    postDetail
+    postDetails, // Trả về object chứa chi tiết bài viết
   };
 };
 

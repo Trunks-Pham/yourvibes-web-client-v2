@@ -63,6 +63,7 @@ export const VnLocalizedStrings = {
     LoginStatus:"Vui lòng đăng nhập lại",
     Messages: "Tin Nhắn",
     SuggestedFriend: "Những người bạn có thể biết",
+    LoadMore: "Tải thêm",
   },
   Form: {
     Label: {
@@ -290,6 +291,13 @@ Ads: {
   PaymentFailed:"Thanh toán thất bại",
   NoCampaign:"Không có chiến dịch nào",
   AdvertisePostPending: "Quảng cáo đang chờ xử lý, vui lòng kiểm tra lại quá trình.",
+  CampaignStatus: "Trạng thái chiến dịch",
+  TotalResults: "Tổng số lượt ấn vào",
+  TotalReach: "Tổng số lượt người tiếp cận",
+  TotalImpressions: "Tổng số lượt xem",
+  AdsManagement: "Quản lý quảng cáo",
+  SelectAds: "Chọn bài viết để quảng cáo",
+  NoAdsFound: "Không tìm thấy bài viết quảng cáo nào",
 },
 
 
