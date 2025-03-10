@@ -295,9 +295,13 @@ Ads: {
   TotalResults: "Tổng số lượt ấn vào",
   TotalReach: "Tổng số lượt người tiếp cận",
   TotalImpressions: "Tổng số lượt xem",
-  AdsManagement: "Quản lý quảng cáo",
+  AdsManagement: "Bài quảng cáo",
   SelectAds: "Chọn bài viết để quảng cáo",
   NoAdsFound: "Không tìm thấy bài viết quảng cáo nào",
+  SearchAds: "Tìm kiếm bài viết quảng cáo",
+  ExportAds: "Xuất báo cáo quảng cáo",
+  StartDay: "Ngày bắt đầu",
+  ViewDetails: "Xem chi tiết",
 },
 
 

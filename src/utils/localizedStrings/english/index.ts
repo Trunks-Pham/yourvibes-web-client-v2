@@ -1,4 +1,5 @@
 import { Select, Upload } from "antd";
+import Search from "antd/es/transfer/search";
 import { changeLanguage } from "i18next";
 
 export const ENGLocalizedStrings = {
@@ -303,6 +304,10 @@ export const ENGLocalizedStrings = {
     AdsManagement: "Ads Management",
     SelectAds: "Select article to advertise",
     NoAdsFound: "No ads found",
+    SearchAds: "Search . . .",
+    ExportAds: "Export Ads",
+    StartDay: "Start day",
+    ViewDetails: "View details",
   },
 
   Report: {

@@ -148,7 +148,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       </Header>
       <Layout>
         <Sider
-          width={250}
+          width={200}
           style={{
             display: screens.lg ? "block" : "none",
             overflow: "auto",

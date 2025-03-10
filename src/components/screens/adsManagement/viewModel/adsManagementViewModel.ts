@@ -16,7 +16,8 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
   const [ads, setAds] = useState<AdvertisePostResponseModel[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
-  const [postDetails, setPostDetails] = useState<Record<string, PostResponseModel>>({}); // Lưu chi tiết bài viết theo post_id
+  const [postDetails, setPostDetails] = useState<Record<string, PostResponseModel>>({});
+  const [isLoadingPostDetails, setIsLoadingPostDetails] = useState<boolean>(false);
 
   const fetchAds = useCallback(async () => {
     setLoading(true);
@@ -58,7 +59,7 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
             status: item.status?.toString(),
             start_date: startDate,
             end_date: endDate,
-            bill: item.bill || { price: 0, status: 'complete' },
+            bill: item.bill || { price: 0, status: 'active' },
             day_remaining: daysRemaining,
             resultsData,
             reachData,
@@ -74,14 +75,23 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
           setAds((prevAds) => [...prevAds, ...mappedAds]);
         }
 
-        // Tải chi tiết bài viết cho tất cả quảng cáo khi vào trang
-        for (const ad of mappedAds) {
-          if (ad.post_id && !postDetails[ad.post_id]) {
-            const post = await repo.getPostById(ad.post_id);
-            if (post?.data && post.data.is_advertisement) {
-              setPostDetails((prev) => ({ ...prev, [ad.post_id!]: post.data }));
-            }
+        //Get details of post
+        setIsLoadingPostDetails(true)
+        const postIdsToFetch = mappedAds.map((ad) => ad.post_id).filter((postId) => !postDetails[postId!]);
+        if (postIdsToFetch.length > 0) {
+          const fetchPostDetails = async () => {
+            const newPostDetails: Record<string, PostResponseModel> = {};
+            await Promise.all(
+              postIdsToFetch.map(async (postId) => {
+                const post = await repo.getPostById(postId!);
+                if (post?.data && post.data.is_advertisement) {
+                  newPostDetails[postId!] = post.data;
+                }
+              })
+            );
+            setPostDetails((prev) => ({ ...prev, ...newPostDetails }));
           }
+          await fetchPostDetails()
         }
       } else {
         setError('Không thể lấy dữ liệu quảng cáo');
@@ -90,8 +100,9 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
       setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi không xác định');
     } finally {
       setLoading(false);
+      setIsLoadingPostDetails(false)
     }
-  }, [user?.id, page, repo, postDetails]);
+  }, [user?.id, page, repo]);
 
   const loadMoreAds = () => {
     setPage((prevPage) => prevPage + 1);
@@ -101,31 +112,19 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
     try {
       const res = await repo.advertisePost(params);
       if (res?.data) {
-        fetchAds();
+        //Reload page 1
+        setPage(1)
       }
     } catch (err: any) {
       setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi tạo quảng cáo');
     }
   };
 
-  const getPostDetail = async (id: string) => {
-    try {
-      const res = await repo.getPostById(id);
-      if (res?.data && res.data.is_advertisement) {
-        setPostDetails((prev) => ({ ...prev, [id]: res.data }));
-        return res.data;
-      } else {
-        setError('Bài viết không phải là quảng cáo');
-      }
-    } catch (err: any) {
-      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi lấy chi tiết bài viết');
-    }
-    return null;
-  };
-
   useEffect(() => {
-    fetchAds();
-  }, [fetchAds]);
+    if (user?.id) {
+      fetchAds();
+    }
+  }, [fetchAds, user?.id]);
 
   return {
     loading,
@@ -134,8 +133,8 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
     advertisePost,
     fetchAds,
     loadMoreAds,
-    getPostDetail,
-    postDetails, // Trả về object chứa chi tiết bài viết
+    postDetails,
+    isLoadingPostDetails
   };
 };
 
