@@ -302,6 +302,9 @@ Ads: {
   ExportAds: "Xuất báo cáo quảng cáo",
   StartDay: "Ngày bắt đầu",
   ViewDetails: "Xem chi tiết",
+  Voucher: "Mã giảm giá",
+  InvalidVoucher: "Mã giảm giá không hợp lệ",
+  VoucherApplied: "Mã giảm giá đã được áp dụng",
 },
 
 
