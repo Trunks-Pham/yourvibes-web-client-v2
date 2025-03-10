@@ -13,6 +13,7 @@ import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import { CiCircleChevDown } from "react-icons/ci";
 import { Modal } from 'antd';
 import { useRouter } from 'next/navigation';
+import { IoMdArrowBack } from "react-icons/io";
 
 const MessagesFeature = () => {
   const { user, localStrings } = useAuth();
@@ -40,6 +41,7 @@ const MessagesFeature = () => {
   const [groupSearch, setGroupSearch] = useState("");
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
   const router = useRouter();
 
   let hoverTimeout: NodeJS.Timeout | null = null;
@@ -58,6 +60,32 @@ const MessagesFeature = () => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
   };
+
+  // Handle window resize to show/hide sidebar automatically based on screen width
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        // On mobile, hide sidebar when a friend is active
+        setShowSidebar(!activeFriend);
+      } else {
+        // On desktop, always show sidebar
+        setShowSidebar(true);
+      }
+    };
+
+    // Set initial state
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [activeFriend]);
+
+  // Show/hide sidebar based on active friend on mobile
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setShowSidebar(!activeFriend);
+    }
+  }, [activeFriend]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -81,56 +109,79 @@ const MessagesFeature = () => {
     }
   };
 
+  // Helper function to go back to friend list (for mobile)
+  const handleBackToFriendList = () => {
+    setActiveFriend(null);
+    setShowSidebar(true);
+  };
+
   return (
-    <div className="flex h-[85vh] p-4 relative">
+    <div className="flex flex-col md:flex-row h-[85vh] p-2 md:p-4 relative">
       {/* Left Side Bar */}
-      <div className="w-1/4 border-r p-4 overflow-y-auto h-[80vh] bg-white">
-        <div className="flex items-center w-full">
-          <AiOutlineSearch className="mr-[10px]" />
-          <input
-            type="text"
-            placeholder={localStrings.Messages.SearchUser}
-            className="flex-1 p-2 border rounded-lg"
-          />
-          <button
-            title={localStrings.Messages.CreateChatGroup}
-            aria-label={localStrings.Messages.CreateChatGroup}
-            onClick={() => setShowGroupModal(true)}
-            className="ml-2 p-1"
-          >
-            <AiOutlineUsergroupAdd className="text-2xl" />
-          </button>
+      {showSidebar && (
+        <div className="w-full md:w-1/3 lg:w-1/4 border-r p-2 md:p-4 overflow-y-auto h-[40vh] md:h-[80vh] bg-white">
+          <div className="flex items-center w-full">
+            <AiOutlineSearch className="mr-[10px]" />
+            <input
+              type="text"
+              placeholder={localStrings.Messages.SearchUser}
+              className="flex-1 p-2 border rounded-lg text-sm md:text-base"
+            />
+            <button
+              title={localStrings.Messages.CreateChatGroup}
+              aria-label={localStrings.Messages.CreateChatGroup}
+              onClick={() => setShowGroupModal(true)}
+              className="ml-2 p-1"
+            >
+              <AiOutlineUsergroupAdd className="text-xl md:text-2xl" />
+            </button>
+          </div>
+          <h2 className="text-lg md:text-xl font-bold mb-2 md:mb-4 mt-2 md:mt-4">{localStrings.Messages.FriendBar}</h2>
+          <ul>
+            {friends.map((friend: UserModel, index: number) => {
+              const friendName = friend.name || "";
+              const friendFamilyName = friend.family_name || "";
+              return (
+                <li
+                  key={index}
+                  className={`flex items-center p-2 cursor-pointer rounded-lg hover:bg-blue-100 ${activeFriend === friendName ? 'bg-blue-200' : ''}`}
+                  onClick={() => {
+                    setActiveFriend(friendName || null);
+                    if (window.innerWidth < 768) {
+                      setShowSidebar(false);
+                    }
+                  }}
+                >
+                  <img src={friend.avatar_url} alt={`${friendName}'s avatar`} className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2" />
+                  <span className="font-medium text-sm md:text-base">{friendFamilyName} {friendName}</span>
+                </li>
+              );
+            })}
+          </ul>
         </div>
-        <h2 className="text-xl font-bold mb-4 mt-4">{localStrings.Messages.FriendBar}</h2>
-        <ul>
-          {friends.map((friend: UserModel, index: number) => {
-            const friendName = friend.name || "";
-            const friendFamilyName = friend.family_name || "";
-            return (
-              <li
-                key={index}
-                className={`flex items-center p-2 cursor-pointer rounded-lg hover:bg-blue-100 ${activeFriend === friendName ? 'bg-blue-200' : ''}`}
-                onClick={() => setActiveFriend(friendName || null)}
-              >
-                <img src={friend.avatar_url} alt={`${friendName}'s avatar`} className="w-10 h-10 rounded-full mr-2" />
-                <span className="font-medium">{friendFamilyName} {friendName}</span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+      )}
+      
       {/* Conversation Area */}
-      <div className="flex-1 flex flex-col px-2">
+      <div className={`flex-1 flex flex-col px-1 md:px-2 ${!showSidebar ? 'block' : 'hidden md:block'}`}>
         {/* Conversation Header */}
         {activeFriend ? (
           (() => {
             const activeFriendData = friends.find((friend: UserModel) => friend.name === activeFriend);
             return (
-              <div className='sticky bg-white z-100 top-0 flex h-20 rounded-xl'>
+              <div className='sticky bg-white z-100 top-0 flex h-16 md:h-20 rounded-xl items-center'>
+                {window.innerWidth < 768 && (
+                  <button 
+                    onClick={handleBackToFriendList}
+                    className="p-2 mr-1"
+                    aria-label="Back to friend list"
+                  >
+                    <IoMdArrowBack className="text-xl" />
+                  </button>
+                )}
                 <img
                   src={activeFriendData?.avatar_url || "https://via.placeholder.com/64"}
                   alt={activeFriendData?.name || "Friend avatar"}
-                  className="mt-2 mr-15 ml-2 w-16 h-16 rounded-full object-cover cursor-pointer"
+                  className="mt-1 md:mt-2 mr-3 ml-1 md:ml-2 w-10 h-10 md:w-16 md:h-16 rounded-full object-cover cursor-pointer"
                   onMouseEnter={() => {
                     hoverTimeout = setTimeout(() => {
                       fetchUserProfile(activeFriendData?.id!);
@@ -143,7 +194,7 @@ const MessagesFeature = () => {
                   }}
                 />
                 <div className='grow'>
-                  <h3 className='mt-6 mb-2 ml-3 text-xl font-bold'>
+                  <h3 className='mt-1 md:mt-6 mb-1 md:mb-2 ml-1 md:ml-3 text-base md:text-xl font-bold truncate'>
                     {activeFriendData ? `${activeFriendData.family_name || ""} ${activeFriendData.name || ""}`.trim() : "Chọn bạn để chat"}
                   </h3>
                 </div>
@@ -151,16 +202,16 @@ const MessagesFeature = () => {
             );
           })()
         ) : (
-          <div className='sticky bg-white z-100 top-0 flex h-20 rounded-xl'>
-            <div className='grow p-4'>
-              <h3 className='mt-2 mb-3 ml-3 text-xl font-bold'>{localStrings.Messages.ChooseFriendToChat}</h3>
+          <div className='sticky bg-white z-100 top-0 flex h-16 md:h-20 rounded-xl'>
+            <div className='grow p-2 md:p-4'>
+              <h3 className='mt-1 md:mt-2 mb-1 md:mb-3 ml-1 md:ml-3 text-base md:text-xl font-bold'>{localStrings.Messages.ChooseFriendToChat}</h3>
             </div>
           </div>
         )}
 
         {/* Conversation Content */}
         <div 
-          className="flex-1 overflow-y-auto border p-4 rounded-lg mb-4 bg-gray-100 max-h-[70vh] relative"
+          className="flex-1 overflow-y-auto border p-4 rounded-lg mb-4 bg-gray-100 h-[64vh] relative"
           onScroll={(e) => {
             const target = e.currentTarget;
             const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight > 100;
@@ -233,19 +284,21 @@ const MessagesFeature = () => {
               messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
               setShowScrollToBottom(false);
             }}
-            className="absolute bottom-20 right-12 p-2 bg-white border border-gray-300 rounded-full shadow-md hover:bg-gray-200"
+            className="absolute bottom-16 md:bottom-20 right-6 md:right-12 p-1 md:p-2 bg-white border border-gray-300 rounded-full shadow-md hover:bg-gray-200"
             title={localStrings.Messages.ScrollToBottom}
           >
-            <CiCircleChevDown className="text-2xl text-gray-700" />
+            <CiCircleChevDown className="text-xl md:text-2xl text-gray-700" />
           </button>
         )}
-        <div className="flex gap-2 relative">
-          {replyTo && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">{localStrings.Messages.Reply}: {replyTo.text}</span>
-              <button onClick={() => setReplyTo(null)} className="text-red-500">{localStrings.Messages.Cancel}</button>
-            </div>
-          )}
+        {/* Reply bar */}
+        {replyTo && (
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm text-gray-500">{localStrings.Messages.Reply}: {replyTo.text}</span>
+            <button onClick={() => setReplyTo(null)} className="text-red-500">{localStrings.Messages.Cancel}</button>
+          </div>
+        )}
+        {/* Input area */}
+        <div className="flex gap-2 relative mb-2 md:mb-4">
           <button
             title="Chọn emoji"
             aria-label="Chọn emoji"
@@ -291,16 +344,24 @@ const MessagesFeature = () => {
         open={showGroupModal}
         onCancel={() => setShowGroupModal(false)}
         footer={null}
-        styles={{ body: { padding: '20px' } }}
+        styles={{ 
+          body: { padding: '20px' },
+          mask: { background: 'rgba(0, 0, 0, 0.6)' },
+          content: { 
+            width: '90%', 
+            maxWidth: '500px',
+            margin: '0 auto' 
+          }
+        }}
       >
         <input
           type="text"
           value={groupSearch}
           onChange={(e) => setGroupSearch(e.target.value)}
           placeholder={localStrings.Messages.FindFriendInModal}
-          className="w-full p-2 border rounded-lg mb-4"
+          className="w-full p-2 border rounded-lg mb-4 text-sm md:text-base"
         />
-        <ul className="max-h-60 overflow-y-auto mb-4">
+        <ul className="max-h-40 md:max-h-60 overflow-y-auto mb-4">
           {friends
             .filter((friend: UserModel) => {
               const fullName = `${friend.family_name || ""} ${friend.name || ""}`.toLowerCase();
@@ -329,8 +390,8 @@ const MessagesFeature = () => {
                   className="mr-2"
                   title={`Chọn ${fullName} vào nhóm chat`}
                 />
-                  <img src={friend.avatar_url} alt={fullName} className="w-8 h-8 rounded-full mr-2" />
-                  <span>{fullName}</span>
+                  <img src={friend.avatar_url} alt={fullName} className="w-6 h-6 md:w-8 md:h-8 rounded-full mr-2" />
+                  <span className="text-sm md:text-base">{fullName}</span>
                 </li>
               );
             })}
@@ -338,7 +399,7 @@ const MessagesFeature = () => {
         <div className="flex justify-end gap-2">
           <button
             onClick={() => setShowGroupModal(false)}
-            className="px-4 py-2 rounded-lg border border-gray-400 text-gray-700"
+            className="px-2 py-1 md:px-4 md:py-2 rounded-lg border border-gray-400 text-gray-700 text-sm md:text-base"
           >
             {localStrings.Messages.Cancel}
           </button>
@@ -351,7 +412,7 @@ const MessagesFeature = () => {
               }
             }}
             disabled={selectedFriends.length === 0}
-            className={`px-4 py-2 rounded-lg text-white ${
+            className={`px-2 py-1 md:px-4 md:py-2 rounded-lg text-white text-sm md:text-base ${
               selectedFriends.length === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"
             }`}
           >
@@ -359,31 +420,41 @@ const MessagesFeature = () => {
           </button>
         </div>
       </Modal>
+      
       {/* Modal hiển thị thông tin hồ sơ */}
       <Modal
         title={localStrings.Messages.UserProfile}
         open={isProfileModalOpen}
         onCancel={() => setIsProfileModalOpen(false)}
         footer={null}
+        styles={{ 
+          body: { padding: '20px' },
+          mask: { background: 'rgba(0, 0, 0, 0.6)' },
+          content: { 
+            width: '90%', 
+            maxWidth: '400px',
+            margin: '0 auto' 
+          }
+        }}
       >
         {activeFriendProfile ? (
-          <div className="flex flex-col items-center p-4">
+          <div className="flex flex-col items-center p-2 md:p-4">
             <img
               src={activeFriendProfile.avatar_url || "https://via.placeholder.com/100"}
               alt="Avatar"
-              className="w-24 h-24 rounded-full border border-gray-300"
+              className="w-16 h-16 md:w-24 md:h-24 rounded-full border border-gray-300"
             />
-            <h3 className="mt-2 text-lg font-bold">{activeFriendProfile.family_name} {activeFriendProfile.name}</h3>
-            <p className="text-gray-600">{activeFriendProfile.email}</p>
+            <h3 className="mt-2 text-base md:text-lg font-bold">{activeFriendProfile.family_name} {activeFriendProfile.name}</h3>
+            <p className="text-sm md:text-base text-gray-600">{activeFriendProfile.email}</p>
             <div className="w-full mt-4">
               <button
-                className="w-full py-2 border border-black text-black rounded-md hover:bg-gray-100"
+                className="w-full py-1 md:py-2 border border-black text-black rounded-md hover:bg-gray-100 text-sm md:text-base"
                 onClick={() => window.open(`/user/${activeFriendProfile.id}`, "_parent")}
               >
                 {localStrings.Messages.ProfilePage}
               </button>
               <button
-                className="w-full py-2 mt-2 border border-black text-black rounded-md hover:bg-gray-100"
+                className="w-full py-1 md:py-2 mt-2 border border-black text-black rounded-md hover:bg-gray-100 text-sm md:text-base"
                 onClick={() => alert("Tính năng chặn chưa được triển khai")}
               >
                 {localStrings.Messages.Block}
@@ -391,7 +462,7 @@ const MessagesFeature = () => {
             </div>
           </div>
         ) : (
-          <p className="text-center">Đang tải thông tin...</p>
+          <p className="text-center text-sm md:text-base">Đang tải thông tin...</p>
         )}
       </Modal>
     </div>
