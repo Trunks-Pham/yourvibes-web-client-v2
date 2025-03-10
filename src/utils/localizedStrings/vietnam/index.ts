@@ -345,5 +345,7 @@ Messages: {
   UserProfile: "Thông tin người dùng",
   ProfilePage: "Trang cá nhân",
   Block: "Chặn",
+  Reply: "Trả lời",
+  ScrollToBottom: "Cuộn xuống dưới",
 }
 };

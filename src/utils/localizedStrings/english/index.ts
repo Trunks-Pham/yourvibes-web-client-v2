@@ -350,5 +350,7 @@ export const ENGLocalizedStrings = {
     UserProfile: "User Profile",
     ProfilePage: "Profile Page",
     Block: "Block",
+    Reply: "Reply",
+    ScrollToBottom: "Scroll to bottom",
   }
 };
