@@ -61,26 +61,21 @@ const MessagesFeature = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
   };
 
-  // Handle window resize to show/hide sidebar automatically based on screen width
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
-        // On mobile, hide sidebar when a friend is active
         setShowSidebar(!activeFriend);
       } else {
-        // On desktop, always show sidebar
         setShowSidebar(true);
       }
     };
 
-    // Set initial state
     handleResize();
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [activeFriend]);
 
-  // Show/hide sidebar based on active friend on mobile
   useEffect(() => {
     if (window.innerWidth < 768) {
       setShowSidebar(!activeFriend);
@@ -109,7 +104,6 @@ const MessagesFeature = () => {
     }
   };
 
-  // Helper function to go back to friend list (for mobile)
   const handleBackToFriendList = () => {
     setActiveFriend(null);
     setShowSidebar(true);
