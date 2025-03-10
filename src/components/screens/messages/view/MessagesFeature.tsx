@@ -10,6 +10,7 @@ import { FaRegSmile } from 'react-icons/fa';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { UserModel } from '@/api/features/authenticate/model/LoginModel';
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
+import { CiCircleChevDown } from "react-icons/ci";
 import { Modal } from 'antd';
 import { useRouter } from 'next/navigation';
 
@@ -38,6 +39,7 @@ const MessagesFeature = () => {
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [groupSearch, setGroupSearch] = useState("");
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const router = useRouter();
 
   let hoverTimeout: NodeJS.Timeout | null = null;
@@ -54,11 +56,13 @@ const MessagesFeature = () => {
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
   };
 
   useEffect(() => {
-    scrollToBottom();
+    setTimeout(() => {
+      scrollToBottom();
+    }, 300);
   }, [messages, activeFriend]);
 
   useEffect(() => {
@@ -154,7 +158,15 @@ const MessagesFeature = () => {
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto border p-4 rounded-lg mb-4 bg-gray-100 max-h-[70vh]">
+        {/* Conversation Content */}
+        <div 
+          className="flex-1 overflow-y-auto border p-4 rounded-lg mb-4 bg-gray-100 max-h-[70vh] relative"
+          onScroll={(e) => {
+            const target = e.currentTarget;
+            const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight > 100;
+            setShowScrollToBottom(isNearBottom);
+          }}
+        >
           {activeFriend ? (
             messages[activeFriend]?.length ? (
               <>
@@ -174,7 +186,7 @@ const MessagesFeature = () => {
                         <div>{message.text}</div>
                         {message.replyTo && (
                           <div className="text-sm text-gray-500">
-                            Trả lời: {message.replyTo.text}
+                          {localStrings.Messages.Reply}: {message.replyTo.text}
                           </div>
                         )}
                         <div className="text-xs text-gray-500">
@@ -192,7 +204,7 @@ const MessagesFeature = () => {
                             )}
                           </button>
                           <button onClick={() => setReplyTo(message)} className="text-sm text-blue-500">
-                            Trả lời
+                            {localStrings.Messages.Reply}
                           </button>
                         </div>
                       </div>
@@ -215,11 +227,23 @@ const MessagesFeature = () => {
             <p className="text-gray-500">{localStrings.Messages.ChooseFriendToConnect}</p>
           )}
         </div>
+        {showScrollToBottom && (
+          <button
+            onClick={() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+              setShowScrollToBottom(false);
+            }}
+            className="absolute bottom-20 right-12 p-2 bg-white border border-gray-300 rounded-full shadow-md hover:bg-gray-200"
+            title={localStrings.Messages.ScrollToBottom}
+          >
+            <CiCircleChevDown className="text-2xl text-gray-700" />
+          </button>
+        )}
         <div className="flex gap-2 relative">
           {replyTo && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Trả lời: {replyTo.text}</span>
-              <button onClick={() => setReplyTo(null)} className="text-red-500">Hủy</button>
+              <span className="text-sm text-gray-500">{localStrings.Messages.Reply}: {replyTo.text}</span>
+              <button onClick={() => setReplyTo(null)} className="text-red-500">{localStrings.Messages.Cancel}</button>
             </div>
           )}
           <button
@@ -260,6 +284,7 @@ const MessagesFeature = () => {
           </button>
         </div>
       </div>
+
       {/* Modal tạo nhóm chat */}
       <Modal
         title={localStrings.Messages.CreateChatGroup}
