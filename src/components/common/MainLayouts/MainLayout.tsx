@@ -68,7 +68,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       },
       {
         link:"/adsManagement",
-        content: "Ads Management",
+        content: localStrings.Ads.AdsManagement,
         icon: FaAd,
       },
       {
