@@ -308,6 +308,9 @@ export const ENGLocalizedStrings = {
     ExportAds: "Export Ads",
     StartDay: "Start day",
     ViewDetails: "View details",
+    Voucher: "Voucher",
+    VoucherApplied: "Voucher applied",
+    InvalidVoucher: "Invalid voucher",
   },
 
   Report: {

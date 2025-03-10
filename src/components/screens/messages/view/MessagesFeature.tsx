@@ -204,7 +204,7 @@ const MessagesFeature = () => {
         )}
 
         {/* Conversation Content */}
-        <div 
+        <div
           className="flex-1 overflow-y-auto border p-4 rounded-lg mb-4 bg-gray-100 h-[64vh] relative"
           onScroll={(e) => {
             const target = e.currentTarget;
