@@ -1,4 +1,5 @@
-import { Upload } from "antd";
+import { Select, Upload } from "antd";
+import Search from "antd/es/transfer/search";
 import { changeLanguage } from "i18next";
 
 export const ENGLocalizedStrings = {
@@ -66,6 +67,7 @@ export const ENGLocalizedStrings = {
     LoginStatus: "Please log in again",
     Messages: "Messages",
     SuggestedFriends: "Suggested Friends",
+    LoadMore: "Load more",
   },
   Form: {
     Label: {
@@ -295,6 +297,17 @@ export const ENGLocalizedStrings = {
     PaymentFailed: "Payment failed.",
     NoCampaign: "No campaign found",
     AdvertisePostPending: "Advertisement is pending, please check the process again.",
+    CampaignStatus: "Campaign status",
+    TotalResults: "Total results",
+    TotalReach: "Total reach",
+    TotalImpressions: "Total impressions",
+    AdsManagement: "Ads Management",
+    SelectAds: "Select article to advertise",
+    NoAdsFound: "No ads found",
+    SearchAds: "Search . . .",
+    ExportAds: "Export Ads",
+    StartDay: "Start day",
+    ViewDetails: "View details",
   },
 
   Report: {

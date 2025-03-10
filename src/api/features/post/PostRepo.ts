@@ -47,6 +47,10 @@ interface IPostRepo {
   reportPost: (
     params: ReportPostRequestModel
   ) => Promise<BaseApiResponseModel<any>>;
+
+  getAdvertisementPosts: (
+    params: GetUsersPostsRequestModel
+  ) => Promise<BaseApiResponseModel<PostResponseModel[]>>
 }
 export class PostRepo implements IPostRepo {
   async createPost(
@@ -119,6 +123,13 @@ export class PostRepo implements IPostRepo {
     params: ReportPostRequestModel
   ): Promise<BaseApiResponseModel<any>> {
     return client.post(ApiPath.REPORT_POST, params);
+  }
+
+  async getAdvertisementPosts(
+    data: GetUsersPostsRequestModel
+  ): Promise<BaseApiResponseModel<PostResponseModel[]>> {
+    const filteredData = { ...data, is_advertisement: true };
+    return client.get(ApiPath.GET_POSTS, filteredData);
   }
 }
 export const defaultPostRepo = new PostRepo();

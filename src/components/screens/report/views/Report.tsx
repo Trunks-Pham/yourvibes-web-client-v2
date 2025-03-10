@@ -1,4 +1,3 @@
-// filepath: /c:/cntt/HK3/BE-GO/Gran-Project/yourvibes-web-client/src/components/screens/report/views/Report.tsx
 import React, { useState } from 'react';
 import { Input, Button, Typography, message } from 'antd';
 import { useAuth } from '@/context/auth/useAuth';
