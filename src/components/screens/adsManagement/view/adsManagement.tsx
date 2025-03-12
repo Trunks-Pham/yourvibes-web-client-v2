@@ -14,12 +14,11 @@ import useAdsManagement from "../viewModel/adsManagementViewModel";
 import Post from "@/components/common/post/views/Post";
 import { useAuth } from "@/context/auth/useAuth";
 import dayjs from 'dayjs';
-import { FaFileExport } from "react-icons/fa";
 
 // Register Chart.js components
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-// Modal component for Ad Details (giữ nguyên)
+// Modal component for Ad Details
 const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel; onClose: () => void; post?: any }) => {
   const { localStrings } = useAuth();
 
@@ -102,10 +101,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
             {post && post.is_advertisement ? <Post post={post} noFooter /> : <Spin />}
           </div>
           <div className="md:w-1/2 flex flex-col gap-2">
-            <div className="grid grid-cols-2 gap-2 text-xs text-gray-700">
-              <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p><strong>{localStrings.Ads.Status}:</strong> {ad.status || 'N/A'}</p>
-              </div>
+            <div className="grid grid-cols-2 gap-2 text-xs text-gray-700"> 
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                 <p><strong>{localStrings.Ads.StartDay}:</strong> {ad.start_date ? DateTransfer(ad.start_date) : 'N/A'}</p>
               </div>
@@ -115,7 +111,22 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                 <p><strong>{localStrings.Ads.RemainingTime}:</strong> {ad.day_remaining !== undefined ? ad.day_remaining : 'N/A'}</p>
               </div>
+              <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                <p>
+                  <strong>{localStrings.Ads.Grant}:</strong>{' '}
+                  {ad.price !== undefined
+                    ? CurrencyFormat(ad.price)
+                    : 'N/A'}
+                </p>
+              </div>
+              <div className="bg-gray-50 p-2 rounded-md border border-gray-200 md:col-span-2">
+                <p>
+                  <strong>{localStrings.Ads.StatusActive}:</strong>{' '}
+                  {ad.status_action || 'N/A'}
+                </p>
+              </div>
             </div>
+
             <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                 <p><strong>{localStrings.Ads.TotalResults}:</strong> {ad.resultsData?.reduce((sum, num) => sum + num, 0) || 0}</p>
@@ -145,7 +156,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
 const AdsManagementFeature = () => {
   const {
     loading,
-    ads, // Danh sách quảng cáo (is_advertisement: true)
+    ads,
     loadMoreAds,
     postDetails,
     isLoadingPostDetails
@@ -154,12 +165,12 @@ const AdsManagementFeature = () => {
   const [filteredAds, setFilteredAds] = useState<AdvertisePostResponseModel[]>([]);
   const [selectedAd, setSelectedAd] = useState<AdvertisePostResponseModel | null>(null);
   const [isPostListModalVisible, setIsPostListModalVisible] = useState(false);
-  const [modalPosts, setModalPosts] = useState<any[]>([]); // Danh sách bài viết không phải quảng cáo
+  const [modalPosts, setModalPosts] = useState<any[]>([]);
   const [isLoadingModalPosts, setIsLoadingModalPosts] = useState(false);
   const { localStrings, user } = useAuth();
   const repo: PostRepo = defaultPostRepo;
 
-  // Lọc quảng cáo theo từ khóa tìm kiếm
+  // Filter ads based on search term
   useEffect(() => {
     const filter = ads.filter((ad: AdvertisePostResponseModel) => {
       const postIdMatch = ad.post_id && ad.post_id.toLowerCase().includes(searchTerm.toLowerCase());
@@ -169,7 +180,7 @@ const AdsManagementFeature = () => {
     setFilteredAds(filter);
   }, [searchTerm, ads, postDetails]);
 
-  // Hàm lấy danh sách bài viết không phải quảng cáo cho modal
+  // Fetch non-ad posts for modal
   const fetchNonAdPosts = async () => {
     setIsLoadingModalPosts(true);
     try {
@@ -179,7 +190,7 @@ const AdsManagementFeature = () => {
         isDescending: true,
         limit: 10,
         page: 1,
-        is_advertisement: false, // Lấy bài viết không phải quảng cáo
+        is_advertisement: false,
       };
       const res = await repo.getPosts(request);
       if (res?.data) {
@@ -192,7 +203,6 @@ const AdsManagementFeature = () => {
     }
   };
 
-  // Gọi API khi modal mở
   useEffect(() => {
     if (isPostListModalVisible) {
       fetchNonAdPosts();
@@ -208,7 +218,7 @@ const AdsManagementFeature = () => {
   };
 
   const isAdActive = (ad: AdvertisePostResponseModel): boolean => {
-    if (ad.bill?.status !== 'success') return false;
+    if (ad.status !== 'success') return false;
     const now = dayjs();
     const end = dayjs(ad.end_date, 'DD/MM/YYYY');
     return now.isBefore(end);
@@ -229,13 +239,9 @@ const AdsManagementFeature = () => {
           >
             {localStrings.Ads.SelectAds}
           </button>
-          {/* <button className="bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-700 transition-all">
-            <FaFileExport /> {localStrings.Ads.ExportAds}
-          </button> */}
         </div>
       </div>
 
-      {/* Modal hiển thị danh sách bài viết không phải quảng cáo */}
       <Modal
         title={<div style={{ textAlign: "center", fontSize: 24, fontWeight: "bold" }}>{localStrings.Ads.SelectAds}</div>}
         open={isPostListModalVisible}
@@ -251,8 +257,8 @@ const AdsManagementFeature = () => {
           ) : (
             <PostList
               loading={false}
-              posts={modalPosts} // Hiển thị danh sách bài viết không phải quảng cáo
-              loadMorePosts={fetchNonAdPosts} // Tải thêm nếu cần
+              posts={modalPosts}
+              loadMorePosts={fetchNonAdPosts}
               user={{ id: '', name: '', family_name: '', avatar_url: '' }}
               fetchUserPosts={fetchNonAdPosts}
               hasMore={modalPosts.length % 10 === 0}
@@ -262,7 +268,6 @@ const AdsManagementFeature = () => {
         </div>
       </Modal>
 
-      {/* Thanh tìm kiếm */}
       <div className="mb-6">
         <input
           type="text"
@@ -273,7 +278,6 @@ const AdsManagementFeature = () => {
         />
       </div>
 
-      {/* Danh sách quảng cáo */}
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <Spin size="large" />
@@ -295,44 +299,48 @@ const AdsManagementFeature = () => {
                   className="group p-6 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 cursor-pointer hover:border-blue-300"
                   onClick={() => openModal(ad)}
                 >
-                  {/* Phần hiển thị nội dung bài viết quảng cáo */}
                   <div
                     className="w-full max-w-full flex justify-center items-center rounded-lg overflow-hidden bg-gray-50"
-                    style={{
-                      height: '180px', // Tăng chiều cao để hiển thị tốt hơn
-                    }}
+                    style={{ height: '180px' }}
                   >
                     {post && post.is_advertisement ? (
                       <div className="w-full h-full flex flex-col justify-between p-2">
-                        {/* Tiêu đề bài viết */}
                         {post.content && (
                           <h3 className="text-sm font-semibold text-gray-800 line-clamp-2">
                             {post.content}
                           </h3>
                         )}
-                        {/* Hình ảnh nếu có */}
-                        {post.media.map((media: { media_url: string }, index: number) => (
-                          <img
-                            key={index}
-                            src={media.media_url}
-                            alt={post.content || 'Ad Image'}
-                            className="w-full h-24 object-cover rounded-md mt-2"
-                          />
-                        ))}
+                        {post.media.map((media: { media_url: string }, index: number) => {
+                          // Kiểm tra xem media là video hay hình ảnh dựa trên đuôi file
+                          const isVideo = /\.(mp4|webm|ogg)$/i.test(media.media_url);
+
+                          return isVideo ? (
+                            <video
+                              key={index}
+                              src={media.media_url}
+                              controls
+                              className="w-full h-24 object-cover rounded-md mt-2"
+                            />
+                          ) : (
+                            <img
+                              key={index}
+                              src={media.media_url}
+                              alt={post.content || 'Ad Image'}
+                              className="w-full h-24 object-cover rounded-md mt-2"
+                            />
+                          );
+                        })}
                       </div>
                     ) : (
                       <Spin tip="Loading post..." />
                     )}
                   </div>
 
-                  {/* Thông tin trạng thái và chi tiết quảng cáo */}
                   <div className="mt-4 space-y-2">
                     {isAdActive(ad) ? (
                       <div>
                         <div className="flex items-center gap-2">
-                          <div
-                            className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse"
-                          />
+                          <div className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse" />
                           <span className="text-green-600 font-medium text-sm">
                             {localStrings.Ads.ActiveCampaign}
                           </span>
@@ -354,10 +362,10 @@ const AdsManagementFeature = () => {
                             <span className="font-semibold">{localStrings.Ads.RemainingTime}:</span>{' '}
                             {ad.day_remaining !== undefined ? `${ad.day_remaining} days` : 'N/A'}
                           </p>
-                          {ad.bill?.price !== undefined && (
+                          {ad.price !== undefined && (
                             <p>
                               <span className="font-semibold">{localStrings.Ads.Grant}:</span>{' '}
-                              {CurrencyFormat(ad.bill.price)}
+                              {CurrencyFormat(ad.price)}
                             </p>
                           )}
                         </div>
@@ -372,7 +380,6 @@ const AdsManagementFeature = () => {
                     )}
                   </div>
 
-                  {/* Hover effect: Nút xem chi tiết */}
                   <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <button className="w-full py-1.5 text-xs text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200">
                       {localStrings.Ads.ViewDetails}
@@ -385,7 +392,6 @@ const AdsManagementFeature = () => {
         </div>
       )}
 
-      {/* Nút Load More */}
       {ads.length % 10 === 0 && ads.length !== 0 && (
         <div className="flex justify-center mt-4">
           <Button type="primary" onClick={handleLoadMore} loading={loading}>
@@ -394,7 +400,6 @@ const AdsManagementFeature = () => {
         </div>
       )}
 
-      {/* Modal chi tiết quảng cáo */}
       {selectedAd && <AdDetailsModal ad={selectedAd} onClose={closeModal} post={postDetails[selectedAd.post_id!]} />}
     </div>
   );

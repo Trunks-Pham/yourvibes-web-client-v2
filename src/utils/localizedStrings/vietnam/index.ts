@@ -307,6 +307,11 @@ Ads: {
   Voucher: "Mã giảm giá",
   InvalidVoucher: "Mã giảm giá không hợp lệ",
   VoucherApplied: "Mã giảm giá đã được áp dụng",
+  StatusActive: "Trạng thái hoạt động của chiến dịch",
+  Pending: "Chờ xử lý",
+  Active: "Đang hoạt động",
+  Completed: "Hoàn thành",
+
 },
 
 

@@ -6,10 +6,10 @@ import { useAuth } from '@/context/auth/useAuth';
 import {
   AdvertisePostRequestModel,
   AdvertisePostResponseModel,
+  BillModel,
 } from '@/api/features/post/models/AdvertisePostModel';
 import { DateTransfer, getDayDiff } from '@/utils/helper/DateTransfer';
 
-// Define a type for the mapped ad to ensure type consistency
 interface MappedAd extends AdvertisePostResponseModel {
   post_id: string | undefined;
   status: string | undefined;
@@ -20,10 +20,13 @@ interface MappedAd extends AdvertisePostResponseModel {
   reachData: number[];
   impressionsData: number[];
   labels: string[];
+  bill: BillModel | undefined;
+  isActive: boolean; // New field to indicate active status
+  status_action: string;
 }
 
 const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
-  const { user } = useAuth();
+  const { user, localStrings } = useAuth();
 
   const [loading, setLoading] = useState<boolean>(false);
   const [ads, setAds] = useState<MappedAd[]>([]);
@@ -31,6 +34,24 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
   const [page, setPage] = useState<number>(1);
   const [postDetails, setPostDetails] = useState<Record<string, AdvertisePostResponseModel>>({});
   const [isLoadingPostDetails, setIsLoadingPostDetails] = useState<boolean>(false);
+
+  const isAdActive = (ad: AdvertisePostResponseModel): boolean => {
+    if (ad.status !== 'success' && ad.bill?.status !== 'success') return false;
+    const now = dayjs();
+    const end = dayjs(ad.end_date, 'DD/MM/YYYY');
+    return now.isBefore(end);
+  };
+
+  const getStatusAction = (ad: AdvertisePostResponseModel): string => {
+    if (ad.status !== 'success' && ad.bill?.status !== 'success') {
+      return localStrings.Ads.Active;  
+    }
+    if (isAdActive(ad)) {
+      return localStrings.Ads.Pending;
+    } else {
+      return localStrings.Ads.Completed; 
+    }
+  };
 
   const fetchAds = useCallback(async () => {
     if (!user?.id) return;
@@ -60,15 +81,13 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
         let endDate = item.end_date;
         let daysRemaining = item.day_remaining;
 
-        // Fallback to created_at if start_date is missing
         if (!startDate && item.created_at) {
           const createdAt = dayjs(item.created_at);
           if (createdAt.isValid()) {
-            startDate = DateTransfer(item.created_at); // Format: DD/MM/YYYY
+            startDate = DateTransfer(item.created_at);
           }
         }
 
-        // Simulate end_date as 7 days from start_date if missing
         if (!endDate && startDate) {
           const start = dayjs(startDate, 'DD/MM/YYYY');
           if (start.isValid()) {
@@ -78,7 +97,6 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
           }
         }
 
-        // Recalculate daysRemaining if end_date exists but day_remaining is undefined
         if (endDate && daysRemaining === undefined) {
           const end = dayjs(endDate, 'DD/MM/YYYY');
           if (end.isValid()) {
@@ -86,7 +104,6 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
           }
         }
 
-        // Mock chart data if not provided
         const resultsData = item.resultsData || Array.from({ length: 7 }, () => Math.floor(Math.random() * 50));
         const reachData = item.reachData || Array.from({ length: 7 }, () => Math.floor(Math.random() * 200));
         const impressionsData = item.impressionsData || Array.from({ length: 7 }, () => Math.floor(Math.random() * 500));
@@ -94,10 +111,16 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
           DateTransfer(dayjs().subtract(i, 'day').toDate())
         ).reverse();
 
+        // Correctly map the status and bill data
+        let adStatus = item.status?.toString() || 'N/A';
+        if (item.bill?.status) {
+          adStatus = item.bill.status;
+        }
+
         return {
           ...item,
-          post_id: item.id, // Ensure post_id consistency
-          status: item.status?.toString(), // Convert status to string explicitly
+          post_id: item.id,
+          status: adStatus, // Use the derived status
           start_date: startDate || 'N/A',
           end_date: endDate || 'N/A',
           day_remaining: daysRemaining ?? 0,
@@ -105,13 +128,15 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
           reachData,
           impressionsData,
           labels,
-          is_advertisement: true, // Since we filtered for this
+          is_advertisement: true,
+          bill: item.bill, // Keep the bill data
+          isActive: isAdActive(item), // Determine active status here
+          status_action: getStatusAction(item),
         };
       });
 
       setAds((prevAds) => (page === 1 ? mappedAds : [...prevAds, ...mappedAds]));
 
-      // Fetch post details for new ads
       setIsLoadingPostDetails(true);
       const postIdsToFetch = mappedAds
         .map((ad) => ad.post_id)
@@ -135,7 +160,7 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
       setLoading(false);
       setIsLoadingPostDetails(false);
     }
-  }, [user?.id, page, repo, postDetails]);
+  }, [user?.id, page, repo, postDetails, localStrings.Ads]);
 
   const loadMoreAds = () => setPage((prev) => prev + 1);
 
@@ -143,8 +168,8 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
     try {
       const res = await repo.advertisePost(params);
       if (res?.data) {
-        setPage(1); // Reset to first page
-        await fetchAds(); // Refresh ads list
+        setPage(1);
+        await fetchAds();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi tạo quảng cáo');

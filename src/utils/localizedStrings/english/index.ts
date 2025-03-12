@@ -311,6 +311,10 @@ export const ENGLocalizedStrings = {
     Voucher: "Voucher",
     VoucherApplied: "Voucher applied",
     InvalidVoucher: "Invalid voucher",
+    StatusActive: "Status Active Campaign",
+    Pending: "Pending",
+    Active: "Active",
+    Completed: "Completed",
   },
 
   Report: {
