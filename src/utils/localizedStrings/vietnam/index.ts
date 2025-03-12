@@ -1,3 +1,5 @@
+import { Carousel } from "antd";
+
 export const VnLocalizedStrings = {
   Public: {
     All: "Tất cả",
@@ -305,6 +307,11 @@ Ads: {
   Voucher: "Mã giảm giá",
   InvalidVoucher: "Mã giảm giá không hợp lệ",
   VoucherApplied: "Mã giảm giá đã được áp dụng",
+  StatusActive: "Trạng thái hoạt động của chiến dịch",
+  Pending: "Chờ xử lý",
+  Active: "Đang hoạt động",
+  Completed: "Hoàn thành",
+
 },
 
 
@@ -319,6 +326,7 @@ Report: {
   ReportCommentFailed: "Báo cáo thất bại, bạn đã báo cáo bình luận này trước đó!",
   Note: "Nếu bạn nhận thấy sự đe dọa hoặc ai đó dang gặp nguy hiểm, đừng chần chừ mà hãy tìm ngay sự giúp đỡ và báo cho dịch vụ khẩn cấp ở địa phương trước khi báo cáo với YourVibes.",
   placeholder:"Viết lý do báo cáo của bạn ở đây...",
+  Report:"Báo cáo", 
 },
 
 ChangePassword:{

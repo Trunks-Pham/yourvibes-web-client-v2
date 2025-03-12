@@ -84,7 +84,7 @@ const Homepage = ({ friendSuggestions }: any) => {
         marginInline: "10px",
         position: 'fixed',
         width: '280px',
-        maxHeight: '400px',
+        maxHeight: '600px',
         overflowY: 'auto',
         backgroundColor,
         boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
