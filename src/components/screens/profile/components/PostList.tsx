@@ -25,18 +25,16 @@ const PostList = ({ loading, posts, loadMorePosts, user, fetchUserPosts, hasMore
   const [isModalVisible, setIsModalVisible] = useState(false);
   const {deletePost} = EditPostViewModel(defaultPostRepo, user?.id || "", "");
   
-
   const handlePostSuccess = () => {
     setIsModalVisible(false);
     fetchUserPosts();
   };
-
+  
   const handleDeletePost = async (postId: string) => {
       await deletePost(postId); 
       setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
     
   };
-  
 
   const renderAddPost = useCallback(() => {
     return (

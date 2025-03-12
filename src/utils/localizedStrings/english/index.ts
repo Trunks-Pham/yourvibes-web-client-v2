@@ -251,6 +251,7 @@ export const ENGLocalizedStrings = {
   },
   Notification: {
     Notification: "Notifications",
+    NoNotification: "No notification",
     Items: {
       LikePost: "liked your post: ",
       SharePost: "shared your post: ",
@@ -322,4 +323,20 @@ export const ENGLocalizedStrings = {
     OTP: "OTP",
     ConformChangePassword: "Confirm change password",
   },
+
+  Messages: {
+    SearchUser: "Please enter name who you want to contact",
+    FriendBar: "Friends",
+    CreateChatGroup: "Create chat group",
+    ChooseFriendToChat: "Choose friend to chat",
+    ChooseFriendToConnect: "Choose friend to connect",
+    NoMessages: "No messages",
+    EnterMessage: "Enter the message",
+    FindFriendInModal: "Find your friends",
+    Cancel: "Cancel",
+    Confirm: "Confirm",
+    UserProfile: "User Profile",
+    ProfilePage: "Profile Page",
+    Block: "Block",
+  }
 };

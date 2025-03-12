@@ -41,7 +41,7 @@ const MediaView: React.FC<MediaViewProps> = React.memo(({ mediaItems }) => {
         {mediaItems?.map((media, index) => {
           const isVideo =
             media?.media_url?.endsWith(".mp4") ||
-            media?.media_url?.endsWith(".mov");
+            media?.media_url?.endsWith(".mov"); 
           return (
             <div key={index}>
               {isVideo ? (

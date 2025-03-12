@@ -35,7 +35,7 @@ const MessagesFeature = () => {
     replyTo,
     setReplyTo,
     messagesEndRef,
-  } = useMessageViewModel(user, friends);
+  } = useMessageViewModel(user);
 
   // State để quản lý hiển thị EmojiPicker
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
