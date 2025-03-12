@@ -115,12 +115,6 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                 <p><strong>{localStrings.Ads.RemainingTime}:</strong> {ad.day_remaining !== undefined ? ad.day_remaining : 'N/A'}</p>
               </div>
-              <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p><strong>{localStrings.Ads.Campaign}:</strong> {ad.bill?.price !== undefined ? CurrencyFormat(ad.bill.price) : 'N/A'}</p>
-              </div>
-              <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p><strong>{localStrings.Ads.ActiveCampaign}:</strong> {ad.bill?.status || 'N/A'}</p>
-              </div>
             </div>
             <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
@@ -230,7 +224,7 @@ const AdsManagementFeature = () => {
         <h1 className="text-3xl font-semibold text-gray-800">{localStrings.Ads.AdsManagement}</h1>
         <div className="flex gap-3">
           <button
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+            className="bg-black text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800"
             onClick={() => setIsPostListModalVisible(true)}
           >
             {localStrings.Ads.SelectAds}
@@ -317,7 +311,7 @@ const AdsManagementFeature = () => {
                           </h3>
                         )}
                         {/* Hình ảnh nếu có */}
-                        {post.media && post.media.map((media, index) => (
+                        {post.media.map((media: { media_url: string }, index: number) => (
                           <img
                             key={index}
                             src={media.media_url}

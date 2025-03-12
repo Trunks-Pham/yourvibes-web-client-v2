@@ -1,4 +1,3 @@
-import { PostMediaModel } from "./PostResponseModel";
 export interface AdvertisePostRequestModel {
   post_id?: string;
   start_date?: string;
@@ -12,6 +11,12 @@ export interface GetAdvertiseRequestModel {
   limit?: number;
 }
 
+export interface AdStatisticsModel {
+  labels: string[];
+  results_data: number[];
+  reach_data: number[];
+  impressions_data: number[];
+}
 export interface AdvertisePostResponseModel {
   [x: string]: any;
   id?: string;
@@ -21,11 +26,13 @@ export interface AdvertisePostResponseModel {
   bill?: BillModel;
   day_remaining?: number;
   status?: string;
-  resultsData: number[]; 
-  reachData: number[]; 
-  impressionsData: number[];
-  labels: string[];
+  adStatistics?: AdStatisticsModel; // Using the new AdStatisticsModel type
   is_advertisement: boolean;
+    //for fake data
+  resultsData?: number[]; 
+  reachData?: number[]; 
+  impressionsData?: number[];
+  labels?: string[];
 }
 
 export interface BillModel {
@@ -34,5 +41,5 @@ export interface BillModel {
   price?: number;
   created_at?: string;
   updated_at?: string;
-  status?: string;  
+  status?: string;
 }

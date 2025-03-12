@@ -265,7 +265,7 @@ const Ads = ({ postId }: { postId: string }) => {
                 </span>
                 <div style={{ display: "flex", flexDirection: "row" }}>
                   <Input
-                    placeholder="Nhập mã voucher"
+                    placeholder="voucher"
                     value={voucher}
                     onChange={(e) => setVoucher(e.target.value)}
                     style={{ width: 200, marginRight: 10 }}
