@@ -251,6 +251,7 @@ export const VnLocalizedStrings = {
   },
 Notification: {
   Notification: "Thông báo",
+  NoNotification: "Không có thông báo",
   Items:{
     LikePost: "đã thích bài viết của bạn: ",
     SharePost: "đã chia sẻ bài viết của bạn: ",

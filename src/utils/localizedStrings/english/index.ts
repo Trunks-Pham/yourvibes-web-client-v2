@@ -253,6 +253,7 @@ export const ENGLocalizedStrings = {
   },
   Notification: {
     Notification: "Notifications",
+    NoNotification: "No notification",
     Items: {
       LikePost: "liked your post: ",
       SharePost: "shared your post: ",

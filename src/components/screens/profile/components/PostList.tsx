@@ -29,7 +29,7 @@ const PostList = ({ loading, posts, loadMorePosts, user, fetchUserPosts, hasMore
     setIsModalVisible(false);
     fetchUserPosts();
   };
-
+  
   const handleDeletePost = async (postId: string) => {
       await deletePost(postId); 
       setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));

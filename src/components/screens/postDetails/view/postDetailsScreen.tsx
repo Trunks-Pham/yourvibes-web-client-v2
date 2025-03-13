@@ -206,7 +206,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({
             {localStrings.Public.Comment}
           </span>
           {/* Danh sách bình luận */}
-          <div className="comments-list space-y-6 max-h-[70vh] overflow-y-auto">
+          <div className="comments-list space-y-6 max-h-[70vh] overflow-y-auto" style={{ scrollbarWidth: "none" }}>
             {comments.map((comment) => (
               <CommentItem
                 key={comment.id}
