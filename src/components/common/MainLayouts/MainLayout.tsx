@@ -1,7 +1,7 @@
 "use client"; // Đảm bảo rằng đây là một client-side component
 
-import React, { useState } from "react";
-import { Layout, Menu, Input, Grid, ConfigProvider, Modal } from "antd";
+import React, { use, useState } from "react";
+import { Layout, Menu, Input, Grid, ConfigProvider, Modal, Avatar } from "antd";
 import { createElement } from "react";
 import {
   FaHome,
@@ -38,7 +38,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [visible, setVisible] = useState(false);
   const { backgroundColor, lightGray } = useColor();
   const [searchQuery, setSearchQuery] = useState("");
-  const { localStrings } = useAuth();
+  const {user, localStrings } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -69,8 +69,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         icon: FaBell,
       },
       {
-        link: "/adsManagement",
-        content: "Ads Management",
+        link:"/adsManagement",
+        content: localStrings.Ads.AdsManagement,
         icon: FaAd,
       },
       {
@@ -146,10 +146,13 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           <SearchScreen />
         </div>
         <div
-          className="block lg:hidden text-2xl mb-2.5 ml-2.5"
+          className="flex flex-row items-center gap-4"
           onClick={handleMenuClick}
         >
-          <IoMenu />
+          <span className="font-bold md:block hidden">
+            {user?.family_name} {user?.name}
+            </span>
+            <Avatar src={user?.avatar_url} alt={user?.name} size={40} />
         </div>
       </Header>
       <ConfigProvider

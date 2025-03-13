@@ -1,3 +1,5 @@
+import { Carousel } from "antd";
+
 export const VnLocalizedStrings = {
   Public: {
     All: "Tất cả",
@@ -63,6 +65,7 @@ export const VnLocalizedStrings = {
     LoginStatus:"Vui lòng đăng nhập lại",
     Messages: "Tin Nhắn",
     SuggestedFriend: "Những người bạn có thể biết",
+    LoadMore: "Tải thêm",
   },
   Form: {
     Label: {
@@ -291,6 +294,25 @@ Ads: {
   PaymentFailed:"Thanh toán thất bại",
   NoCampaign:"Không có chiến dịch nào",
   AdvertisePostPending: "Quảng cáo đang chờ xử lý, vui lòng kiểm tra lại quá trình.",
+  CampaignStatus: "Trạng thái chiến dịch",
+  TotalResults: "Tổng số lượt ấn vào",
+  TotalReach: "Tổng số lượt người tiếp cận",
+  TotalImpressions: "Tổng số lượt xem",
+  AdsManagement: "Bài quảng cáo",
+  SelectAds: "Chọn bài viết để quảng cáo",
+  NoAdsFound: "Không tìm thấy bài viết quảng cáo nào",
+  SearchAds: "Tìm kiếm bài viết quảng cáo",
+  ExportAds: "Xuất báo cáo quảng cáo",
+  StartDay: "Ngày bắt đầu",
+  ViewDetails: "Xem chi tiết",
+  Voucher: "Mã giảm giá",
+  InvalidVoucher: "Mã giảm giá không hợp lệ",
+  VoucherApplied: "Mã giảm giá đã được áp dụng",
+  StatusActive: "Trạng thái hoạt động của chiến dịch",
+  Pending: "Chờ xử lý",
+  Active: "Đang hoạt động",
+  Completed: "Hoàn thành",
+
 },
 
 
@@ -305,6 +327,7 @@ Report: {
   ReportCommentFailed: "Báo cáo thất bại, bạn đã báo cáo bình luận này trước đó!",
   Note: "Nếu bạn nhận thấy sự đe dọa hoặc ai đó dang gặp nguy hiểm, đừng chần chừ mà hãy tìm ngay sự giúp đỡ và báo cho dịch vụ khẩn cấp ở địa phương trước khi báo cáo với YourVibes.",
   placeholder:"Viết lý do báo cáo của bạn ở đây...",
+  Report:"Báo cáo", 
 },
 
 ChangePassword:{
@@ -334,5 +357,7 @@ Messages: {
   UserProfile: "Thông tin người dùng",
   ProfilePage: "Trang cá nhân",
   Block: "Chặn",
+  Reply: "Trả lời",
+  ScrollToBottom: "Cuộn xuống dưới",
 }
 };

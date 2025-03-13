@@ -74,7 +74,7 @@ const SettingsTab = ({ setSettingModal }: { setSettingModal: React.Dispatch<Reac
       {/* //modal language  */}
       <Modal centered title={localStrings.Public.Language} open={showLanguage} onCancel={handleLanguageChange} width="250px" footer={[
         <Button key="cancel" onClick={handleLanguageChange}>
-          {localStrings.Public.Cancel}
+          {localStrings.Public.Close}
         </Button>,
       ]}
       >

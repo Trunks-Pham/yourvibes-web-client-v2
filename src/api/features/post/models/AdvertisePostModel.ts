@@ -11,6 +11,12 @@ export interface GetAdvertiseRequestModel {
   limit?: number;
 }
 
+export interface AdStatisticsModel {
+  labels: string[];
+  results_data: number[];
+  reach_data: number[];
+  impressions_data: number[];
+}
 export interface AdvertisePostResponseModel {
   [x: string]: any;
   id?: string;
@@ -19,6 +25,15 @@ export interface AdvertisePostResponseModel {
   end_date?: string;
   bill?: BillModel;
   day_remaining?: number;
+  status?: string;
+  status_action?: string;
+  adStatistics?: AdStatisticsModel; // Using the new AdStatisticsModel type
+  is_advertisement: boolean;
+    //for fake data
+  resultsData?: number[]; 
+  reachData?: number[]; 
+  impressionsData?: number[];
+  labels?: string[];
 }
 
 export interface BillModel {
@@ -27,5 +42,5 @@ export interface BillModel {
   price?: number;
   created_at?: string;
   updated_at?: string;
-  status?: boolean;
+  status?: string;
 }

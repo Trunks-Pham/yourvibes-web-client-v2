@@ -83,11 +83,10 @@ const Homepage = ({ friendSuggestions }: any) => {
       <div style={{
         marginInline: "10px",
         position: 'fixed',
-        width: '280px',
-        maxHeight: '400px',
+        width: '300px',
+        maxHeight: '600px',
         overflowY: 'auto',
         backgroundColor: "rgb(244, 244, 244)",
-        // boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
         borderRadius: '8px',
       }}>
           <span className="font-bold text-lg">
@@ -169,7 +168,7 @@ const Homepage = ({ friendSuggestions }: any) => {
               )}
             </div> 
           </div>
-          <div className="flex-initial w-[300px] hidden xl:block">
+          <div className="flex-initial w-[320px] hidden xl:block">
             {renderFriends()}
           </div>
         </>

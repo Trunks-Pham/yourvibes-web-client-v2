@@ -23,7 +23,7 @@ const AdsViewModel = (repo: PostRepo) => {
   >(undefined);
   const [page, setPage] = useState<number>(1);
 
-  //Lấy chi tiết bài viết
+  // Lấy chi tiết bài viết
   const getPostDetail = async (id: string, newAds = false) => {
     try {
       setLoading(true);
@@ -40,15 +40,14 @@ const AdsViewModel = (repo: PostRepo) => {
     }
   };
 
-  //Quảng cáo bài viết
-  const advertisePost = async (params: AdvertisePostRequestModel) => {
+  // Quảng cáo bài viết với mã voucher
+  const advertisePost = async (params: AdvertisePostRequestModel & { voucher?: string }) => {
     try {
       setAdsLoading(true);
       const res = await repo.advertisePost(params);
       if (!res?.error) {
         if (res?.data) {
-          // Mở trình duyệt với đường link quảng cáo
-          const result = window.open(res.data, '_blank'); // Mở URL trong tab mới
+          const result = window.open(res.data, '_blank');
           if (result) {
             result.focus();
 
@@ -61,20 +60,22 @@ const AdsViewModel = (repo: PostRepo) => {
 
             result.onload = () => {
               clearInterval(checkWindowClosed);
-              // Có thể kiểm tra kết quả sau khi người dùng quay lại
               if (result.location.href.includes('success')) {
-                message.success(localStrings.Ads.AdvertisePostSuccess);
+                message.success(
+                  params.voucher
+                    ? `${localStrings.Ads.AdvertisePostSuccess} - Voucher ${params.voucher} applied!`
+                    : localStrings.Ads.AdvertisePostSuccess
+                );
               } else {
                 message.error(localStrings.Ads.AdvertisePostFailed);
               }
             };
 
-            // Thêm sự kiện để kiểm tra nếu người dùng để trang mở mà không thực hiện hành động nào
             setTimeout(() => {
               if (!result.closed) {
                 message.info(localStrings.Ads.AdvertisePostPending);
               }
-            }, 30000); // Thời gian chờ 30 giây để kiểm tra trạng thái
+            }, 30000);
           }
         }
       } else {
@@ -91,7 +92,7 @@ const AdsViewModel = (repo: PostRepo) => {
     }
   };
 
-  // Lấy danh sách quảng cáo  
+  // Lấy danh sách quảng cáo
   const getAdvertisePost = async (page: number, post_id: string) => {
     try {
       setLoading(true);

@@ -1,4 +1,5 @@
-import { Upload } from "antd";
+import { Select, Upload } from "antd";
+import Search from "antd/es/transfer/search";
 import { changeLanguage } from "i18next";
 
 export const ENGLocalizedStrings = {
@@ -66,6 +67,7 @@ export const ENGLocalizedStrings = {
     LoginStatus: "Please log in again",
     Messages: "Messages",
     SuggestedFriends: "Suggested Friends",
+    LoadMore: "Load more",
   },
   Form: {
     Label: {
@@ -296,6 +298,24 @@ export const ENGLocalizedStrings = {
     PaymentFailed: "Payment failed.",
     NoCampaign: "No campaign found",
     AdvertisePostPending: "Advertisement is pending, please check the process again.",
+    CampaignStatus: "Campaign status",
+    TotalResults: "Total results",
+    TotalReach: "Total reach",
+    TotalImpressions: "Total impressions",
+    AdsManagement: "Ads Management",
+    SelectAds: "Select article to advertise",
+    NoAdsFound: "No ads found",
+    SearchAds: "Search . . .",
+    ExportAds: "Export Ads",
+    StartDay: "Start day",
+    ViewDetails: "View details",
+    Voucher: "Voucher",
+    VoucherApplied: "Voucher applied",
+    InvalidVoucher: "Invalid voucher",
+    StatusActive: "Status Active Campaign",
+    Pending: "Pending",
+    Active: "Active",
+    Completed: "Completed",
   },
 
   Report: {
@@ -309,6 +329,7 @@ export const ENGLocalizedStrings = {
     ReportCommentFailed:"Report failed, you have already reported this comment!",
     Note: "If you see a threat or someone in danger, don't hesitate to seek help and report to local emergency services before reporting to YourVibes.",
     placeholder: "Write your report here...",
+    Report: "Report", 
   },
   ChangePassword: {
     ChangePassword: "Change password",
@@ -338,5 +359,7 @@ export const ENGLocalizedStrings = {
     UserProfile: "User Profile",
     ProfilePage: "Profile Page",
     Block: "Block",
+    Reply: "Reply",
+    ScrollToBottom: "Scroll to bottom",
   }
 };

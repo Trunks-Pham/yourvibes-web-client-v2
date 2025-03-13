@@ -10,7 +10,7 @@ import dayjs from "dayjs";
 import { AdsCalculate } from "@/utils/helper/AdsCalculate";
 import { FaCalculator, FaCashRegister, FaAd } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import { Spin, Button, List, DatePicker, Typography, Modal } from "antd";
+import { Spin, Button, List, DatePicker, Typography, Modal, Input, message } from "antd"; // Thêm message vào import
 import { CloseOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
@@ -22,6 +22,8 @@ const Ads = ({ postId }: { postId: string }) => {
   const { language, localStrings } = useAuth();
   const [diffDay, setDiffDay] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
+  const [voucher, setVoucher] = useState("");
+  const [discount, setDiscount] = useState(0); // Giảm giá mặc định là 0
   const router = useRouter();
   const {
     getPostDetail,
@@ -65,9 +67,20 @@ const Ads = ({ postId }: { postId: string }) => {
     }
   }, [postId]);
 
+  // Xử lý mã voucher
+  const applyVoucher = () => {
+    if (voucher === "Yourvibes123") {
+      setDiscount(0.2); // Giảm 20% khi nhập mã Yourvibes123
+      message.success(localStrings.Ads.VoucherApplied); // Thông báo thành công
+    } else {
+      setDiscount(0);
+      message.error(localStrings.Ads.InvalidVoucher); // Thông báo lỗi
+    }
+  };
 
   const renderAds = useCallback(() => {
     if (loading) return null;
+    const finalPrice = AdsCalculate(diffDay, price) * (1 - discount); // Áp dụng giảm giá
     return (
       <>
         {post?.is_advertisement ? (
@@ -236,8 +249,35 @@ const Ads = ({ postId }: { postId: string }) => {
                 <FaCashRegister size={24} color={brandPrimary} />
                 <span style={{ paddingLeft: 10 }}>
                   {localStrings.Ads.BudgetAds}{" "}
-                  {CurrencyFormat(AdsCalculate(diffDay, price))}
+                  {CurrencyFormat(finalPrice)}{" "}
+                  {discount > 0 && (
+                    <span style={{ color: "green" }}>
+                      (Giảm {discount * 100}%)
+                    </span>
+                  )}
                 </span>
+              </div>
+
+              {/* Voucher Input */}
+              <div style={{ marginTop: 20 }}>
+                <span style={{ fontWeight: "bold", marginRight: 10 }}>
+                  {localStrings.Ads.Voucher}
+                </span>
+                <div style={{ display: "flex", flexDirection: "row" }}>
+                  <Input
+                    placeholder="voucher"
+                    value={voucher}
+                    onChange={(e) => setVoucher(e.target.value)}
+                    style={{ width: 200, marginRight: 10 }}
+                  />
+                  <Button
+                    type="primary"
+                    onClick={applyVoucher}
+                    style={{ backgroundColor: brandPrimary }}
+                  >
+                    Áp dụng
+                  </Button>
+                </div>
               </div>
 
               {/* Payment Methods */}
@@ -268,7 +308,7 @@ const Ads = ({ postId }: { postId: string }) => {
               </div>
 
               {/* New Advertisement Button */}
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}>
+              <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
                 <Button
                   type="primary"
                   icon={<FaAd />}
@@ -277,17 +317,18 @@ const Ads = ({ postId }: { postId: string }) => {
                       post_id: postId,
                       redirect_url: `${window.location.origin}/ads/${postId}`,
                       end_date: (
-                        dayjs(date).format('YYYY-MM-DDT00:00:00') + 'Z'
+                        dayjs(date).format("YYYY-MM-DDT00:00:00") + "Z"
                       ).toString(),
                       start_date: (
-                        dayjs().format('YYYY-MM-DDT00:00:00') + 'Z'
+                        dayjs().format("YYYY-MM-DDT00:00:00") + "Z"
                       ).toString(),
+                      voucher: voucher || undefined, // Truyền mã voucher nếu có
                     });
                   }}
                   style={{
                     borderRadius: 8,
                     backgroundColor: brandPrimary,
-                    color: 'white',
+                    color: "white",
                   }}
                 >
                   {localStrings.Ads.Ads}
@@ -298,7 +339,7 @@ const Ads = ({ postId }: { postId: string }) => {
         )}
       </>
     );
-  }, [postId, adsLoading, ads, loading, post, date]);
+  }, [postId, adsLoading, ads, loading, post, date, voucher, discount]);
 
   return (
     <div className="p-2.5">
@@ -317,8 +358,12 @@ const Ads = ({ postId }: { postId: string }) => {
           {post?.parent_post && <Post post={post?.parent_post} isParentPost />}
         </Post>
 
-        <div style={{ maxWidth: 600 }}>{renderAds()}
-          <div onClick={() => setShowCampaign(true)} className="cursor-pointer pl-2.5 mt-2.5 text-blue-500 font-bold text-[16px]">
+        <div style={{ maxWidth: 600 }}>
+          {renderAds()}
+          <div
+            onClick={() => setShowCampaign(true)}
+            className="cursor-pointer pl-2.5 mt-2.5 text-blue-500 font-bold text-[16px]"
+          >
             {localStrings.Ads.ShowCampaign}
           </div>
         </div>
@@ -329,11 +374,11 @@ const Ads = ({ postId }: { postId: string }) => {
         open={showCampaign}
         onCancel={() => setShowCampaign(false)}
         footer={null}
-        bodyStyle={{ maxHeight: '70vh', overflowY: 'scroll', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        bodyStyle={{ maxHeight: "70vh", overflowY: "scroll", scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {(adsAll?.length ?? 0) > 0 ? (
           (adsAll ?? []).map((item, index) => (
-            <div key={index} style={{ marginTop: 10 }} >
+            <div key={index} style={{ marginTop: 10 }}>
               <div
                 style={{
                   backgroundColor: "#f7f7f7",
