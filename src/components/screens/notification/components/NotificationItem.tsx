@@ -3,10 +3,11 @@ import { useAuth } from '@/context/auth/useAuth';
 import { getTimeDiff } from '@/utils/helper/DateTransfer';
 import { Avatar, List } from 'antd';
 import { useRouter } from 'next/navigation';
+import { on } from 'node:process';
 import React from 'react'
 import { IoArrowRedoCircle, IoChatbubbleEllipses, IoHeartCircle, IoNotificationsCircle, IoPersonCircle } from 'react-icons/io5';
 
-const NotificationItem = ({ notifications, onUpdate  }: { notifications: NotificationResponseModel, onUpdate: () => void}) => {
+const NotificationItem = ({ notifications, onUpdate, onClickModal  }: { notifications: NotificationResponseModel, onUpdate: () => void, onClickModal: ()=>void}) => {
     const router = useRouter();
     const {from, from_url, content, created_at, notification_type = '', status, content_id} = notifications;
     const {localStrings} = useAuth();
@@ -28,6 +29,7 @@ const NotificationItem = ({ notifications, onUpdate  }: { notifications: Notific
     
       const handleClick = () => {
         onUpdate();
+        onClickModal();
         if (notification_type === "friend_request" || notification_type === "accept_friend_request") {
           router.push(`/user/${content_id}`);
         } else if (

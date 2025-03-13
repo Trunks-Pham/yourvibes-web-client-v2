@@ -83,14 +83,19 @@ const Homepage = ({ friendSuggestions }: any) => {
       <div style={{
         marginInline: "10px",
         position: 'fixed',
-        width: '280px',
+        width: '300px',
         maxHeight: '600px',
         overflowY: 'auto',
-        backgroundColor,
-        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        backgroundColor: "rgb(244, 244, 244)",
         borderRadius: '8px',
       }}>
+          <span className="font-bold text-lg">
+                        {localStrings.Public.Friend}
+                      </span>
+            <hr className="border-t-1 border-gray-400" />
         {friends.map((user) => (
+          <div>
+
           <div
             key={user.id}
             style={{
@@ -106,12 +111,14 @@ const Homepage = ({ friendSuggestions }: any) => {
               <Avatar
                 src={user.avatar_url}
                 alt={user.name}
-                size={50}
+                size={40}
               />
               <span style={{ marginLeft: 10, fontWeight: "bold", fontSize: 16 }}>
                 {user.family_name + " " + user.name}
               </span>
             </div>
+          </div>
+          <hr className="border-t-1 border-gray-300" />
           </div>
         ))}
       </div>
@@ -161,7 +168,7 @@ const Homepage = ({ friendSuggestions }: any) => {
               )}
             </div> 
           </div>
-          <div className="flex-initial w-[300px] hidden xl:block">
+          <div className="flex-initial w-[320px] hidden xl:block">
             {renderFriends()}
           </div>
         </>

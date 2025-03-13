@@ -1,10 +1,10 @@
-"use client"
-import NotificationScreen from '@/components/screens/notification/views/Notification' 
+// "use client"
+// import NotificationScreen from '@/components/screens/notification/views/Notification' 
 
-const Notificationpage = () => {
-  return (
-    <NotificationScreen />
-  )
-}
+// const Notificationpage = () => {
+//   return (
+//     <NotificationScreen />
+//   )
+// }
 
-export default Notificationpage
+// export default Notificationpage
