@@ -16,7 +16,6 @@ import {
   AdvertisePostResponseModel,
   GetAdvertiseRequestModel,
 } from "./models/AdvertisePostModel";
-// import { ReportPostRequestModel } from "./models/ReportPost";
 
 interface IPostRepo {
   createPost: (
@@ -44,9 +43,7 @@ interface IPostRepo {
   getAdvertisePost: (
     params: AdvertisePostRequestModel
   ) => Promise<BaseApiResponseModel<AdvertisePostResponseModel>>;
-  // reportPost: (
-  //   params: ReportPostRequestModel
-  // ) => Promise<BaseApiResponseModel<any>>;
+
 
   getAdvertisementPosts: (
     params: GetUsersPostsRequestModel
@@ -118,12 +115,6 @@ export class PostRepo implements IPostRepo {
   ): Promise<BaseApiResponseModel<AdvertisePostResponseModel>> {
     return client.get(ApiPath.ADVERTISE_POST, params);
   }
-
-  // async reportPost(
-  //   params: ReportPostRequestModel
-  // ): Promise<BaseApiResponseModel<any>> {
-  //   return client.post(ApiPath.REPORT_POST, params);
-  // }
 
   async getAdvertisementPosts(
     data: GetUsersPostsRequestModel

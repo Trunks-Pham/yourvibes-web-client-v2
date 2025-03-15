@@ -1,5 +1,7 @@
+'use client';
+
 import React, { useState } from 'react';
-import { Input, Button, Typography, Spin } from 'antd'; // Import Spin
+import { Input, Button, Typography } from 'antd';
 import { useAuth } from '@/context/auth/useAuth';
 import ReportViewModel from '../ViewModel/reportViewModel';
 
@@ -13,7 +15,7 @@ interface ReportScreenProps {
   setShowModal: (show: boolean) => void;
 }
 
-const ReportScreen = ({ postId, userId, commentId, setShowModal }: ReportScreenProps) => {
+const ReportScreen: React.FC<ReportScreenProps> = ({ postId, userId, commentId, setShowModal }) => {
   const [reportReason, setReportReason] = useState('');
   const { localStrings } = useAuth();
   const { report, reportLoading } = ReportViewModel();
@@ -33,47 +35,49 @@ const ReportScreen = ({ postId, userId, commentId, setShowModal }: ReportScreenP
       reportedId = commentId;
     }
 
-    if (type !== undefined && reportedId !== undefined) {
+    if (type !== undefined && reportedId !== undefined && reportReason.trim()) {
       const res = await report({ type, reason: reportReason, reported_id: reportedId });
-      if (res?.success) {
+      if (res && !res.error) {
         setShowModal(false);
         setReportReason('');
       }
     }
   };
 
+  // Ensure title text is stable and not causing hydration issues
+  const getTitleText = () => {
+    if (postId) return localStrings?.Report?.ReportPost || 'Report Post';
+    if (userId) return localStrings?.Report?.ReportUser || 'Report User';
+    return localStrings?.Report?.ReportComment || 'Report Comment';
+  };
+
   return (
     <div className="p-2.5">
-      {/* Content */}
       <div className="flex-grow p-6">
         <Title level={5} className="text-center">
-          {postId
-            ? `${localStrings.Report.ReportPost}`
-            : userId
-            ? `${localStrings.Report.ReportUser}`
-            : `${localStrings.Report.ReportComment}`}
+          {getTitleText()}
         </Title>
         <Text className="block text-gray-500 text-center my-4">
-          {localStrings.Report.Note}
+          {localStrings?.Report?.Note || 'Please provide a reason for your report.'}
         </Text>
         <TextArea
           rows={6}
           className="w-full border rounded-lg p-2"
           value={reportReason}
           onChange={(e) => setReportReason(e.target.value)}
-          placeholder={localStrings.Report.placeholder}
+          placeholder={localStrings?.Report?.placeholder || 'Enter your reason here...'}
         />
       </div>
 
-      {/* Footer */}
       <div className="p-6 bg-white">
         <Button
           type="primary"
           block
           onClick={handleReport}
+          loading={reportLoading}
           disabled={!reportReason.trim()}
         >
-          {reportLoading ? <Spin /> : localStrings.Public.ReportFriend} {/* Use Spin for loading */}
+          {localStrings?.Public?.ReportFriend || 'Submit Report'}
         </Button>
       </div>
     </div>
