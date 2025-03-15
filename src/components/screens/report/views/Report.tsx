@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input, Button, Typography } from 'antd';
+import { Input, Button, Typography, message } from 'antd';
 import { useAuth } from '@/context/auth/useAuth';
 import ReportViewModel from '../ViewModel/reportViewModel';
 
@@ -36,10 +36,30 @@ const ReportScreen: React.FC<ReportScreenProps> = ({ postId, userId, commentId, 
     }
 
     if (type !== undefined && reportedId !== undefined && reportReason.trim()) {
-      const res = await report({ type, reason: reportReason, reported_id: reportedId });
-      if (res && !res.error) {
+      try {
+        const res = await report({ type, reason: reportReason, reported_id: reportedId });
+        if (res && !res.error) {
+          // Success case: Show success message, close modal, and clear reason
+          message.success(localStrings.Report.ReportSuccess);
+          setShowModal(false);
+          setReportReason('');
+        } else {
+          // Error case handled in ReportViewModel, but we can add a fallback here
+          let errorMessage = localStrings.Report.ReportFailed;
+          if (type === 0) {
+            errorMessage = localStrings.Report.ReportUserFailed;
+          } else if (type === 1) {
+            errorMessage = localStrings.Report.ReportPostFailed;
+          } else if (type === 2) {
+            errorMessage = localStrings.Report.ReportCommentFailed;
+          }
+          message.error(errorMessage);
+          setShowModal(false);
+        }
+      } catch (error) {
+        // Error case: Show error message and close modal
+        message.error(localStrings.Report.ReportFailed);
         setShowModal(false);
-        setReportReason('');
       }
     }
   };
