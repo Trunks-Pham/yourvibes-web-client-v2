@@ -134,7 +134,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            // border: "1px solid #000000",
           }}
         >
           <img
@@ -146,7 +145,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           <SearchScreen />
         </div>
         <div
-          className="flex flex-row items-center gap-4"
+          className="flex flex-row items-center gap-4 pl-2"
           onClick={handleMenuClick}
         >
           <span className="font-bold md:block hidden">
