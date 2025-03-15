@@ -4,6 +4,7 @@ import { useAuth } from "@/context/auth/useAuth";
 import { message } from "antd";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AxiosError } from "axios";
 
 const ReportViewModel = () => {
     const router = useRouter();
@@ -15,7 +16,7 @@ const ReportViewModel = () => {
         try {
             setReportLoading(true);
             const res = await defaultReportRepo.report(params);
-
+            console.log("Response from API:", res);
             if (!res?.error) {
                 message.success(localStrings.Report.ReportSuccess);
             } else {
@@ -30,9 +31,15 @@ const ReportViewModel = () => {
                 message.error(errorMessage);
             }
             return res;
-        } catch (error: any) {
-            console.error(error);
-            message.error(localStrings.Report.ReportFailed);
+        } catch (error) {
+            const axiosError = error as AxiosError;
+            console.error("Error in ReportViewModel:", axiosError);
+            if (axiosError.code === "ERR_NETWORK") {
+                message.error('NetworkError'); 
+            } else {
+                message.error(localStrings.Report.ReportFailed);
+            }
+            return Promise.reject(error);
         } finally {
             setReportLoading(false);
         }
