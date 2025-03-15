@@ -17,9 +17,7 @@ const ReportViewModel = () => {
             setReportLoading(true);
             const res = await defaultReportRepo.report(params);
             console.log("Response from API:", res);
-            if (!res?.error) {
-                // message.success(localStrings.Report.ReportSuccess);
-            } else {
+            if (res && !res.error) {
                 let errorMessage = localStrings.Report.ReportFailed;
                 if (params.type === 0) {
                     errorMessage = localStrings.Report.ReportUserFailed;
