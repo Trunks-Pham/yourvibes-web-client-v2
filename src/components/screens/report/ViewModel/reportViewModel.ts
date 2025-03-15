@@ -1,92 +1,10 @@
-// import { defaultCommentRepo } from "@/api/features/comment/CommentRepo";
-// import { ReportCommentRequestModel } from "@/api/features/comment/models/ReportComment";
-// import { ReportPostRequestModel } from "@/api/features/post/models/ReportPost";
-// import { defaultPostRepo, PostRepo } from "@/api/features/post/PostRepo";
-// import { ReportUserRequestModel } from "@/api/features/profile/model/ReportUser";
-// import { defaultProfileRepo } from "@/api/features/profile/ProfileRepository";
-// import { useAuth } from "@/context/auth/useAuth";
-// import { message } from "antd";
-// import { useRouter } from "next/navigation";
-// import { useState } from "react";
-
-// const ReportViewModel = () => {
-//     const router = useRouter();
-//     const { localStrings } = useAuth();
-//     const [reportLoading, setReportLoading] = useState(false);
-//     const [showModal, setShowModal] = useState(false);
-
-//     const reportPost = async (params: ReportPostRequestModel) => {
-//         try {
-//             setReportLoading(true);
-//             const res = await defaultPostRepo.reportPost(params); 
-            
-//             if (!res?.error) {
-//                 message.success(localStrings.Report.ReportSuccess);
-//             } else {
-//                 message.error(localStrings.Report.ReportPostFailed);
-//             }
-//             return res;
-//         } catch (error: any) {
-//             console.error(error);
-//             message.error(localStrings.Report.ReportFailed);
-//         } finally {
-//             setReportLoading(false);
-//         }
-        
-//     }
-//       const reportUser = async (params: ReportUserRequestModel) => {
-//         try {
-//           setReportLoading(true);
-//           const res = await defaultProfileRepo.reportUser(params); 
-//           if (!res?.error) {
-//            message.success(localStrings.Report.ReportSuccess);
-//           } else {
-//             message.error(localStrings.Report.ReportUserFailed);
-//           }
-//           return res;
-//         } catch (error: any) {
-//           console.error(error);
-//           message.error(localStrings.Report.ReportFailed);
-//         } finally {
-//           setReportLoading(false);
-//         }
-//         }
-
-//         const reportComment = async (params: ReportCommentRequestModel) => {
-//           try{
-//             setReportLoading(true);
-//             const res = await defaultCommentRepo.reportComment(params); 
-            
-//             if (!res?.error) {
-//               message.success(localStrings.Report.ReportSuccess);
-//             } else {
-//               message.error(localStrings.Report.ReportCommentFailed);
-//             }
-//             return res;
-//           } catch (error: any) {
-//             console.error(error);
-//             message.error(localStrings.Report.ReportFailed);
-//           } finally {
-//             setReportLoading(false);
-//           }
-//         }
-//     return {
-//         reportLoading,
-//         reportPost,
-//         reportUser,
-//         reportComment,
-//         setShowModal,
-//         showModal,
-//     }
-// }
-// export default ReportViewModel;
-
 import { defaultReportRepo } from "@/api/features/report/ReportRepo";
 import { ReportRequestModel } from "@/api/features/report/models/ReportRequestModel";
 import { useAuth } from "@/context/auth/useAuth";
 import { message } from "antd";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AxiosError } from "axios";
 
 const ReportViewModel = () => {
     const router = useRouter();
@@ -98,9 +16,12 @@ const ReportViewModel = () => {
         try {
             setReportLoading(true);
             const res = await defaultReportRepo.report(params);
+            console.log("Response from API:", res);
 
+            // Kiểm tra nếu res không có error
             if (!res?.error) {
                 message.success(localStrings.Report.ReportSuccess);
+                return { success: true, data: res }; // Trả về kết quả thành công
             } else {
                 let errorMessage = localStrings.Report.ReportFailed;
                 if (params.type === 0) {
@@ -111,11 +32,17 @@ const ReportViewModel = () => {
                     errorMessage = localStrings.Report.ReportCommentFailed;
                 }
                 message.error(errorMessage);
+                return { success: false, error: errorMessage }; // Trả về lỗi
             }
-            return res;
-        } catch (error: any) {
-            console.error(error);
-            message.error(localStrings.Report.ReportFailed);
+        } catch (error) {
+            const axiosError = error as AxiosError;
+            console.error("Error in ReportViewModel:", axiosError);
+            if (axiosError.code === "ERR_NETWORK") {
+                message.error("Network Error");
+            } else {
+                message.error(localStrings.Report.ReportFailed);
+            }
+            return { success: false, error: axiosError.message }; // Trả về lỗi
         } finally {
             setReportLoading(false);
         }
