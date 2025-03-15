@@ -17,11 +17,8 @@ const ReportViewModel = () => {
             setReportLoading(true);
             const res = await defaultReportRepo.report(params);
             console.log("Response from API:", res);
-
-            // Kiểm tra nếu res không có error
             if (!res?.error) {
                 message.success(localStrings.Report.ReportSuccess);
-                return { success: true, data: res }; // Trả về kết quả thành công
             } else {
                 let errorMessage = localStrings.Report.ReportFailed;
                 if (params.type === 0) {
@@ -32,17 +29,17 @@ const ReportViewModel = () => {
                     errorMessage = localStrings.Report.ReportCommentFailed;
                 }
                 message.error(errorMessage);
-                return { success: false, error: errorMessage }; // Trả về lỗi
             }
+            return res;
         } catch (error) {
             const axiosError = error as AxiosError;
             console.error("Error in ReportViewModel:", axiosError);
             if (axiosError.code === "ERR_NETWORK") {
-                message.error("Network Error");
+                message.error('NetworkError'); 
             } else {
                 message.error(localStrings.Report.ReportFailed);
             }
-            return { success: false, error: axiosError.message }; // Trả về lỗi
+            return Promise.reject(error);
         } finally {
             setReportLoading(false);
         }
