@@ -28,7 +28,7 @@ const ReportScreen = ({ postId, userId, commentId, setShowModal }: { postId?: st
 
     if (type !== undefined && reportedId !== undefined) {
       const res = await report({ type, reason: reportReason, reported_id: reportedId });
-      if (res && !res.error) {
+      if (res?.success) { // Kiểm tra success thay vì !res.error
         setShowModal(false);
         setReportReason('');
       }
