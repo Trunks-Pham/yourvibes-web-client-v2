@@ -27,13 +27,7 @@ export const ApiPath = {
   ADVERTISE_POST: getApiPath("advertise/"),
 
   //Report
-  REPORT_USER: getApiPath("users/report"),
-  REPORT_POST: getApiPath("posts/report"),
-  REPORT_COMMENT: getApiPath("comments/report"),
-  //=====
-  REPORT: getApiPath("report"),
-  //====
-
+  REPORT: getApiPath("report/"),
 
   //Comment
   CREATE_COMMENT: getApiPath("comments/"),
