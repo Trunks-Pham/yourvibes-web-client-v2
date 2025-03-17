@@ -9,6 +9,7 @@ import { AiOutlineSend, AiOutlineSearch } from "react-icons/ai";
 import { FaRegSmile } from 'react-icons/fa';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { UserModel } from '@/api/features/authenticate/model/LoginModel';
+import { FriendResponseModel } from '@/api/features/profile/model/FriendReponseModel';
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import { CiCircleChevDown } from "react-icons/ci";
 import { Modal } from 'antd';
@@ -20,11 +21,11 @@ const MessagesFeature = () => {
   const {
     newMessage,
     setNewMessage,
-    activeFriend,
+    activeFriend,         
     setActiveFriend,
     messages,
     handleSendMessage,
-    handleAddReaction,
+    fetchMessages,
     replyTo,
     setReplyTo,
     messagesEndRef,
@@ -46,15 +47,8 @@ const MessagesFeature = () => {
 
   let hoverTimeout: NodeJS.Timeout | null = null;
 
-  const isUserMessage = (message: Message) => {
-    return message.sender === `${user?.family_name} ${user?.name}`;
-  };
-
-  const toggleReaction = (message: Message, reaction: string) => {
-    const currentReactions = message.reactions || {};
-    const currentCount = currentReactions[reaction] || 0;
-    const newCount = currentCount === 0 ? 1 : 0;
-    handleAddReaction(message, reaction, newCount);
+  const isUserMessage = (message: Message): boolean => {
+    return message.sender_id === user?.id;
   };
 
   const scrollToBottom = () => {
@@ -92,6 +86,12 @@ const MessagesFeature = () => {
     fetchFriends(1);
   }, [user]);
 
+  useEffect(() => {
+    if (activeFriend) {
+      fetchMessages();
+    }
+  }, [activeFriend]);
+
   const onEmojiClick = (emojiData: EmojiClickData) => {
     setNewMessage(prev => prev + emojiData.emoji);
     setShowEmojiPicker(false);
@@ -108,6 +108,11 @@ const MessagesFeature = () => {
     setActiveFriend(null);
     setShowSidebar(true);
   };
+
+  // Tìm bạn hiện đang active theo ID trong mảng friends
+  const activeFriendData = activeFriend 
+    ? friends.find((friend: FriendResponseModel) => friend.id === activeFriend.id)
+    : null;
 
   return (
     <div className="flex flex-col md:flex-row h-[85vh] p-2 md:p-4 relative">
@@ -132,15 +137,15 @@ const MessagesFeature = () => {
           </div>
           <h2 className="text-lg md:text-xl font-bold mb-2 md:mb-4 mt-2 md:mt-4">{localStrings.Messages.FriendBar}</h2>
           <ul>
-            {friends.map((friend: UserModel, index: number) => {
+            {friends.map((friend: FriendResponseModel, index: number) => {
               const friendName = friend.name || "";
               const friendFamilyName = friend.family_name || "";
               return (
                 <li
                   key={index}
-                  className={`flex items-center p-2 cursor-pointer rounded-lg hover:bg-blue-100 ${activeFriend === friendName ? 'bg-blue-200' : ''}`}
+                  className={`flex items-center p-2 cursor-pointer rounded-lg hover:bg-blue-100 ${activeFriend?.id === friend.id ? 'bg-blue-200' : ''}`}
                   onClick={() => {
-                    setActiveFriend(friendName || null);
+                    setActiveFriend(friend);
                     if (window.innerWidth < 768) {
                       setShowSidebar(false);
                     }
@@ -159,42 +164,39 @@ const MessagesFeature = () => {
       <div className={`flex-1 flex flex-col px-1 md:px-2 ${!showSidebar ? 'block' : 'hidden md:block'}`}>
         {/* Conversation Header */}
         {activeFriend ? (
-          (() => {
-            const activeFriendData = friends.find((friend: UserModel) => friend.name === activeFriend);
-            return (
-              <div className='sticky bg-white z-100 top-0 flex h-16 md:h-20 rounded-xl items-center'>
-                {window.innerWidth < 768 && (
-                  <button 
-                    onClick={handleBackToFriendList}
-                    className="p-2 mr-1"
-                    aria-label="Back to friend list"
-                  >
-                    <IoMdArrowBack className="text-xl" />
-                  </button>
-                )}
-                <img
-                  src={activeFriendData?.avatar_url || "https://via.placeholder.com/64"}
-                  alt={activeFriendData?.name || "Friend avatar"}
-                  className="mt-1 md:mt-2 mr-3 ml-1 md:ml-2 w-10 h-10 md:w-16 md:h-16 rounded-full object-cover cursor-pointer"
-                  onMouseEnter={() => {
-                    hoverTimeout = setTimeout(() => {
-                      fetchUserProfile(activeFriendData?.id!);
-                    }, 200); 
-                  }}
-                  onMouseLeave={() => {
-                    if (hoverTimeout) {
-                      clearTimeout(hoverTimeout); 
-                    }
-                  }}
-                />
-                <div className='grow'>
-                  <h3 className='mt-1 md:mt-6 mb-1 md:mb-2 ml-1 md:ml-3 text-base md:text-xl font-bold truncate'>
-                    {activeFriendData ? `${activeFriendData.family_name || ""} ${activeFriendData.name || ""}`.trim() : "Chọn bạn để chat"}
-                  </h3>
-                </div>
-              </div>
-            );
-          })()
+          <div className='sticky bg-white z-100 top-0 flex h-16 md:h-20 rounded-xl items-center'>
+            {window.innerWidth < 768 && (
+              <button 
+                onClick={handleBackToFriendList}
+                className="p-2 mr-1"
+                aria-label="Back to friend list"
+              >
+                <IoMdArrowBack className="text-xl" />
+              </button>
+            )}
+            <img
+              src={activeFriendData?.avatar_url || "https://via.placeholder.com/64"}
+              alt={activeFriendData?.name || "Friend avatar"}
+              className="mt-1 md:mt-2 mr-3 ml-1 md:ml-2 w-10 h-10 md:w-16 md:h-16 rounded-full object-cover cursor-pointer"
+              onMouseEnter={() => {
+                hoverTimeout = setTimeout(() => {
+                  if (activeFriendData?.id) {
+                    fetchUserProfile(activeFriendData.id);
+                  }
+                }, 200); 
+              }}
+              onMouseLeave={() => {
+                if (hoverTimeout) {
+                  clearTimeout(hoverTimeout); 
+                }
+              }}
+            />
+            <div className='grow'>
+              <h3 className='mt-1 md:mt-6 mb-1 md:mb-2 ml-1 md:ml-3 text-base md:text-xl font-bold truncate'>
+                {activeFriendData ? `${activeFriendData.family_name || ""} ${activeFriendData.name || ""}`.trim() : "Chọn bạn để chat"}
+              </h3>
+            </div>
+          </div>
         ) : (
           <div className='sticky bg-white z-100 top-0 flex h-16 md:h-20 rounded-xl'>
             <div className='grow p-2 md:p-4'>
@@ -213,9 +215,9 @@ const MessagesFeature = () => {
           }}
         >
           {activeFriend ? (
-            messages[activeFriend]?.length ? (
+            messages[activeFriend.id]?.length ? (
               <>
-                {messages[activeFriend].map((message, index) => {
+                {messages[activeFriend.id].map((message: Message, index: number) => {
                   const isUser = isUserMessage(message);
                   return (
                     <div key={index} className={`flex items-start mb-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
@@ -231,23 +233,13 @@ const MessagesFeature = () => {
                         <div>{message.text}</div>
                         {message.replyTo && (
                           <div className="text-sm text-gray-500">
-                          {localStrings.Messages.Reply}: {message.replyTo.text}
+                            {localStrings.Messages.Reply}: {message.replyTo.text}
                           </div>
                         )}
                         <div className="text-xs text-gray-500">
                           {formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}
                         </div>
                         <div className="flex gap-2 mt-2 items-center">
-                          <button onClick={() => toggleReaction(message, '❤️')} className="flex items-center">
-                            {message.reactions?.['❤️'] ? (
-                              <FaHeart className="text-red-500" />
-                            ) : (
-                              <FaRegHeart className="text-black" />
-                            )}
-                            {message.reactions?.['❤️'] && (
-                              <span className="ml-1 text-sm">{message.reactions['❤️']}</span>
-                            )}
-                          </button>
                           <button onClick={() => setReplyTo(message)} className="text-sm text-blue-500">
                             {localStrings.Messages.Reply}
                           </button>
@@ -357,11 +349,11 @@ const MessagesFeature = () => {
         />
         <ul className="max-h-40 md:max-h-60 overflow-y-auto mb-4">
           {friends
-            .filter((friend: UserModel) => {
+            .filter((friend: FriendResponseModel) => {
               const fullName = `${friend.family_name || ""} ${friend.name || ""}`.toLowerCase();
               return fullName.includes(groupSearch.toLowerCase());
             })
-            .map((friend: UserModel, index: number) => {
+            .map((friend: FriendResponseModel, index: number) => {
               const fullName = `${friend.family_name || ""} ${friend.name || ""}`;
               return (
                 <li
@@ -376,14 +368,14 @@ const MessagesFeature = () => {
                   className="flex items-center p-2 cursor-pointer hover:bg-gray-100"
                 >
                   <input
-                  type="checkbox"
-                  id={`friend-checkbox-${friend.id}`}
-                  checked={selectedFriends.includes(friend.id!)}
-                  onChange={() => {}}
-                  onClick={(e) => e.stopPropagation()}
-                  className="mr-2"
-                  title={`Chọn ${fullName} vào nhóm chat`}
-                />
+                    type="checkbox"
+                    id={`friend-checkbox-${friend.id}`}
+                    checked={selectedFriends.includes(friend.id!)}
+                    onChange={() => {}}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mr-2"
+                    title={`Chọn ${fullName} vào nhóm chat`}
+                  />
                   <img src={friend.avatar_url} alt={fullName} className="w-6 h-6 md:w-8 md:h-8 rounded-full mr-2" />
                   <span className="text-sm md:text-base">{fullName}</span>
                 </li>
@@ -399,7 +391,6 @@ const MessagesFeature = () => {
           </button>
           <button
             onClick={() => {
-              // Nếu có ít nhất 1 bạn được chọn, chuyển hướng đến conversation với thành viên là user đăng nhập và những người được chọn
               if (selectedFriends.length > 0) {
                 router.push(`/messages?members=${[user?.id, ...selectedFriends].join(',')}`);
                 setShowGroupModal(false);

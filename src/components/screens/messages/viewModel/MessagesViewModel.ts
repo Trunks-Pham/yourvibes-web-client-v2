@@ -1,100 +1,15 @@
 import { UserModel } from '@/api/features/authenticate/model/LoginModel';
+import { defaultMessagesRepo } from '@/api/features/messages/MessagesRepo';
 import { FriendResponseModel } from '@/api/features/profile/model/FriendReponseModel';
 import { defaultProfileRepo } from '@/api/features/profile/ProfileRepository';
+import { ConversationDetailResponseModel } from '@/api/features/messages/models/ConversationDetailModel';
+import { MessageResponseModel } from '@/api/features/messages/models/MessageModel';
 import { useState, useEffect,useRef } from 'react';
-
-const autoResponses = [
-    'Đây là tin nhắn phản hồi tự động.',
-    'Xin chào! Đây là phản hồi tự động.',
-    'Chúng tôi sẽ liên hệ lại sớm nhất có thể.',
-    'Cảm ơn bạn đã nhắn tin. Đây là phản hồi tự động.',
-    'Hệ thống đang bận. Đây là phản hồi tự động.',
-    'Chúng tôi đã nhận được tin nhắn của bạn.',
-    'Tin nhắn tự động: Chúng tôi sẽ trả lời sớm.',
-    'Cảm ơn bạn đã liên hệ. Đây là phản hồi tự động.',
-    'Xin đợi trong giây lát, đây là phản hồi tự động.',
-    'Phản hồi tự động: Chúng tôi sẽ sớm liên hệ lại.',
-    'Tin nhắn của bạn đã được ghi nhận.',
-    'Đây là phản hồi tự động từ hệ thống.',
-    'Chúng tôi sẽ trả lời bạn trong thời gian sớm nhất.',
-    'Phản hồi tự động: Cảm ơn bạn đã nhắn tin.',
-    'Xin chào! Đây là phản hồi tự động từ hệ thống.',
-    'Cảm ơn bạn, tin nhắn của bạn đã được tiếp nhận.',
-    'Chúng tôi hiện không thể trả lời ngay lập tức.',
-    'Đây là phản hồi tự động. Vui lòng chờ đợi.',
-    'Tin nhắn tự động: Xin vui lòng kiên nhẫn chờ.',
-    'Chúng tôi sẽ liên hệ lại trong thời gian sớm nhất.',
-    'Xin cảm ơn! Đây là phản hồi tự động.',
-    'Tin nhắn của bạn đã được chuyển đến bộ phận liên quan.',
-    'Đây là phản hồi tự động. Chúng tôi đang kiểm tra.',
-    'Phản hồi tự động: Xin vui lòng chờ thêm ít phút.',
-    'Chúng tôi đánh giá cao phản hồi của bạn.',
-    'Hệ thống đang xử lý yêu cầu của bạn.',
-    'Đây là tin nhắn tự động, xin đừng trả lời.',
-    'Cảm ơn bạn đã kiên nhẫn chờ đợi.',
-    'Phản hồi tự động: Chúng tôi đang xử lý yêu cầu.',
-    'Xin lỗi, hiện tại chúng tôi không thể trả lời.',
-    'Tin nhắn của bạn rất quan trọng với chúng tôi.',
-    'Đây là phản hồi tự động, xin vui lòng chờ.',
-    'Chúng tôi sẽ trả lời ngay khi có thể.',
-    'Xin chào! Đây là tin nhắn tự động.',
-    'Chúng tôi đang xem xét yêu cầu của bạn.',
-    'Tin nhắn tự động: Cảm ơn bạn đã liên hệ.',
-    'Chúng tôi sẽ phản hồi trong thời gian sớm nhất.',
-    'Phản hồi tự động: Chúng tôi đã nhận được tin nhắn.',
-    'Đây là tin nhắn phản hồi tự động từ hệ thống.',
-    'Xin vui lòng chờ, chúng tôi sẽ liên hệ lại.',
-    'Chúng tôi trân trọng phản hồi của bạn.',
-    'Phản hồi tự động: Hệ thống đang bận.',
-    'Cảm ơn bạn đã kiên nhẫn.',
-    'Tin nhắn tự động: Chúng tôi sẽ sớm trả lời.',
-    'Đây là phản hồi tự động. Cảm ơn bạn.',
-    'Chúng tôi đang xử lý yêu cầu của bạn.',
-    'Phản hồi tự động: Xin vui lòng chờ đợi.',
-    'Tin nhắn của bạn đã được ghi nhận.',
-    'Chúng tôi sẽ liên hệ lại trong thời gian sớm nhất.',
-    'Đây là phản hồi tự động từ hệ thống.',
-    'Xin vui lòng chờ, chúng tôi sẽ phản hồi ngay.',
-    'Phản hồi tự động: Hệ thống đang xử lý yêu cầu.',
-    'Cảm ơn bạn đã liên hệ với chúng tôi.',
-    'Tin nhắn tự động: Chúng tôi sẽ sớm trả lời.',
-    'Phản hồi tự động: Xin vui lòng kiên nhẫn.',
-    'Đây là tin nhắn phản hồi tự động.',
-    'Xin cảm ơn! Đây là phản hồi tự động.',
-    'Tin nhắn của bạn đã được chuyển đến bộ phận liên quan.',
-    'Đây là phản hồi tự động. Chúng tôi đang kiểm tra.',
-    'Phản hồi tự động: Xin vui lòng chờ thêm ít phút.',
-    'Chúng tôi đánh giá cao phản hồi của bạn.',
-    'Hệ thống đang xử lý yêu cầu của bạn.',
-    'Đây là tin nhắn tự động, xin đừng trả lời.',
-    'Cảm ơn bạn đã kiên nhẫn chờ đợi.',
-    'Phản hồi tự động: Chúng tôi đang xử lý yêu cầu.',
-    'Xin lỗi, hiện tại chúng tôi không thể trả lời.',
-    'Tin nhắn của bạn rất quan trọng với chúng tôi.',
-    'Đây là phản hồi tự động, xin vui lòng chờ.',
-    'Chúng tôi sẽ trả lời ngay khi có thể.',
-    'Xin chào! Đây là tin nhắn tự động.',
-    'Chúng tôi đang xem xét yêu cầu của bạn.',
-    'Tin nhắn tự động: Cảm ơn bạn đã liên hệ.',
-    'Chúng tôi sẽ phản hồi trong thời gian sớm nhất.',
-    'Phản hồi tự động: Chúng tôi đã nhận được tin nhắn.',
-    'Đây là tin nhắn phản hồi tự động từ hệ thống.',
-    'Xin vui lòng chờ, chúng tôi sẽ liên hệ lại.',
-    'Chúng tôi trân trọng phản hồi của bạn.',
-    'Phản hồi tự động: Hệ thống đang bận.',
-    'Cảm ơn bạn đã kiên nhẫn.',
-    'Tin nhắn tự động: Chúng tôi sẽ sớm trả lời.'
-];
-
-// export interface Friend {
-//   name: string;
-//   avatar: string;
-//   lastOnline: Date;
-// }
 
 export interface Message {
   avatar: string;
   sender: string;
+  sender_id: string;
   text: string;
   timestamp: Date;
   reactions?: { [key: string]: number };
@@ -103,7 +18,7 @@ export interface Message {
 
 export const useMessageViewModel = (user: any) => {
   const [newMessage, setNewMessage] = useState('');
-  const [activeFriend, setActiveFriend] = useState<string | null>(null);
+  const [activeFriend, setActiveFriend] = useState<FriendResponseModel | null>(null);
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -111,6 +26,9 @@ export const useMessageViewModel = (user: any) => {
   const [ friends, setFriends ] = useState<FriendResponseModel[]>([]);
   const [activeFriendProfile, setActiveFriendProfile] = useState<UserModel | null>(null); 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [polling, setPolling] = useState<NodeJS.Timeout | null>(null);
+
+  const POLLING_INTERVAL = 3000;
 
   useEffect(() => {
     if (user) {
@@ -124,58 +42,161 @@ export const useMessageViewModel = (user: any) => {
     }
   }, [messages]);
 
-  const handleSendMessage = (replyTo?: Message) => {
-    if (newMessage.trim() !== '' && activeFriend) {
-        const timestamp = new Date();
-        setMessages((prev) => ({
-            ...prev,
-            [activeFriend]: [
-                ...(prev[activeFriend] || []),
-                {
-                    sender: `${user?.family_name} ${user?.name}`,
-                    avatar: user?.avatar_url || '',
-                    text: newMessage,
-                    timestamp,
-                    replyTo,
-                },
-            ],
-        }));
-        setNewMessage('');
-        setReplyTo(null); // Reset replyTo after sending the message
-
-        setTimeout(() => {
-            const randomResponse = autoResponses[Math.floor(Math.random() * autoResponses.length)];
-            setMessages((prev) => ({
-                ...prev,
-                [activeFriend]: [
-                    ...(prev[activeFriend] || []),
-                    {
-                        sender: activeFriend,
-                        avatar: friends.find((friend) => friend.name === activeFriend)?.avatar_url || '',
-                        text: randomResponse,
-                        timestamp: new Date(),
-                    },
-                ],
-            }));
-        }, 2000);
+  useEffect(() => {
+    if (activeFriend && activeFriend.id) {
+      if (polling) {
+        clearInterval(polling);
+      }
+      
+      fetchMessages();
+      
+      const interval = setInterval(() => {
+        fetchMessages();
+      }, POLLING_INTERVAL);
+      
+      setPolling(interval);
+      
+      return () => {
+        clearInterval(interval);
+        setPolling(null);
+      };
+    } else if (polling) {
+      clearInterval(polling);
+      setPolling(null);
     }
-};
+  }, [activeFriend]);
 
-  const handleAddReaction = (message: Message, reaction: string, newCount?: number) => {
-    setMessages((prev) => ({
-      ...prev,
-      [activeFriend!]: prev[activeFriend!].map((msg) =>
-        msg === message
-          ? {
-              ...msg,
-              reactions: {
-                ...msg.reactions,
-                [reaction]: newCount ?? (msg.reactions?.[reaction] || 0) + 1,
-              },
-            }
-          : msg
-      ),
-    }));
+  const getExistingConversation = async (userId: string, friendId: string): Promise<string | null> => {
+    try {
+      const userRes = await defaultMessagesRepo.getConversationDetailByUserID({ user_id: userId });
+      const friendRes = await defaultMessagesRepo.getConversationDetailByUserID({ user_id: friendId });
+      if (userRes.data && friendRes.data) {
+        const userConvos = userRes.data as ConversationDetailResponseModel[];
+        const friendConvos = friendRes.data as ConversationDetailResponseModel[];
+        const commonConvo = userConvos.find(uc =>
+          friendConvos.some(fc => fc.conversation?.id === uc.conversation?.id)
+        );
+        return commonConvo?.conversation?.id || null;
+      }
+    } catch (err) {
+      console.error("Error fetching existing conversation", err);
+    }
+    return null;
+  };
+
+  const handleSendMessage = async (replyTo?: Message) => {
+    if (newMessage.trim() !== '' && activeFriend) {
+      try {
+        const tempMessage: Message = {
+          avatar: user?.avatar_url || '',
+          sender: `${user?.family_name} ${user?.name}`,
+          sender_id: user?.id,
+          text: newMessage,
+          timestamp: new Date(),
+          replyTo: replyTo ? { 
+            avatar: replyTo.avatar,
+            sender: replyTo.sender,
+            sender_id: replyTo.sender_id,
+            text: replyTo.text,
+            timestamp: replyTo.timestamp
+          } : undefined
+        };
+
+        const key = activeFriend.id as string;
+        setMessages((prev) => ({
+          ...prev,
+          [key]: [...(prev[key] || []), tempMessage]
+        }));
+
+        let conversation_id = await getExistingConversation(user?.id, activeFriend.id);
+        
+        if (!conversation_id) {
+          let conversationName = `Chat between ${user?.name} and ${activeFriend.name}`;
+          if (conversationName.length > 30) {
+            conversationName = conversationName.substring(0, 30);
+          }
+    
+          const conversationRes = await defaultMessagesRepo.createConversation({
+            name: conversationName,
+          });
+    
+          const conversation = conversationRes.data;
+          if (!conversation?.id) {
+            throw new Error('Failed to create conversation');
+          }
+          conversation_id = conversation.id;
+    
+          await defaultMessagesRepo.createConversationDetail({
+            conversation_id,
+            user_id: user?.id,
+          });
+    
+          await defaultMessagesRepo.createConversationDetail({
+            conversation_id,
+            user_id: activeFriend.id,
+          });
+        }
+    
+        await defaultMessagesRepo.createMessage({
+          content: newMessage,
+          conversation_id,
+          parent_id: replyTo ? replyTo.sender_id : undefined, 
+        });
+    
+        setNewMessage('');
+        setReplyTo(null);
+        
+        await fetchMessages();
+        
+      } catch (error) {
+        console.error('Error sending message:', error);
+        if (activeFriend && activeFriend.id) {
+          const key = activeFriend.id as string;
+          setMessages((prev) => ({
+            ...prev,
+            [key]: prev[key].filter(msg => 
+              !(msg.text === newMessage && msg.timestamp.getTime() > Date.now() - 5000)
+            )
+          }));
+        }
+      }
+    }
+  };
+  
+  const fetchMessages = async () => {
+    if (!activeFriend || !activeFriend.id || !user?.id) return;
+  
+    try {
+      const conversation_id = await getExistingConversation(user.id, activeFriend.id);
+      if (conversation_id) {
+        const res = await defaultMessagesRepo.getMessagesByConversationId({
+          conversation_id,
+          page: 1,
+          limit: 50,
+        });
+        if (res.data) {
+          const fetchedMessages = res.data as MessageResponseModel[];
+          const mappedMessages: Message[] = fetchedMessages.map((msg: MessageResponseModel) => ({
+            avatar: msg.user?.avatar_url || '',
+            sender: msg.user ? `${msg.user.family_name} ${msg.user.name}` : '',
+            sender_id: msg.user?.id || '',
+            text: msg.content || '',
+            timestamp: new Date(msg.created_at || Date.now()),
+            reactions: {}, 
+          }));
+          
+          mappedMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+          
+          const key = activeFriend.id as string;
+          setMessages((prev) => ({
+            ...prev,
+            [key]: mappedMessages,
+          }));
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching messages", err);
+    }
   };
 
   const fetchFriends = async (page: number) => {
@@ -225,7 +246,7 @@ export const useMessageViewModel = (user: any) => {
     setActiveFriend,
     messages,
     handleSendMessage,
-    handleAddReaction,
+    fetchMessages,
     replyTo,
     setReplyTo,
     messagesEndRef,
