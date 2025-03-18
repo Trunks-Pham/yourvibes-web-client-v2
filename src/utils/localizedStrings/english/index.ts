@@ -330,6 +330,7 @@ export const ENGLocalizedStrings = {
     Note: "If you see a threat or someone in danger, don't hesitate to seek help and report to local emergency services before reporting to YourVibes.",
     placeholder: "Write your report here...",
     Report: "Report", 
+    ReportAlreadyExists: "Report already exists",
   },
   ChangePassword: {
     ChangePassword: "Change password",
