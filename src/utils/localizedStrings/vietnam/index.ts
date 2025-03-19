@@ -359,5 +359,8 @@ Messages: {
   Block: "Chặn",
   Reply: "Trả lời",
   ScrollToBottom: "Cuộn xuống dưới",
+  Connecting: "Đang kết nối",
+  Connected: "Đã kết nối",
+  You: "Bạn",
 }
 };

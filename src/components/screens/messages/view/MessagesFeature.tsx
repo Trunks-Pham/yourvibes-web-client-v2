@@ -201,33 +201,51 @@ const MessagesFeature = () => {
           </div>
           <h2 className="text-lg md:text-xl font-bold mb-2 md:mb-4 mt-2 md:mt-4">{localStrings.Messages.FriendBar}</h2>
           <ul>
-            {filteredFriends.map((friend: FriendResponseModel, index: number) => {
-              const friendName = friend.name || "";
-              const friendFamilyName = friend.family_name || "";
-              return (
-                <li
-                  key={index}
-                  className={`flex items-center p-2 cursor-pointer rounded-lg hover:bg-blue-100 ${activeFriend?.id === friend.id ? 'bg-blue-200' : ''}`}
-                  onClick={() => {
-                    setActiveFriend(friend);
-                    if (window.innerWidth < 768) {
-                      setShowSidebar(false);
-                    }
+          {filteredFriends.map((friend: FriendResponseModel, index: number) => {
+            const friendName = friend.name || "";
+            const friendFamilyName = friend.family_name || "";
+            
+            const friendMessages = friend.id ? messages[friend.id] || [] : [];
+            const latestMessage = friendMessages.length > 0 ? 
+              friendMessages[friendMessages.length - 1] : null;
+            
+            const senderName = latestMessage?.user_id === user?.id ? 
+              `${localStrings.Messages.You}: ` : latestMessage?.user?.name ? `${latestMessage.user.name}: ` : "";
+            const messageContent = latestMessage?.text || latestMessage?.content || "";
+            
+            const truncatedMessage = messageContent.length > 30 ? 
+              messageContent.substring(0, 30) + "..." : messageContent;
+            
+            return (
+              <li
+                key={index}
+                className={`flex items-center p-2 cursor-pointer rounded-lg hover:bg-blue-100 ${activeFriend?.id === friend.id ? 'bg-blue-200' : ''}`}
+                onClick={() => {
+                  setActiveFriend(friend);
+                  if (window.innerWidth < 768) {
+                    setShowSidebar(false);
+                  }
+                }}
+              >
+                <img 
+                  src={friend.avatar_url} 
+                  alt={`${friendName}'s avatar`} 
+                  className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2" 
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "https://via.placeholder.com/40"; 
                   }}
-                >
-                  <img 
-                    src={friend.avatar_url} 
-                    alt={`${friendName}'s avatar`} 
-                    className="w-8 h-8 md:w-10 md:h-10 rounded-full mr-2" 
-                    onError={(e) => {
-                      // Fallback image nếu avatar không tải được
-                      (e.target as HTMLImageElement).src = "https://via.placeholder.com/40"; 
-                    }}
-                  />
-                  <span className="font-medium text-sm md:text-base">{friendFamilyName} {friendName}</span>
-                </li>
-              );
-            })}
+                />
+                <div className="flex flex-col overflow-hidden">
+                  <span className="font-medium text-sm md:text-base truncate">{friendFamilyName} {friendName}</span>
+                  {latestMessage && (
+                    <span className="text-xs text-gray-500 truncate">
+                      {senderName}{truncatedMessage}
+                    </span>
+                  )}
+                </div>
+              </li>
+            );
+          })}
           </ul>
         </div>
       )}
@@ -274,12 +292,12 @@ const MessagesFeature = () => {
                 {isConnected ? (
                   <span className="flex items-center">
                     <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-                    Đang kết nối
+                    {localStrings.Messages.Connected}
                   </span>
                 ) : (
                   <span className="flex items-center">
                     <span className="w-2 h-2 bg-yellow-500 rounded-full mr-1"></span>
-                    Đang kết nối...
+                    {localStrings.Messages.Connecting}...
                   </span>
                 )}
               </p>
@@ -309,72 +327,111 @@ const MessagesFeature = () => {
               </div>
             ) : currentMessages.length > 0 ? (
               <>
-                {currentMessages.map((message, index) => {
-                  const isUser = isUserMessage(message);
-                  const messageContent = message.text || message.content || "";
-                  return (
-                    <div key={message.id || index} className={`flex items-start mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
-                      {!isUser && (
-                        <img
-                          src={activeFriendData?.avatar_url || "https://via.placeholder.com/40"}
-                          alt={`${activeFriendData?.name || "Friend"}'s avatar`}
-                          className="w-8 h-8 rounded-full mr-2"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "https://via.placeholder.com/40";
-                          }}
-                        />
-                      )}
-                      <div 
-                        className={`p-3 rounded-lg shadow max-w-xs md:max-w-sm w-fit break-words ${
-                          isUser ? 'bg-blue-100' : 'bg-white'
-                        } ${message.isTemporary ? 'opacity-70' : 'opacity-100'}`}
-                      >
-                        <div className="mb-1">{messageContent}</div>
-                        {message.reply_to && (
-                          <div className="text-sm text-gray-500 mt-1 p-1 bg-gray-100 rounded border-l-2 border-gray-300">
-                            {localStrings.Messages.Reply}: {message.reply_to.text || message.reply_to.content}
+                {(() => {
+                  // Nhóm tin nhắn theo ngày
+                  const messagesByDate: Record<string, MessageResponseModel[]> = {};
+                  
+                  currentMessages.forEach(message => {
+                    // Lấy ngày từ created_at (yyyy-MM-dd)
+                    const date = new Date(message.created_at || new Date());
+                    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                    
+                    if (!messagesByDate[dateKey]) {
+                      messagesByDate[dateKey] = [];
+                    }
+                    
+                    messagesByDate[dateKey].push(message);
+                  });
+                  
+                  // Render từng nhóm tin nhắn theo ngày
+                  return Object.entries(messagesByDate)
+                    .sort(([dateA], [dateB]) => dateA.localeCompare(dateB)) // Sắp xếp theo ngày tăng dần
+                    .map(([dateKey, messagesForDate]) => {
+                      // Format ngày hiển thị
+                      const [year, month, day] = dateKey.split('-').map(Number);
+                      const formattedDate = `${day}/${month}/${year}`;
+                      
+                      return (
+                        <div key={dateKey} className="mb-6">
+                          {/* Tiêu đề ngày */}
+                          <div className="flex justify-center mb-4">
+                            <div className="bg-gray-200 rounded-full px-4 py-1 text-sm text-gray-600">
+                              {formattedDate}
+                            </div>
                           </div>
-                        )}
-                        <div className="text-xs text-gray-500 mt-1 flex items-center">
-                          <span>
-                            {message.created_at 
-                              ? formatDistanceToNow(new Date(message.created_at), { addSuffix: true }) 
-                              : "Vừa gửi"}
-                          </span>
-                          {message.isTemporary && (
-                            <>
-                              <span className="mx-1">•</span>
-                              <span className="text-blue-500 flex items-center">
-                                <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Đang gửi...
-                              </span>
-                            </>
-                          )}
+                          
+                          {/* Tin nhắn trong ngày */}
+                          {messagesForDate.map((message, index) => {
+                            const isUser = isUserMessage(message);
+                            const messageContent = message.text || message.content || "";
+                            
+                            // Format thời gian tin nhắn (hh:mm:ss)
+                            const messageDate = new Date(message.created_at || new Date());
+                            const timeString = `${String(messageDate.getHours()).padStart(2, '0')}:${String(messageDate.getMinutes()).padStart(2, '0')}:${String(messageDate.getSeconds()).padStart(2, '0')}`;
+                            
+                            return (
+                              <div key={message.id || index} className={`flex items-start mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
+                                {!isUser && (
+                                  <img
+                                    src={activeFriendData?.avatar_url || "https://via.placeholder.com/40"}
+                                    alt={`${activeFriendData?.name || "Friend"}'s avatar`}
+                                    className="w-8 h-8 rounded-full mr-2"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = "https://via.placeholder.com/40";
+                                    }}
+                                  />
+                                )}
+                                <div 
+                                  className={`p-3 rounded-lg shadow max-w-xs md:max-w-sm w-fit break-words ${
+                                    isUser ? 'bg-blue-100' : 'bg-white'
+                                  } ${message.isTemporary ? 'opacity-70' : 'opacity-100'}`}
+                                >
+                                  <div className="mb-1">{messageContent}</div>
+                                  {message.reply_to && (
+                                    <div className="text-sm text-gray-500 mt-1 p-1 bg-gray-100 rounded border-l-2 border-gray-300">
+                                      {localStrings.Messages.Reply}: {message.reply_to.text || message.reply_to.content}
+                                    </div>
+                                  )}
+                                  <div className="text-xs text-gray-500 mt-1 flex items-center">
+                                    <span>{timeString}</span>
+                                    {message.isTemporary && (
+                                      <>
+                                        <span className="mx-1">•</span>
+                                        <span className="text-blue-500 flex items-center">
+                                          <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                          </svg>
+                                          Đang gửi...
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                  {!message.isTemporary && (
+                                    <div className="flex gap-2 mt-2 items-center">
+                                      <button onClick={() => setReplyTo(message)} className="text-xs text-blue-500">
+                                        {localStrings.Messages.Reply}
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                                {isUser && (
+                                  <img
+                                    src={user?.avatar_url || "https://via.placeholder.com/40"}
+                                    alt="Your avatar"
+                                    className="w-8 h-8 rounded-full ml-2"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = "https://via.placeholder.com/40";
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
-                        {!message.isTemporary && (
-                          <div className="flex gap-2 mt-2 items-center">
-                            <button onClick={() => setReplyTo(message)} className="text-xs text-blue-500">
-                              {localStrings.Messages.Reply}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      {isUser && (
-                        <img
-                          src={user?.avatar_url || "https://via.placeholder.com/40"}
-                          alt="Your avatar"
-                          className="w-8 h-8 rounded-full ml-2"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "https://via.placeholder.com/40";
-                          }}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    });
+                })()}
                 <div ref={messagesEndRef} />
               </>
             ) : (

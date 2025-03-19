@@ -361,5 +361,8 @@ export const ENGLocalizedStrings = {
     Block: "Block",
     Reply: "Reply",
     ScrollToBottom: "Scroll to bottom",
+    Connecting: "Connecting",
+    Connected: "Connected",
+    You: "You",
   }
 };
