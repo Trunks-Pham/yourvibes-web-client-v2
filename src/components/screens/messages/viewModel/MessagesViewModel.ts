@@ -1,252 +1,384 @@
 import { UserModel } from '@/api/features/authenticate/model/LoginModel';
-import { defaultMessagesRepo } from '@/api/features/messages/MessagesRepo';
 import { FriendResponseModel } from '@/api/features/profile/model/FriendReponseModel';
 import { defaultProfileRepo } from '@/api/features/profile/ProfileRepository';
-import { ConversationDetailResponseModel } from '@/api/features/messages/models/ConversationDetailModel';
 import { MessageResponseModel } from '@/api/features/messages/models/MessageModel';
-import { useState, useEffect,useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '@/context/auth/useAuth';
+import { useConversationViewModel } from './ConversationViewModel';
+import { defaultMessagesRepo } from '@/api/features/messages/MessagesRepo';
+import { useWebSocketConnect } from './WebSocketConnect';
 
-export interface Message {
-  avatar: string;
-  sender: string;
-  sender_id: string;
-  text: string;
-  timestamp: Date;
-  reactions?: { [key: string]: number };
-  replyTo?: Message;
-}
-
-export const useMessageViewModel = (user: any) => {
+export const useMessageViewModel = () => {
+  const { user } = useAuth();
+  const { getExistingConversation } = useConversationViewModel();
+  
+  // State cho tin nhắn và UI
   const [newMessage, setNewMessage] = useState('');
   const [activeFriend, setActiveFriend] = useState<FriendResponseModel | null>(null);
-  const [messages, setMessages] = useState<Record<string, Message[]>>({});
-  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [replyTo, setReplyTo] = useState<MessageResponseModel | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const [userInfo, setUserInfo] = useState<UserModel | null>(null);
-  const [ friends, setFriends ] = useState<FriendResponseModel[]>([]);
+  const [friends, setFriends] = useState<FriendResponseModel[]>([]);
   const [activeFriendProfile, setActiveFriendProfile] = useState<UserModel | null>(null); 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [polling, setPolling] = useState<NodeJS.Timeout | null>(null);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  
+  // Sử dụng WebSocket hook
+  const {
+    messages,
+    setMessages,
+    activeConversationId,
+    setActiveConversationId,
+    connectToWebSocket,
+    initializeConversation,
+    sendMessage,
+    isConnected,
+    debugMessagesState,
+    updateTemporaryMessages
+  } = useWebSocketConnect();
 
-  const POLLING_INTERVAL = 3000;
-
-  useEffect(() => {
-    if (user) {
-      setUserInfo(user);
-    }
-  }, [user]);
-
+  // Cuộn xuống tin nhắn cuối cùng khi messages thay đổi
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
+  // Theo dõi thay đổi activeFriend để thiết lập cuộc trò chuyện
   useEffect(() => {
-    if (activeFriend && activeFriend.id) {
-      if (polling) {
-        clearInterval(polling);
-      }
-      
-      fetchMessages();
-      
-      const interval = setInterval(() => {
-        fetchMessages();
-      }, POLLING_INTERVAL);
-      
-      setPolling(interval);
-      
-      return () => {
-        clearInterval(interval);
-        setPolling(null);
-      };
-    } else if (polling) {
-      clearInterval(polling);
-      setPolling(null);
+    if (activeFriend && activeFriend.id && user?.id) {
+      console.log("activeFriend thay đổi, thiết lập cuộc trò chuyện");
+      setupConversationForFriend(activeFriend.id);
     }
-  }, [activeFriend]);
+  }, [activeFriend, user?.id]);
+  
+  // Tự động kiểm tra và cập nhật tin nhắn tạm thời sau khi tải tin nhắn
+  useEffect(() => {
+    if (activeFriend?.id && !isLoadingMessages) {
+      const timerId = setTimeout(() => {
+        updateTemporaryMessages(activeFriend.id || '');
+      }, 200);
+      
+      return () => clearTimeout(timerId);
+    }
+  }, [activeFriend?.id, isLoadingMessages, updateTemporaryMessages]);
 
-  const getExistingConversation = async (userId: string, friendId: string): Promise<string | null> => {
+  // Hàm thiết lập cuộc trò chuyện khi chọn bạn
+  const setupConversationForFriend = async (friendId: string) => {
+    if (!user?.id) return;
+    
     try {
-      const userRes = await defaultMessagesRepo.getConversationDetailByUserID({ user_id: userId });
-      const friendRes = await defaultMessagesRepo.getConversationDetailByUserID({ user_id: friendId });
-      if (userRes.data && friendRes.data) {
-        const userConvos = userRes.data as ConversationDetailResponseModel[];
-        const friendConvos = friendRes.data as ConversationDetailResponseModel[];
-        const commonConvo = userConvos.find(uc =>
-          friendConvos.some(fc => fc.conversation?.id === uc.conversation?.id)
-        );
-        return commonConvo?.conversation?.id || null;
+      console.log(`Thiết lập cuộc trò chuyện giữa user ${user.id} và friend ${friendId}`);
+      setIsLoadingMessages(true);
+      
+      // Tìm cuộc trò chuyện hiện có
+      const existingConvId = await getExistingConversation(user.id, friendId);
+      
+      if (existingConvId) {
+        console.log("Đã tìm thấy cuộc trò chuyện:", existingConvId);
+        setActiveConversationId(existingConvId);
+        initializeConversation(existingConvId);
+        fetchMessages(existingConvId);
+      } else {
+        console.log("Không tìm thấy cuộc trò chuyện, tạo mới");
+        // Tạo cuộc trò chuyện mới
+        const newConversation = await createNewConversation(user.id, friendId);
+        if (newConversation) {
+          console.log("Đã tạo cuộc trò chuyện mới:", newConversation);
+          setActiveConversationId(newConversation);
+          initializeConversation(newConversation);
+        }
       }
-    } catch (err) {
-      console.error("Error fetching existing conversation", err);
+    } catch (error) {
+      console.error("Lỗi khi thiết lập cuộc trò chuyện:", error);
+    } finally {
+      setIsLoadingMessages(false);
     }
-    return null;
   };
 
-  const handleSendMessage = async (replyTo?: Message) => {
-    if (newMessage.trim() !== '' && activeFriend) {
-      try {
-        const tempMessage: Message = {
-          avatar: user?.avatar_url || '',
-          sender: `${user?.family_name} ${user?.name}`,
-          sender_id: user?.id,
-          text: newMessage,
-          timestamp: new Date(),
-          replyTo: replyTo ? { 
-            avatar: replyTo.avatar,
-            sender: replyTo.sender,
-            sender_id: replyTo.sender_id,
-            text: replyTo.text,
-            timestamp: replyTo.timestamp
-          } : undefined
-        };
+  // Tạo cuộc trò chuyện mới
+  const createNewConversation = async (userId: string, friendId: string): Promise<string | null> => {
+    try {
+      // Tìm thông tin bạn bè để đặt tên cuộc trò chuyện
+      const friend = friends.find(f => f.id === friendId);
+      const friendName = friend ? `${friend.family_name || ''} ${friend.name || ''}`.trim() : 'friend';
+      const userName = user ? `${user.family_name || ''} ${user.name || ''}`.trim() : 'user';
+      
+      // Tạo tên cho cuộc trò chuyện
+      const conversationName = `Chat giữa ${userName} và ${friendName}`;
+      
+      console.log("Tạo cuộc trò chuyện mới:", conversationName);
+      
+      // Tạo cuộc trò chuyện
+      const response = await defaultMessagesRepo.createConversation({
+        name: conversationName
+      });
+      
+      if (!response.data?.id) {
+        throw new Error("Không thể tạo cuộc trò chuyện");
+      }
+      
+      const conversationId = response.data.id;
+      
+      // Thêm người dùng vào cuộc trò chuyện
+      await defaultMessagesRepo.createConversationDetail({
+        conversation_id: conversationId,
+        user_id: userId
+      });
+      
+      // Thêm bạn vào cuộc trò chuyện
+      await defaultMessagesRepo.createConversationDetail({
+        conversation_id: conversationId,
+        user_id: friendId
+      });
+      
+      return conversationId;
+    } catch (error) {
+      console.error("Lỗi khi tạo cuộc trò chuyện mới:", error);
+      return null;
+    }
+  };
 
-        const key = activeFriend.id as string;
-        setMessages((prev) => ({
-          ...prev,
-          [key]: [...(prev[key] || []), tempMessage]
+  // Fetch tin nhắn từ một cuộc trò chuyện
+  const fetchMessages = useCallback(async (conversationId: string) => {
+    if (!conversationId || !activeFriend?.id) {
+      console.log("Không thể tải tin nhắn: thiếu conversationId hoặc activeFriend");
+      return;
+    }
+    
+    try {
+      console.log(`Đang tải tin nhắn cho cuộc trò chuyện ${conversationId}`);
+      setIsLoadingMessages(true);
+      
+      const response = await defaultMessagesRepo.getMessagesByConversationId({
+        conversation_id: conversationId,
+        page: 1,
+        limit: 100,
+      });
+      
+      if (response.data) {
+        // Xử lý dữ liệu trả về
+        const fetchedMessages = Array.isArray(response.data) 
+          ? response.data as MessageResponseModel[] 
+          : [response.data as MessageResponseModel];
+        
+        console.log(`Đã tải ${fetchedMessages.length} tin nhắn`);
+        
+        // Chuẩn hóa tin nhắn và cập nhật text/content
+        const normalizedMessages = fetchedMessages.map(msg => ({
+          ...msg,
+          text: msg.content || msg.text,
+          content: msg.content || msg.text,
+          isTemporary: false // Đảm bảo tin nhắn từ API không phải là tạm thời
         }));
-
-        let conversation_id = await getExistingConversation(user?.id, activeFriend.id);
         
-        if (!conversation_id) {
-          let conversationName = `Chat between ${user?.name} and ${activeFriend.name}`;
-          if (conversationName.length > 30) {
-            conversationName = conversationName.substring(0, 30);
-          }
-    
-          const conversationRes = await defaultMessagesRepo.createConversation({
-            name: conversationName,
-          });
-    
-          const conversation = conversationRes.data;
-          if (!conversation?.id) {
-            throw new Error('Failed to create conversation');
-          }
-          conversation_id = conversation.id;
-    
-          await defaultMessagesRepo.createConversationDetail({
-            conversation_id,
-            user_id: user?.id,
-          });
-    
-          await defaultMessagesRepo.createConversationDetail({
-            conversation_id,
-            user_id: activeFriend.id,
-          });
-        }
-    
-        await defaultMessagesRepo.createMessage({
-          content: newMessage,
-          conversation_id,
-          parent_id: replyTo ? replyTo.sender_id : undefined, 
-        });
-    
-        setNewMessage('');
-        setReplyTo(null);
+        // Sắp xếp tin nhắn theo thời gian
+        const sortedMessages = normalizedMessages.sort(
+          (a, b) => new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime()
+        );
         
-        await fetchMessages();
-        
-      } catch (error) {
-        console.error('Error sending message:', error);
-        if (activeFriend && activeFriend.id) {
-          const key = activeFriend.id as string;
-          setMessages((prev) => ({
-            ...prev,
-            [key]: prev[key].filter(msg => 
-              !(msg.text === newMessage && msg.timestamp.getTime() > Date.now() - 5000)
-            )
-          }));
-        }
-      }
-    }
-  };
-  
-  const fetchMessages = async () => {
-    if (!activeFriend || !activeFriend.id || !user?.id) return;
-  
-    try {
-      const conversation_id = await getExistingConversation(user.id, activeFriend.id);
-      if (conversation_id) {
-        const res = await defaultMessagesRepo.getMessagesByConversationId({
-          conversation_id,
-          page: 1,
-          limit: 50,
-        });
-        if (res.data) {
-          const fetchedMessages = res.data as MessageResponseModel[];
-          const mappedMessages: Message[] = fetchedMessages.map((msg: MessageResponseModel) => ({
-            avatar: msg.user?.avatar_url || '',
-            sender: msg.user ? `${msg.user.family_name} ${msg.user.name}` : '',
-            sender_id: msg.user?.id || '',
-            text: msg.content || '',
-            timestamp: new Date(msg.created_at || Date.now()),
-            reactions: {}, 
-          }));
+        // Cập nhật state messages
+        setMessages(prevMessages => {
+          const friendId = activeFriend.id || '';
+          console.log(`Cập nhật ${sortedMessages.length} tin nhắn cho friend ${friendId}`);
           
-          mappedMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-          
-          const key = activeFriend.id as string;
-          setMessages((prev) => ({
-            ...prev,
-            [key]: mappedMessages,
-          }));
-        }
+          return {
+            ...prevMessages,
+            [friendId]: sortedMessages
+          };
+        });
+        
+        // Log để debug
+        setTimeout(() => {
+          debugMessagesState();
+        }, 500);
       }
     } catch (err) {
-      console.error("Error fetching messages", err);
+      console.error("Lỗi khi tải tin nhắn", err);
+    } finally {
+      setIsLoadingMessages(false);
     }
-  };
-
-  const fetchFriends = async (page: number) => {
-      try {
-        const response = await defaultProfileRepo.getListFriends({
-          page: page,
-          limit: 10,
-          user_id: user?.id,
-        });
+  }, [activeFriend, setMessages, debugMessagesState]);
   
-        if (response?.data) {
-          if (Array.isArray(response?.data)) {
-              const friends = response?.data.map(
-                (friendResponse: UserModel) => ({
-                  id: friendResponse.id,
-                  family_name: friendResponse.family_name,
-                  name: friendResponse.name,
-                  avatar_url: friendResponse.avatar_url,
-                })
-              ) as UserModel[];
-              setFriends(friends);
-            } else{
-          console.error("response.data is null");
-          setFriends([]);
-        }}
-      } catch (error: any) {
-        console.error(error);
-      }
-    };
+  // Lấy danh sách bạn bè
+  const fetchFriends = useCallback(async (page: number) => {
+    try {
+      console.log("Tải danh sách bạn bè, trang:", page);
+      
+      const response = await defaultProfileRepo.getListFriends({
+        page: page,
+        limit: 20,
+        user_id: user?.id,
+      });
 
-    const fetchUserProfile = async (userId: string) => {
-      try {
-        const response = await defaultProfileRepo.getProfile(userId);
-        if (response?.data) {
-          setActiveFriendProfile(response.data);
-          setIsProfileModalOpen(true); 
+      if (response?.data) {
+        if (Array.isArray(response?.data)) {
+          const friends = response?.data.map(
+            (friendResponse: UserModel) => ({
+              id: friendResponse.id,
+              family_name: friendResponse.family_name,
+              name: friendResponse.name,
+              avatar_url: friendResponse.avatar_url,
+            })
+          ) as UserModel[];
+          
+          console.log(`Đã tải ${friends.length} bạn bè`);
+          setFriends(friends);
+        } else {
+          console.error("response.data không phải là mảng");
+          setFriends([]);
         }
-      } catch (error) {
-        console.error("Lỗi khi lấy thông tin hồ sơ:", error);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách bạn bè:", error);
+    }
+  }, [user]);
+
+  // Lấy thông tin hồ sơ người dùng
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    try {
+      const response = await defaultProfileRepo.getProfile(userId);
+      if (response?.data) {
+        setActiveFriendProfile(response.data);
+        setIsProfileModalOpen(true); 
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin hồ sơ:", error);
+    }
+  }, []);
+
+  // Gửi tin nhắn
+  const handleSendMessage = useCallback((message: string, replyToMessage?: MessageResponseModel) => {
+    if (!message.trim() || !activeFriend || !activeConversationId) {
+      console.error("Không thể gửi tin nhắn: thiếu thông tin cần thiết");
+      return false;
+    }
+    
+    console.log(`Đang gửi tin nhắn trong cuộc trò chuyện ${activeConversationId}`);
+    
+    // Tạo ID tạm thời cho tin nhắn
+    const tempId = `temp-${Date.now()}`;
+    
+    // Tạo tin nhắn tạm thời để hiển thị ngay lập tức trong UI
+    const tempMessage: MessageResponseModel = {
+      id: tempId,
+      conversation_id: activeConversationId,
+      user_id: user?.id || '',
+      content: message,
+      text: message,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      isTemporary: true,
+      reply_to: replyToMessage,
+      user: {
+        id: user?.id,
+        name: user?.name,
+        family_name: user?.family_name,
+        avatar_url: user?.avatar_url
       }
     };
+    
+    // Cập nhật state tin nhắn với tin nhắn tạm thời
+    setMessages(prevMessages => {
+      const friendId = activeFriend.id || '';
+      
+      // Tạo mảng tin nhắn mới nếu chưa có
+      if (!prevMessages[friendId]) {
+        return {
+          ...prevMessages,
+          [friendId]: [tempMessage]
+        };
+      }
+      
+      // Thêm tin nhắn vào danh sách hiện có
+      return {
+        ...prevMessages,
+        [friendId]: [...prevMessages[friendId], tempMessage]
+      };
+    });
+    
+    // Gửi tin nhắn qua WebSocket
+    const success = sendMessage(message, replyToMessage);
+    console.log("Kết quả gửi tin nhắn qua WebSocket:", success ? "Thành công" : "Thất bại");
+    
+    // Nếu không thành công qua WebSocket, thử gửi qua API
+    if (!success) {
+      console.log("Gửi tin nhắn qua API do WebSocket không khả dụng");
+      
+      defaultMessagesRepo.createMessage({
+        content: message,
+        conversation_id: activeConversationId,
+        parent_id: replyToMessage?.id,
+        parent_content: replyToMessage?.text || replyToMessage?.content,
+        user: {
+          id: user?.id,
+          name: user?.name,
+          family_name: user?.family_name,
+          avatar_url: user?.avatar_url
+        }
+      }).then(response => {
+        console.log("Kết quả gửi tin nhắn qua API:", response.data);
+        
+        // Cập nhật tin nhắn tạm thời thành tin nhắn thực khi API trả về
+        if (response.data && response.data.id) {
+          setMessages(prevMessages => {
+            const friendId = activeFriend.id || '';
+            if (!prevMessages[friendId]) return prevMessages;
+            
+            const updatedMessages = [...prevMessages[friendId]];
+            const tempIndex = updatedMessages.findIndex(
+              msg => msg.id === tempId
+            );
+            
+            if (tempIndex !== -1) {
+              updatedMessages[tempIndex] = {
+                ...updatedMessages[tempIndex],
+                ...response.data,
+                isTemporary: false,
+                text: message,
+                content: message
+              };
+            }
+            
+            return {
+              ...prevMessages,
+              [friendId]: updatedMessages
+            };
+          });
+        }
+      }).catch(error => {
+        console.error("Lỗi khi gửi tin nhắn qua API:", error);
+      });
+    }
+    
+    // Thiết lập timeout để tự động cập nhật tin nhắn tạm thời thành bình thường
+    // nếu không nhận được phản hồi từ server sau 5 giây
+    setTimeout(() => {
+      updateTemporaryMessages(activeFriend.id || '');
+    }, 5000);
+    
+    // Log sau khi gửi tin nhắn để debug
+    setTimeout(() => {
+      debugMessagesState();
+    }, 500);
+    
+    return true;
+  }, [activeFriend, activeConversationId, user, sendMessage, setMessages, debugMessagesState, updateTemporaryMessages]);
+
+  // Cập nhật tất cả tin nhắn tạm thời thành bình thường
+  const forceUpdateTempMessages = useCallback(() => {
+    if (activeFriend?.id) {
+      updateTemporaryMessages(activeFriend.id);
+    }
+  }, [activeFriend, updateTemporaryMessages]);
 
   return {
+    fetchMessages,
     newMessage,
     setNewMessage,
     activeFriend,
     setActiveFriend,
     messages,
-    handleSendMessage,
-    fetchMessages,
+    setMessages,
     replyTo,
     setReplyTo,
     messagesEndRef,
@@ -256,5 +388,13 @@ export const useMessageViewModel = (user: any) => {
     activeFriendProfile, 
     isProfileModalOpen, 
     setIsProfileModalOpen,
+    activeConversationId,
+    setActiveConversationId,
+    getExistingConversation,
+    handleSendMessage,
+    isConnected,
+    isLoadingMessages,
+    debugMessagesState,
+    forceUpdateTempMessages
   };
 };

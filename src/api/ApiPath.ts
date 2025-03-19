@@ -76,7 +76,8 @@ export const ApiPath = {
   CREATE_MESSAGE: getApiPath('messages/'),
   GET_MESSAGES_BY_CONVERSATION_ID: getApiPath('messages/get_by_conversation_id'),
   GET_MESSAGE_BY_ID: getApiPath('messages/message/'),
-  DELETE_MESSAGE: getApiPath('messages/message/')
+  DELETE_MESSAGE: getApiPath('messages/message/'),
+  CONNECT_TO_WEBSOCKET: getApiPath('messages/ws/')
 
 };
 
