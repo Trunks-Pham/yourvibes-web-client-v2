@@ -56,17 +56,14 @@ const MessagesFeature = () => {
   
   let hoverTimeout: NodeJS.Timeout | null = null;
 
-  // Kiểm tra xem tin nhắn có phải của người dùng hiện tại không
   const isUserMessage = (message: MessageResponseModel): boolean => {
     return message.user_id === user?.id;
   };
 
-  // Cuộn xuống tin nhắn cuối cùng
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
   };
 
-  // Xử lý khi kích thước màn hình thay đổi
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -82,21 +79,18 @@ const MessagesFeature = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, [activeFriend]);
 
-  // Xử lý hiển thị sidebar trên thiết bị di động
   useEffect(() => {
     if (window.innerWidth < 768) {
       setShowSidebar(!activeFriend);
     }
   }, [activeFriend]);
 
-  // Cuộn xuống tin nhắn cuối cùng khi tin nhắn hoặc người bạn đang active thay đổi
   useEffect(() => {
     setTimeout(() => {
       scrollToBottom();
     }, 300);
   }, [messages, activeFriend]);
   
-  // Tự động cập nhật tin nhắn tạm thời sau 5 giây
   useEffect(() => {
     const intervalId = setInterval(() => {
       if (activeFriend?.id) {
@@ -107,7 +101,6 @@ const MessagesFeature = () => {
     return () => clearInterval(intervalId);
   }, [activeFriend, forceUpdateTempMessages]);
   
-  // Debug tin nhắn sau khi render
   useEffect(() => {
     if (activeFriend?.id) {
       const friendMessages = messages[activeFriend.id];
@@ -115,27 +108,23 @@ const MessagesFeature = () => {
     }
   }, [messages, activeFriend]);
 
-  // Lấy danh sách bạn bè khi component mount
   useEffect(() => {
     if (user?.id) {
       fetchFriends(1);
     }
   }, [user, fetchFriends]);
 
-  // Xử lý khi chọn emoji
   const onEmojiClick = (emojiData: EmojiClickData) => {
     setNewMessage(prev => prev + emojiData.emoji);
     setShowEmojiPicker(false);
   };
 
-  // Xử lý khi nhấn Enter để gửi tin nhắn
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && newMessage.trim() && activeFriend) {
-      // Kiểm tra độ dài tin nhắn
       if (newMessage.length > 500) {
         antdMessage.error({
           content: localStrings.Messages.MessageTooLong || "Tin nhắn không được vượt quá 500 ký tự",
-          duration: 3 // Hiển thị trong 3 giây
+          duration: 3 
         });
         return;
       }
@@ -144,57 +133,48 @@ const MessagesFeature = () => {
     }
   };
   
-  // Hàm gửi tin nhắn
   const sendChatMessage = () => {
     if (!newMessage.trim() || !activeFriend || !activeConversationId) return;
     
-    // Kiểm tra độ dài tin nhắn
     if (newMessage.length > 500) {
       antdMessage.error({
         content: localStrings.Messages.MessageTooLong || "Tin nhắn không được vượt quá 500 ký tự",
-        duration: 3 // Hiển thị trong 3 giây
+        duration: 3 
       });
       return;
     }
     
-    // Gửi tin nhắn và xử lý reply
     const success = handleSendMessage(newMessage, replyTo || undefined);
     
     if (success) {
       setNewMessage('');
       setReplyTo(null);
       
-      // Cuộn xuống sau khi gửi tin nhắn
       setTimeout(() => {
         scrollToBottom();
       }, 100);
     }
   };
   
-  // Debug state tin nhắn
   const debug = () => {
     debugMessagesState();
     forceUpdateTempMessages();
   };
 
-  // Xử lý khi quay lại danh sách bạn bè
   const handleBackToFriendList = () => {
     setActiveFriend(null);
     setShowSidebar(true);
   };
 
-  // Lấy thông tin người bạn đang active
   const activeFriendData = activeFriend 
     ? friends.find((friend: FriendResponseModel) => friend.id === activeFriend.id)
     : null;
 
-  // Lọc danh sách bạn bè theo từ khóa tìm kiếm
   const filteredFriends = friends.filter((friend: FriendResponseModel) => {
     const fullName = `${friend.family_name || ""} ${friend.name || ""}`.toLowerCase();
     return fullName.includes(friendSearchText.toLowerCase());
   });
   
-  // Lấy tin nhắn của người bạn đang active
   const currentMessages = activeFriend?.id ? messages[activeFriend.id] || [] : [];
 
   return (
