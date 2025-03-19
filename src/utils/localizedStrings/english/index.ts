@@ -364,5 +364,6 @@ export const ENGLocalizedStrings = {
     Connecting: "Connecting",
     Connected: "Connected",
     You: "You",
+    MessageTooLong: "Message must not exceed 500 characters"
   }
 };

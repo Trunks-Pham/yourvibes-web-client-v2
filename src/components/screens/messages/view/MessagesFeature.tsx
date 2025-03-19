@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth/useAuth';
 import { useMessageViewModel } from '@/components/screens/messages/viewModel/MessagesViewModel';
 import { formatDistanceToNow } from 'date-fns';
+import { message as antdMessage } from 'antd';
 import { AiOutlineSend, AiOutlineSearch } from "react-icons/ai";
 import { FaRegSmile } from 'react-icons/fa';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
@@ -19,6 +20,8 @@ import { useConversationViewModel } from '@/components/screens/messages/viewMode
 const MessagesFeature = () => {
   const { user, localStrings } = useAuth();
   const {
+    messageError,
+    setMessageError,
     newMessage,
     setNewMessage,
     activeFriend,         
@@ -128,6 +131,15 @@ const MessagesFeature = () => {
   // Xử lý khi nhấn Enter để gửi tin nhắn
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && newMessage.trim() && activeFriend) {
+      // Kiểm tra độ dài tin nhắn
+      if (newMessage.length > 500) {
+        antdMessage.error({
+          content: localStrings.Messages.MessageTooLong || "Tin nhắn không được vượt quá 500 ký tự",
+          duration: 3 // Hiển thị trong 3 giây
+        });
+        return;
+      }
+      
       sendChatMessage();
     }
   };
@@ -135,6 +147,15 @@ const MessagesFeature = () => {
   // Hàm gửi tin nhắn
   const sendChatMessage = () => {
     if (!newMessage.trim() || !activeFriend || !activeConversationId) return;
+    
+    // Kiểm tra độ dài tin nhắn
+    if (newMessage.length > 500) {
+      antdMessage.error({
+        content: localStrings.Messages.MessageTooLong || "Tin nhắn không được vượt quá 500 ký tự",
+        duration: 3 // Hiển thị trong 3 giây
+      });
+      return;
+    }
     
     // Gửi tin nhắn và xử lý reply
     const success = handleSendMessage(newMessage, replyTo || undefined);
@@ -470,6 +491,12 @@ const MessagesFeature = () => {
         )}
         {/* Input area */}
         <div className="flex gap-2 relative mb-2 md:mb-4">
+          {messageError && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-md text-sm">
+              {messageError}
+            </div>
+          )}
+        
           <button
             title="Chọn emoji"
             aria-label="Chọn emoji"

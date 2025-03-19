@@ -362,5 +362,6 @@ Messages: {
   Connecting: "Đang kết nối",
   Connected: "Đã kết nối",
   You: "Bạn",
+  MessageTooLong: "Tin nhắn không được vượt quá 500 ký tự"
 }
 };

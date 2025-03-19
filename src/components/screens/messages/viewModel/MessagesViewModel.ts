@@ -9,7 +9,7 @@ import { defaultMessagesRepo } from '@/api/features/messages/MessagesRepo';
 import { useWebSocketConnect } from './WebSocketConnect';
 
 export const useMessageViewModel = () => {
-  const { user } = useAuth();
+  const { user, localStrings } = useAuth();
   const { getExistingConversation } = useConversationViewModel();
   
   // State cho tin nhắn và UI
@@ -21,6 +21,7 @@ export const useMessageViewModel = () => {
   const [activeFriendProfile, setActiveFriendProfile] = useState<UserModel | null>(null); 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [messageError, setMessageError] = useState<string | null>(null);
   
   // Sử dụng WebSocket hook
   const {
@@ -248,12 +249,16 @@ export const useMessageViewModel = () => {
 
   // Gửi tin nhắn
   const handleSendMessage = useCallback((message: string, replyToMessage?: MessageResponseModel) => {
+    setMessageError(null);
+
     if (!message.trim() || !activeFriend || !activeConversationId) {
-      console.error("Không thể gửi tin nhắn: thiếu thông tin cần thiết");
       return false;
     }
     
-    console.log(`Đang gửi tin nhắn trong cuộc trò chuyện ${activeConversationId}`);
+    if (message.length > 500) {
+      setMessageError(localStrings.Messages.MessageTooLong);
+      return false;
+    }
     
     // Tạo ID tạm thời cho tin nhắn
     const tempId = `temp-${Date.now()}`;
@@ -379,6 +384,8 @@ export const useMessageViewModel = () => {
     setActiveFriend,
     messages,
     setMessages,
+    messageError,
+    setMessageError,
     replyTo,
     setReplyTo,
     messagesEndRef,
