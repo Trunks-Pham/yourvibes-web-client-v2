@@ -56,25 +56,53 @@ export const useConversationViewModel = () => {
     // Tìm cuộc trò chuyện chung giữa 2 người dùng
     const getExistingConversation = useCallback(async (userId: string, friendId: string): Promise<string | null> => {
         try {
-            // Lấy tất cả các cuộc trò chuyện của người dùng hiện tại
-            const userRes = await defaultMessagesRepo.getConversationDetailByUserID({ user_id: userId });
+        console.log(`Tìm kiếm cuộc trò chuyện giữa user ${userId} và friend ${friendId}`);
+        
+        // Lấy tất cả các cuộc trò chuyện của người dùng hiện tại
+        const userRes = await defaultMessagesRepo.getConversationDetailByUserID({ user_id: userId });
+        console.log("Kết quả lấy cuộc trò chuyện của người dùng:", userRes);
+        
+        // Lấy tất cả các cuộc trò chuyện của người bạn
+        const friendRes = await defaultMessagesRepo.getConversationDetailByUserID({ user_id: friendId });
+        console.log("Kết quả lấy cuộc trò chuyện của bạn:", friendRes);
+        
+        if (userRes.data && friendRes.data) {
+            // Đảm bảo dữ liệu trả về là mảng
+            const userConvos = Array.isArray(userRes.data) ? userRes.data : [userRes.data];
+            const friendConvos = Array.isArray(friendRes.data) ? friendRes.data : [friendRes.data];
             
-            // Lấy tất cả các cuộc trò chuyện của người bạn
-            const friendRes = await defaultMessagesRepo.getConversationDetailByUserID({ user_id: friendId });
+            console.log("Số cuộc trò chuyện của người dùng:", userConvos.length);
+            console.log("Số cuộc trò chuyện của bạn:", friendConvos.length);
             
-            if (userRes.data && friendRes.data) {
-                const userConvos = userRes.data as ConversationDetailResponseModel[];
-                const friendConvos = friendRes.data as ConversationDetailResponseModel[];
-                
-                // Tìm cuộc trò chuyện chung giữa người dùng và người bạn
-                const commonConvo = userConvos.find(uc =>
-                    friendConvos.some(fc => fc.conversation?.id === uc.conversation?.id)
-                );
-                
-                return commonConvo?.conversation?.id || null;
+            // In thông tin chi tiết để debug
+            userConvos.forEach((conv, index) => {
+            console.log(`User conversation ${index}:`, conv.conversation_id || conv.conversation?.id);
+            });
+            
+            friendConvos.forEach((conv, index) => {
+            console.log(`Friend conversation ${index}:`, conv.conversation_id || conv.conversation?.id);
+            });
+            
+            // Tìm cuộc trò chuyện chung giữa người dùng và người bạn
+            // Kiểm tra cả conversation_id và conversation?.id
+            const commonConvo = userConvos.find(uc => {
+            const ucId = uc.conversation_id || (uc.conversation && uc.conversation.id);
+            return friendConvos.some(fc => {
+                const fcId = fc.conversation_id || (fc.conversation && fc.conversation.id);
+                return ucId === fcId;
+            });
+            });
+            
+            if (commonConvo) {
+            const conversationId = commonConvo.conversation_id || (commonConvo.conversation && commonConvo.conversation.id);
+            console.log("Đã tìm thấy cuộc trò chuyện chung:", conversationId);
+            return conversationId || null;
+            } else {
+            console.log("Không tìm thấy cuộc trò chuyện chung");
             }
+        }
         } catch (err) {
-            console.error("Lỗi khi tìm kiếm cuộc trò chuyện hiện có", err);
+        console.error("Lỗi khi tìm kiếm cuộc trò chuyện hiện có", err);
         }
         return null;
     }, []);
