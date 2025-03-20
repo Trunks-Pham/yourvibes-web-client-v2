@@ -1,10 +1,10 @@
-import { defaultReportRepo } from "@/api/features/report/ReportRepo";
+ import { defaultReportRepo } from "@/api/features/report/ReportRepo";
 import { ReportRequestModel } from "@/api/features/report/models/ReportRequestModel";
 import { useAuth } from "@/context/auth/useAuth";
 import { message } from "antd";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AxiosError } from "axios";
+import { AxiosError } from "axios"; 
 
 const ReportViewModel = () => {
     const router = useRouter();
@@ -15,31 +15,23 @@ const ReportViewModel = () => {
     const report = async (params: ReportRequestModel) => {
         try {
             setReportLoading(true);
-            const res = await defaultReportRepo.report(params);
-            console.log("Response from API:", res);
-            if (!res?.error) {
+            const res = await defaultReportRepo.report(params); 
+            if (res && (res.code === 200 || res.code === 20001)) {
                 message.success(localStrings.Report.ReportSuccess);
-            } else {
-                let errorMessage = localStrings.Report.ReportFailed;
-                if (params.type === 0) {
-                    errorMessage = localStrings.Report.ReportUserFailed;
-                } else if (params.type === 1) {
-                    errorMessage = localStrings.Report.ReportPostFailed;
-                } else if (params.type === 2) {
-                    errorMessage = localStrings.Report.ReportCommentFailed;
-                }
+                setShowModal(false);
+                return res;
+            } else { 
+                const errorMessage = res?.message || localStrings.Report.ReportFailed;
                 message.error(errorMessage);
+                setShowModal(false);
+                return res;
             }
-            return res;
         } catch (error) {
-            const axiosError = error as AxiosError;
-            console.error("Error in ReportViewModel:", axiosError);
-            if (axiosError.code === "ERR_NETWORK") {
-                message.error('NetworkError'); 
-            } else {
-                message.error(localStrings.Report.ReportFailed);
-            }
-            return Promise.reject(error);
+            const axiosError = error as AxiosError; 
+            const errorMessage = (axiosError.response?.data as any)?.message || localStrings.Report.ReportFailed;
+            message.error(errorMessage);
+            setShowModal(false);
+            throw axiosError;
         } finally {
             setReportLoading(false);
         }
@@ -53,4 +45,4 @@ const ReportViewModel = () => {
     };
 };
 
-export default ReportViewModel;
+export default ReportViewModel; 

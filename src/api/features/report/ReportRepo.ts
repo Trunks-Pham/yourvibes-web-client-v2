@@ -1,23 +1,15 @@
-import { ApiPath } from "@/api/ApiPath";
-import { ReportRequestModel } from "../report/models/ReportRequestModel";
-import { BaseApiResponseModel } from "@/api/baseApiResponseModel/baseApiResponseModel";
-import client from "@/api/client";
-import { AxiosError } from "axios"; // Import AxiosError
+import { ApiPath } from "../../ApiPath";
+import { BaseApiResponseModel } from "../../baseApiResponseModel/baseApiResponseModel";
+import client from "../../client";
+import { ReportRequestModel } from "./models/ReportRequestModel";
 
 interface IReportRepo {
-    report(params: ReportRequestModel): Promise<BaseApiResponseModel<ReportRequestModel>>;
+    report: (params: ReportRequestModel) => Promise<BaseApiResponseModel<any>>;
 }
 
 export class ReportRepo implements IReportRepo {
-    async report(params: ReportRequestModel): Promise<BaseApiResponseModel<ReportRequestModel>> {
-        try {
-            const response = await client.post<BaseApiResponseModel<ReportRequestModel>>(ApiPath.REPORT, params);
-            return response.data; // Return only the data part
-        } catch (error) {
-            const axiosError = error as AxiosError;
-            console.error("Error in ReportRepo:", axiosError);
-            throw axiosError; // Re-throw the error to be handled by the caller
-        }
+    async report(params: ReportRequestModel): Promise<BaseApiResponseModel<any>> {
+        return client.post(ApiPath.REPORT, params);
     }
 }
 
