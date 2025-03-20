@@ -67,17 +67,6 @@ const Ads = ({ postId }: { postId: string }) => {
     }
   }, [postId]);
 
-  // Xử lý mã voucher
-  const applyVoucher = () => {
-    if (voucher === "Yourvibes123") {
-      setDiscount(0.2); // Giảm 20% khi nhập mã Yourvibes123
-      message.success(localStrings.Ads.VoucherApplied); // Thông báo thành công
-    } else {
-      setDiscount(0);
-      message.error(localStrings.Ads.InvalidVoucher); // Thông báo lỗi
-    }
-  };
-
   const renderAds = useCallback(() => {
     if (loading) return null;
     const finalPrice = AdsCalculate(diffDay, price) * (1 - discount); // Áp dụng giảm giá
@@ -269,14 +258,7 @@ const Ads = ({ postId }: { postId: string }) => {
                     value={voucher}
                     onChange={(e) => setVoucher(e.target.value)}
                     style={{ width: 200, marginRight: 10 }}
-                  />
-                  <Button
-                    type="primary"
-                    onClick={applyVoucher}
-                    style={{ backgroundColor: brandPrimary }}
-                  >
-                    Áp dụng
-                  </Button>
+                  /> 
                 </div>
               </div>
 
@@ -322,7 +304,7 @@ const Ads = ({ postId }: { postId: string }) => {
                       start_date: (
                         dayjs().format("YYYY-MM-DDT00:00:00") + "Z"
                       ).toString(),
-                      voucher: voucher || undefined, // Truyền mã voucher nếu có
+                      voucher_code: voucher || undefined, // Truyền mã voucher nếu có
                     });
                   }}
                   style={{
