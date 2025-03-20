@@ -81,12 +81,17 @@ export const useMessageViewModel = () => {
         fetchMessages(existingConvId);
       } else {
         console.log("Không tìm thấy cuộc trò chuyện, tạo mới");
-        // Tạo cuộc trò chuyện mới
+        
+        // Tạo cuộc trò chuyện mới với cơ chế thử lại
         const newConversation = await createNewConversation(user.id, friendId);
+        
         if (newConversation) {
           console.log("Đã tạo cuộc trò chuyện mới:", newConversation);
           setActiveConversationId(newConversation);
           initializeConversation(newConversation);
+          // Conversation mới nên không cần fetch messages
+        } else {
+          // Nếu thất bại trong mọi nỗ lực, hiển thị thông báo lỗi
         }
       }
     } catch (error) {
@@ -96,48 +101,96 @@ export const useMessageViewModel = () => {
     }
   };
 
-  // Tạo cuộc trò chuyện mới
-  const createNewConversation = async (userId: string, friendId: string): Promise<string | null> => {
-    try {
-      // Tìm thông tin bạn bè để đặt tên cuộc trò chuyện
-      const friend = friends.find(f => f.id === friendId);
-      const friendName = friend ? `${friend.family_name || ''} ${friend.name || ''}`.trim() : 'friend';
-      const userName = user ? `${user.family_name || ''} ${user.name || ''}`.trim() : 'user';
+  // Sửa hàm createNewConversation trong MessagesViewModel.ts
+const createNewConversation = useCallback(async (userId: string, friendId: string, retryCount = 0): Promise<string | null> => {
+  try {
+    console.log(`Đang tạo cuộc trò chuyện mới (lần thử ${retryCount + 1}) giữa userId: ${userId} và friendId: ${friendId}`);
+    
+    // Tìm thông tin bạn bè để đặt tên cuộc trò chuyện
+    const friend = friends.find(f => f.id === friendId);
+    const friendName = friend ? `${friend.family_name || ''} ${friend.name || ''}`.trim() : 'friend';
+    const userName = user ? `${user.family_name || ''} ${user.name || ''}`.trim() : 'user';
+    
+    // Tạo tên cho cuộc trò chuyện VÀ ĐẢM BẢO KHÔNG QUÁ 30 KÝ TỰ
+    let conversationName = `Chat: ${userName} - ${friendName}`;
+    if (conversationName.length > 30) {
+      // Nếu quá dài, cắt ngắn tên người dùng và bạn bè
+      const maxNameLength = 10; // Để dành chỗ cho phần "Chat: " và " - "
+      const truncatedUserName = userName.length > maxNameLength 
+        ? userName.substring(0, maxNameLength) + "..." 
+        : userName;
+      const truncatedFriendName = friendName.length > maxNameLength 
+        ? friendName.substring(0, maxNameLength) + "..." 
+        : friendName;
       
-      // Tạo tên cho cuộc trò chuyện
-      const conversationName = `Chat giữa ${userName} và ${friendName}`;
+      conversationName = `Chat: ${truncatedUserName} - ${truncatedFriendName}`;
       
-      console.log("Tạo cuộc trò chuyện mới:", conversationName);
-      
-      // Tạo cuộc trò chuyện
-      const response = await defaultMessagesRepo.createConversation({
-        name: conversationName
-      });
-      
-      if (!response.data?.id) {
-        throw new Error("Không thể tạo cuộc trò chuyện");
+      // Nếu vẫn còn dài, cắt thêm
+      if (conversationName.length > 30) {
+        conversationName = conversationName.substring(0, 29) + "…";
       }
-      
-      const conversationId = response.data.id;
-      
-      // Thêm người dùng vào cuộc trò chuyện
-      await defaultMessagesRepo.createConversationDetail({
-        conversation_id: conversationId,
-        user_id: userId
-      });
-      
-      // Thêm bạn vào cuộc trò chuyện
-      await defaultMessagesRepo.createConversationDetail({
-        conversation_id: conversationId,
-        user_id: friendId
-      });
-      
-      return conversationId;
-    } catch (error) {
-      console.error("Lỗi khi tạo cuộc trò chuyện mới:", error);
-      return null;
     }
-  };
+    
+    console.log("Tạo cuộc trò chuyện mới:", conversationName, `(độ dài: ${conversationName.length})`);
+    
+    // Tạo cuộc trò chuyện
+    const response = await defaultMessagesRepo.createConversation({
+      name: conversationName
+    });
+    
+    console.log("Kết quả tạo conversation:", response);
+    
+    // Kiểm tra lỗi trong response
+    if (response.error) {
+      throw new Error(`API trả về lỗi: ${response.error.message} - ${response.error.message_detail}`);
+    }
+    
+    if (!response.data?.id) {
+      throw new Error("Không nhận được ID cuộc trò chuyện từ response");
+    }
+    
+    const conversationId = response.data.id;
+    console.log("Đã tạo conversation với ID:", conversationId);
+    
+    // Thêm người dùng hiện tại vào cuộc trò chuyện
+    const userDetailResponse = await defaultMessagesRepo.createConversationDetail({
+      conversation_id: conversationId,
+      user_id: userId
+    });
+    
+    // Kiểm tra lỗi
+    if (userDetailResponse.error) {
+      throw new Error(`Lỗi khi thêm người dùng: ${userDetailResponse.error.message}`);
+    }
+    
+    // Thêm bạn vào cuộc trò chuyện
+    const friendDetailResponse = await defaultMessagesRepo.createConversationDetail({
+      conversation_id: conversationId,
+      user_id: friendId
+    });
+    
+    // Kiểm tra lỗi
+    if (friendDetailResponse.error) {
+      throw new Error(`Lỗi khi thêm bạn: ${friendDetailResponse.error.message}`);
+    }
+    
+    // Nếu mọi thứ thành công, trả về conversationId
+    return conversationId;
+  } catch (error) {
+    console.error("Lỗi khi tạo cuộc trò chuyện mới:", error);
+    
+    // Nếu số lần thử lại chưa vượt quá giới hạn, thử lại sau một khoảng thời gian
+    if (retryCount < 2) {
+      console.log(`Đang thử lại lần ${retryCount + 1}...`);
+      // Đợi 1 giây trước khi thử lại
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return createNewConversation(userId, friendId, retryCount + 1);
+    }
+    
+    // Hiển thị thông báo lỗi cho người dùng
+    return null;
+  }
+}, [user, friends]);
 
   // Fetch tin nhắn từ một cuộc trò chuyện
   const fetchMessages = useCallback(async (conversationId: string) => {
