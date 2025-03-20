@@ -360,5 +360,9 @@ Messages: {
   Block: "Chặn",
   Reply: "Trả lời",
   ScrollToBottom: "Cuộn xuống dưới",
+  Connecting: "Đang kết nối",
+  Connected: "Đã kết nối",
+  You: "Bạn",
+  MessageTooLong: "Tin nhắn không được vượt quá 500 ký tự"
 }
 };
