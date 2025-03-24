@@ -42,11 +42,10 @@ export const ApiPath = {
   POST_LIKE_COMMENT: getApiPath("comments/like_comment/"),
 
   // Notification
-  GET_WS_PATH_NOTIFICATION: getWSPath("notification/ws/"),
-  GET_NOTIFICATIONS: getApiPath("notification"),
+  GET_WS_PATH: getWSPath("notification/ws/"),
+  GET_NOTIFICATIONS: getApiPath("notification/"),
   READ_NOTIFICATION: getApiPath("notification/"),
   READ_ALL_NOTIFICATION: getApiPath("notification/"),
-
 
   //New Feeds
   GET_NEW_FEEDS: getApiPath('posts/new_feeds/'),

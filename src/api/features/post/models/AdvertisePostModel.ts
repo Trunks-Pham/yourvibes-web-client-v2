@@ -28,9 +28,8 @@ export interface AdvertisePostResponseModel {
   day_remaining?: number;
   status?: string;
   status_action?: string;
-  adStatistics?: AdStatisticsModel; // Using the new AdStatisticsModel type
-  is_advertisement: boolean;
-    //for fake data
+  adStatistics?: AdStatisticsModel;  
+  is_advertisement?: number; 
   resultsData?: number[]; 
   reachData?: number[]; 
   impressionsData?: number[];

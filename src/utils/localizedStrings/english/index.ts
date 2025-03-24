@@ -299,7 +299,7 @@ export const ENGLocalizedStrings = {
     NoCampaign: "No campaign found",
     AdvertisePostPending: "Advertisement is pending, please check the process again.",
     CampaignStatus: "Campaign status",
-    TotalResults: "Total results",
+    Click: "Total clicks",
     TotalReach: "Total reach",
     TotalImpressions: "Total impressions",
     AdsManagement: "Ads Management",

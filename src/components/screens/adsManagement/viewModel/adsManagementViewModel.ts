@@ -21,7 +21,7 @@ interface MappedAd extends AdvertisePostResponseModel {
   impressionsData: number[];
   labels: string[];
   bill: BillModel | undefined;
-  isActive: boolean; // New field to indicate active status
+  isActive: boolean;
   status_action: string;
 }
 
@@ -34,23 +34,20 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
   const [page, setPage] = useState<number>(1);
   const [postDetails, setPostDetails] = useState<Record<string, AdvertisePostResponseModel>>({});
   const [isLoadingPostDetails, setIsLoadingPostDetails] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState<boolean>(true);
 
   const isAdActive = (ad: AdvertisePostResponseModel): boolean => {
     if (ad.status !== 'success' && ad.bill?.status !== 'success') return false;
     const now = dayjs();
-    const end = dayjs(ad.end_date, 'DD/MM/YYYY');
-    return now.isBefore(end);
+    const end = dayjs(ad.end_date); // Không cần định dạng cứng, để dayjs tự parse
+    return end.isValid() && now.isBefore(end);
   };
 
   const getStatusAction = (ad: AdvertisePostResponseModel): string => {
     if (ad.status !== 'success' && ad.bill?.status !== 'success') {
-      return localStrings.Ads.Active;  
+      return localStrings.Ads.Active;
     }
-    if (isAdActive(ad)) {
-      return localStrings.Ads.Pending;
-    } else {
-      return localStrings.Ads.Completed; 
-    }
+    return isAdActive(ad) ? localStrings.Ads.Pending : localStrings.Ads.Completed;
   };
 
   const fetchAds = useCallback(async () => {
@@ -66,41 +63,62 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
         isDescending: true,
         limit: 10,
         page,
-        is_advertisement: true,
       };
 
       const res = await repo.getAdvertisementPosts(request);
       if (!res?.data) {
         setError('Không thể lấy dữ liệu quảng cáo');
+        setHasMore(false);
         return;
       }
 
-      const filteredAds = res.data.filter((item) => item.is_advertisement === true);
+      const filteredAds: AdvertisePostResponseModel[] = (res.data as AdvertisePostResponseModel[]).filter(
+        (item) => Number(item.is_advertisement) === 1 || Number(item.is_advertisement) === 2
+      );
+      if (filteredAds.length === 0 && page > 1) {
+        setHasMore(false);
+      }
+
       const mappedAds: MappedAd[] = filteredAds.map((item: AdvertisePostResponseModel) => {
+        // Chuẩn hóa start_date và end_date
         let startDate = item.start_date;
         let endDate = item.end_date;
         let daysRemaining = item.day_remaining;
 
+        // Nếu start_date không có, dùng created_at
         if (!startDate && item.created_at) {
           const createdAt = dayjs(item.created_at);
           if (createdAt.isValid()) {
-            startDate = DateTransfer(item.created_at);
+            startDate = createdAt.format('DD/MM/YYYY');
           }
         }
+        // Nếu start_date vẫn không hợp lệ, dùng ngày hiện tại
+        if (!startDate || !dayjs(startDate).isValid()) {
+          startDate = dayjs().format('DD/MM/YYYY');
+        }
 
+        // Nếu end_date không có, tính từ start_date + 7 ngày
         if (!endDate && startDate) {
           const start = dayjs(startDate, 'DD/MM/YYYY');
           if (start.isValid()) {
             const endAt = start.add(7, 'day');
-            endDate = DateTransfer(endAt.toDate());
+            endDate = endAt.format('DD/MM/YYYY');
             daysRemaining = getDayDiff(endAt.toDate());
           }
         }
+        // Nếu end_date không hợp lệ, đặt mặc định
+        if (!endDate || !dayjs(endDate).isValid()) {
+          endDate = dayjs(startDate, 'DD/MM/YYYY').add(7, 'day').format('DD/MM/YYYY');
+          daysRemaining = 7;
+        }
 
-        if (endDate && daysRemaining === undefined) {
+        // Nếu daysRemaining chưa được tính
+        if (daysRemaining === undefined && endDate) {
           const end = dayjs(endDate, 'DD/MM/YYYY');
           if (end.isValid()) {
             daysRemaining = Math.max(getDayDiff(end.toDate()), 0);
+          } else {
+            daysRemaining = 0;
           }
         }
 
@@ -111,7 +129,6 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
           DateTransfer(dayjs().subtract(i, 'day').toDate())
         ).reverse();
 
-        // Correctly map the status and bill data
         let adStatus = item.status?.toString() || 'N/A';
         if (item.bill?.status) {
           adStatus = item.bill.status;
@@ -120,22 +137,23 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
         return {
           ...item,
           post_id: item.id,
-          status: adStatus, // Use the derived status
-          start_date: startDate || 'N/A',
-          end_date: endDate || 'N/A',
+          status: adStatus,
+          start_date: startDate,
+          end_date: endDate,
           day_remaining: daysRemaining ?? 0,
           resultsData,
           reachData,
           impressionsData,
           labels,
-          is_advertisement: true,
-          bill: item.bill, // Keep the bill data
-          isActive: isAdActive(item), // Determine active status here
+          is_advertisement: item.is_advertisement,
+          bill: item.bill,
+          isActive: isAdActive(item),
           status_action: getStatusAction(item),
         };
       });
 
       setAds((prevAds) => (page === 1 ? mappedAds : [...prevAds, ...mappedAds]));
+      setHasMore(filteredAds.length === 10);
 
       setIsLoadingPostDetails(true);
       const postIdsToFetch = mappedAds
@@ -147,7 +165,7 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
         await Promise.all(
           postIdsToFetch.map(async (postId) => {
             const post = await repo.getPostById(postId);
-            if (post?.data?.is_advertisement) {
+            if (post?.data && post.data.is_advertisement) {
               newPostDetails[postId] = post.data as AdvertisePostResponseModel;
             }
           })
@@ -156,13 +174,18 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi không xác định');
+      setHasMore(false);
     } finally {
       setLoading(false);
       setIsLoadingPostDetails(false);
     }
   }, [user?.id, page, repo, postDetails, localStrings.Ads]);
 
-  const loadMoreAds = () => setPage((prev) => prev + 1);
+  const loadMoreAds = () => {
+    if (hasMore && !loading) {
+      setPage((prev) => prev + 1);
+    }
+  };
 
   const advertisePost = async (params: AdvertisePostRequestModel) => {
     try {
@@ -178,7 +201,7 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
 
   useEffect(() => {
     if (user?.id) fetchAds();
-  }, [fetchAds, user?.id]);
+  }, [fetchAds, user?.id, page]);
 
   return {
     loading,
@@ -189,6 +212,7 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
     loadMoreAds,
     postDetails,
     isLoadingPostDetails,
+    hasMore,
   };
 };
 

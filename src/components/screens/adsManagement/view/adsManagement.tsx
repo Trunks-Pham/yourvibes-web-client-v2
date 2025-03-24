@@ -15,10 +15,8 @@ import Post from "@/components/common/post/views/Post";
 import { useAuth } from "@/context/auth/useAuth";
 import dayjs from 'dayjs';
 
-// Register Chart.js components
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-// Modal component for Ad Details
 const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel; onClose: () => void; post?: any }) => {
   const { localStrings } = useAuth();
 
@@ -26,7 +24,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
     labels: ad.labels || [],
     datasets: [
       {
-        label: localStrings.Ads.TotalResults,
+        label: localStrings.Ads.Click,
         data: ad.resultsData || [],
         borderColor: '#3498db',
         fill: false,
@@ -54,32 +52,12 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
     maintainAspectRatio: true,
     aspectRatio: 1.5,
     scales: {
-      x: {
-        title: {
-          display: true,
-          text: localStrings.Public.Day,
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: "Value",
-        },
-        beginAtZero: true,
-      },
+      x: { title: { display: true, text: localStrings.Public.Day } },
+      y: { title: { display: true, text: "Value" }, beginAtZero: true },
     },
     plugins: {
-      legend: {
-        position: "top" as const,
-        labels: {
-          boxWidth: 10,
-          padding: 10,
-        },
-      },
-      tooltip: {
-        mode: "index" as const,
-        intersect: false,
-      },
+      legend: { position: "top" as const, labels: { boxWidth: 10, padding: 10 } },
+      tooltip: { mode: "index" as const, intersect: false },
     },
   };
 
@@ -88,48 +66,111 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
     onClose();
   };
 
+  // Chuẩn hóa ngày bắt đầu
+  const startDate = ad.start_date && dayjs(ad.start_date).isValid()
+    ? DateTransfer(ad.start_date)
+    : ad.created_at && dayjs(ad.created_at).isValid()
+      ? DateTransfer(ad.created_at)
+      : 'N/A';
+
+  // Chuẩn hóa ngày kết thúc
+  const endDate = ad.end_date && dayjs(ad.end_date).isValid()
+    ? DateTransfer(ad.end_date)
+    : ad.start_date && dayjs(ad.start_date).isValid()
+      ? DateTransfer(dayjs(ad.start_date).add(7, 'day').toDate()) // Giả định 7 ngày nếu không có end_date
+      : 'N/A';
+
+  // Tính toán số ngày còn lại
+  const remainingDays = (() => {
+    if (ad.day_remaining !== undefined) return ad.day_remaining;
+    if (ad.end_date && dayjs(ad.end_date).isValid()) {
+      const diff = dayjs(ad.end_date).diff(dayjs(), 'day');
+      return Math.max(diff, 0); // Đảm bảo không âm
+    }
+    return 'N/A'; // Nếu không tính được
+  })();
+
+  // Chuẩn hóa chi phí
+  const grant = ad.bill?.price ? CurrencyFormat(ad.bill.price) : 'N/A';
+
+  const paymentMethod = 'MoMo'; // Giả định, cần thay đổi nếu có dữ liệu thực tế
+  const paymentStatus = ad.bill?.status === 'success' ? localStrings.Ads.PaymentSuccess : localStrings.Ads.PaymentFailed;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={onClose}>
-      <div className="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-4xl relative" onClick={(e) => e.stopPropagation()}>
-        <button className="absolute top-2 right-2 text-gray-600 hover:text-gray-800" onClick={handleCloseModal}>
+      <div
+        className="bg-white p-6 rounded-xl shadow-2xl relative overflow-hidden"
+        style={{ width: '1000px', maxHeight: '900px' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+          onClick={handleCloseModal}
+        >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="md:w-1/2 w-full max-w-full flex justify-center items-center" style={{ minHeight: '250px', padding: '8px' }}>
-            {post && post.is_advertisement ? <Post post={post} noFooter /> : <Spin />}
+        <div className="flex flex-col md:flex-row gap-4 h-full overflow-y-auto">
+          <div className="md:w-1/2 w-full flex justify-center items-center" style={{ minHeight: '250px' }}>
+            {post && (post.is_advertisement === 1 || post.is_advertisement === 2) ? (
+              <div className="w-full h-full overflow-hidden flex flex-col" style={{ maxHeight: '100%' }}>
+                <Post post={post} noFooter>
+                  {post.media && post.media.length > 0 && (
+                    <div className="w-full h-auto flex-shrink-0">
+                      {post.media.map((media: { media_url: string }, index: number) => {
+                        const isVideo = /\.(mp4|webm|ogg)$/i.test(media.media_url);
+                        return isVideo ? (
+                          <video
+                            key={index}
+                            src={media.media_url}
+                            controls
+                            className="w-full h-auto max-h-[250px] object-contain rounded-md"
+                          />
+                        ) : (
+                          <img
+                            key={index}
+                            src={media.media_url}
+                            alt={post.content || 'Ad Image'}
+                            className="w-full h-auto max-h-[250px] object-contain rounded-md"
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+                </Post>
+              </div>
+            ) : (
+              <Spin tip="Loading post..." />
+            )}
           </div>
-          <div className="md:w-1/2 flex flex-col gap-2">
-            <div className="grid grid-cols-2 gap-2 text-xs text-gray-700"> 
+          <div className="md:w-1/2 flex flex-col gap-2 overflow-y-auto">
+            <div className="grid grid-cols-2 gap-2 text-xs text-gray-700">
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p><strong>{localStrings.Ads.StartDay}:</strong> {ad.start_date ? DateTransfer(ad.start_date) : 'N/A'}</p>
+                <p><strong>{localStrings.Ads.StartDay}:</strong> {startDate}</p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p><strong>{localStrings.Ads.End}:</strong> {ad.end_date ? DateTransfer(ad.end_date) : 'N/A'}</p>
+                <p><strong>{localStrings.Ads.End}:</strong> {endDate}</p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p><strong>{localStrings.Ads.RemainingTime}:</strong> {ad.day_remaining !== undefined ? ad.day_remaining : 'N/A'}</p>
+                <p><strong>{localStrings.Ads.RemainingTime}:</strong> {remainingDays} {remainingDays !== 'N/A' ? localStrings.Ads.Day : ''}</p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p>
-                  <strong>{localStrings.Ads.Grant}:</strong>{' '}
-                  {ad.price !== undefined
-                    ? CurrencyFormat(ad.price)
-                    : 'N/A'}
-                </p>
+                <p><strong>{localStrings.Ads.Grant}:</strong> {grant}</p>
+              </div>
+              <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                <p><strong>{localStrings.Ads.PaymentMethod}:</strong> {paymentMethod}</p>
+              </div>
+              <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                <p><strong>{localStrings.Ads.Status}:</strong> {paymentStatus}</p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200 md:col-span-2">
-                <p>
-                  <strong>{localStrings.Ads.StatusActive}:</strong>{' '}
-                  {ad.status_action || 'N/A'}
-                </p>
+                <p><strong>{localStrings.Ads.StatusActive}:</strong> {ad.isActive ? 'Active' : 'Done'}</p>
               </div>
             </div>
-
             <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p><strong>{localStrings.Ads.TotalResults}:</strong> {ad.resultsData?.reduce((sum, num) => sum + num, 0) || 0}</p>
+                <p><strong>{localStrings.Ads.Click}:</strong> {ad.resultsData?.reduce((sum, num) => sum + num, 0) || 0}</p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                 <p><strong>{localStrings.Ads.TotalReach}:</strong> {ad.reachData?.reduce((sum, num) => sum + num, 0) || 0}</p>
@@ -144,9 +185,9 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
           </div>
         </div>
         <div className="mt-2 text-center">
-          <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600" onClick={handleCloseModal}>
+          <Button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600" onClick={handleCloseModal}>
             {localStrings.Public.Close}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -159,7 +200,8 @@ const AdsManagementFeature = () => {
     ads,
     loadMoreAds,
     postDetails,
-    isLoadingPostDetails
+    isLoadingPostDetails,
+    hasMore,
   } = useAdsManagement();
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredAds, setFilteredAds] = useState<AdvertisePostResponseModel[]>([]);
@@ -170,7 +212,6 @@ const AdsManagementFeature = () => {
   const { localStrings, user } = useAuth();
   const repo: PostRepo = defaultPostRepo;
 
-  // Filter ads based on search term
   useEffect(() => {
     const filter = ads.filter((ad: AdvertisePostResponseModel) => {
       const postIdMatch = ad.post_id && ad.post_id.toLowerCase().includes(searchTerm.toLowerCase());
@@ -180,7 +221,6 @@ const AdsManagementFeature = () => {
     setFilteredAds(filter);
   }, [searchTerm, ads, postDetails]);
 
-  // Fetch non-ad posts for modal
   const fetchNonAdPosts = async () => {
     setIsLoadingModalPosts(true);
     try {
@@ -190,11 +230,11 @@ const AdsManagementFeature = () => {
         isDescending: true,
         limit: 10,
         page: 1,
-        is_advertisement: false,
       };
       const res = await repo.getPosts(request);
       if (res?.data) {
-        setModalPosts(res.data);
+        const filteredPosts = res.data.filter((post) => post.is_advertisement === false);
+        setModalPosts(filteredPosts);
       }
     } catch (err) {
       console.error("Error fetching non-ad posts:", err);
@@ -217,19 +257,12 @@ const AdsManagementFeature = () => {
     setSelectedAd(null);
   };
 
-  const isAdActive = (ad: AdvertisePostResponseModel): boolean => {
-    if (ad.status !== 'success') return false;
-    const now = dayjs();
-    const end = dayjs(ad.end_date, 'DD/MM/YYYY');
-    return now.isBefore(end);
-  };
-
   const handleLoadMore = () => {
     loadMoreAds();
   };
 
-  return ( 
-      <div className="p-6 min-h-screen">
+  return (
+    <div className="p-6 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <h1 className="text-3xl font-semibold text-gray-800">{localStrings.Ads.AdsManagement}</h1>
         <div className="flex gap-3">
@@ -259,7 +292,7 @@ const AdsManagementFeature = () => {
               loading={false}
               posts={modalPosts}
               loadMorePosts={fetchNonAdPosts}
-              user={{ id: '', name: '', family_name: '', avatar_url: '' }}
+              user={{ id: user?.id || '', name: '', family_name: '', avatar_url: '' }}
               fetchUserPosts={fetchNonAdPosts}
               hasMore={modalPosts.length % 10 === 0}
               setPosts={setModalPosts}
@@ -278,7 +311,7 @@ const AdsManagementFeature = () => {
         />
       </div>
 
-      {loading ? (
+      {loading && filteredAds.length === 0 ? (
         <div className="flex justify-center items-center h-64">
           <Spin size="large" />
         </div>
@@ -293,6 +326,9 @@ const AdsManagementFeature = () => {
           ) : (
             filteredAds.map((ad: AdvertisePostResponseModel, index) => {
               const post = postDetails[ad.post_id!];
+              const dotColor = ad.isActive ? 'bg-green-500' : 'bg-gray-500';
+              const textColor = ad.isActive ? 'text-green-600' : 'text-gray-600';
+
               return (
                 <div
                   key={ad.id || index}
@@ -303,17 +339,15 @@ const AdsManagementFeature = () => {
                     className="w-full max-w-full flex justify-center items-center rounded-lg overflow-hidden bg-gray-50"
                     style={{ height: '180px' }}
                   >
-                    {post && post.is_advertisement ? (
+                    {post && (post.is_advertisement === 1 || post.is_advertisement === 2) ? (
                       <div className="w-full h-full flex flex-col justify-between p-2">
                         {post.content && (
                           <h3 className="text-sm font-semibold text-gray-800 line-clamp-2">
                             {post.content}
                           </h3>
                         )}
-                        {post.media.map((media: { media_url: string }, index: number) => {
-                          // Kiểm tra xem media là video hay hình ảnh dựa trên đuôi file
+                        {post.media && post.media.length > 0 && post.media.map((media: { media_url: string }, index: number) => {
                           const isVideo = /\.(mp4|webm|ogg)$/i.test(media.media_url);
-
                           return isVideo ? (
                             <video
                               key={index}
@@ -337,47 +371,23 @@ const AdsManagementFeature = () => {
                   </div>
 
                   <div className="mt-4 space-y-2">
-                    {isAdActive(ad) ? (
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <div className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-green-600 font-medium text-sm">
-                            {localStrings.Ads.ActiveCampaign}
-                          </span>
-                        </div>
-                        <div className="mt-2 text-xs text-gray-700 space-y-1">
-                          <p>
-                            <span className="font-semibold">{localStrings.Ads.Campaign}:</span>{' '}
-                            #{index + 1}
-                          </p>
-                          <p>
-                            <span className="font-semibold">{localStrings.Ads.DaysAds}:</span>{' '}
-                            {ad.start_date ? DateTransfer(ad.start_date) : 'N/A'}
-                          </p>
-                          <p>
-                            <span className="font-semibold">{localStrings.Ads.End}:</span>{' '}
-                            {ad.end_date ? DateTransfer(ad.end_date) : 'N/A'}
-                          </p>
-                          <p>
-                            <span className="font-semibold">{localStrings.Ads.RemainingTime}:</span>{' '}
-                            {ad.day_remaining !== undefined ? `${ad.day_remaining} days` : 'N/A'}
-                          </p>
-                          {ad.price !== undefined && (
-                            <p>
-                              <span className="font-semibold">{localStrings.Ads.Grant}:</span>{' '}
-                              {CurrencyFormat(ad.price)}
-                            </p>
-                          )}
-                        </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`h-2.5 w-2.5 rounded-full ${dotColor} ${ad.isActive ? 'animate-pulse' : ''}`} />
+                      <span className={`${textColor} font-medium text-sm`}>
+                        {ad.isActive ? localStrings.Ads.ActiveCampaign : localStrings.Ads.Campaign}
+                      </span>
+                    </div>
+                    {ad.isActive ? (
+                      <div className="mt-2 text-xs text-gray-700 space-y-1">
+                        <p><span className="font-semibold">{localStrings.Ads.Campaign}:</span> #{index + 1}</p>
+                        <p><span className="font-semibold">{localStrings.Ads.DaysAds}:</span> {DateTransfer(ad.start_date)}</p>
+                        <p><span className="font-semibold">{localStrings.Ads.End}:</span> {DateTransfer(ad.end_date)}</p>
+                        <p><span className="font-semibold">{localStrings.Ads.RemainingTime}:</span> {ad.day_remaining} days</p>
+                        {ad.bill?.price !== undefined && (
+                          <p><span className="font-semibold">{localStrings.Ads.Grant}:</span> {CurrencyFormat(ad.bill.price)}</p>
+                        )}
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                        <span className="text-green-600 font-medium text-sm">
-                          {localStrings.Ads.Campaign}
-                        </span>
-                      </div>
-                    )}
+                    ) : null}
                   </div>
 
                   <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -392,7 +402,7 @@ const AdsManagementFeature = () => {
         </div>
       )}
 
-      {ads.length % 10 === 0 && ads.length !== 0 && (
+      {hasMore && (
         <div className="flex justify-center mt-4">
           <Button type="primary" onClick={handleLoadMore} loading={loading}>
             {localStrings.Public.LoadMore}

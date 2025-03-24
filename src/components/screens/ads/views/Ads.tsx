@@ -304,7 +304,7 @@ const Ads = ({ postId }: { postId: string }) => {
                       start_date: (
                         dayjs().format("YYYY-MM-DDT00:00:00") + "Z"
                       ).toString(),
-                      voucher_code: voucher || undefined, // Truyền mã voucher nếu có
+                      voucher_code: voucher || undefined, 
                     });
                   }}
                   style={{
