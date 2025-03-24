@@ -43,7 +43,9 @@ const ReportScreen: React.FC<ReportScreenProps> = ({ postId, userId, commentId, 
                     reported_id: reportedId 
                 });
                 setReportReason('');  
-            } catch (error) { 
+                setShowModal(false); // Đóng Modal sau khi báo cáo thành công
+            } catch (error) {
+                // Lỗi đã được xử lý trong ReportViewModel, không cần thêm logic ở đây
             }
         }
     };

@@ -24,7 +24,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
     labels: ad.labels || [],
     datasets: [
       {
-        label: localStrings.Ads.TotalResults,
+        label: localStrings.Ads.Click,
         data: ad.resultsData || [],
         borderColor: '#3498db',
         fill: false,
@@ -170,7 +170,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
             </div>
             <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p><strong>{localStrings.Ads.TotalResults}:</strong> {ad.resultsData?.reduce((sum, num) => sum + num, 0) || 0}</p>
+                <p><strong>{localStrings.Ads.Click}:</strong> {ad.resultsData?.reduce((sum, num) => sum + num, 0) || 0}</p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                 <p><strong>{localStrings.Ads.TotalReach}:</strong> {ad.reachData?.reduce((sum, num) => sum + num, 0) || 0}</p>
