@@ -147,12 +147,11 @@ const Homepage = ({ friendSuggestions }: any) => {
                 >
                   {newFeeds.map((item, index) => (
                     <div key={item?.id} style={{ width: "100%", maxWidth: "600px" }}>
-                      <Post post={item} onDeleteNewFeed={handleDeleteNewFeed} />
-                      {item?.parent_post && (
-                        <div style={{ marginLeft: "20px" }}>
+                      <Post post={item} onDeleteNewFeed={handleDeleteNewFeed}>
+                      {item?.parent_post && 
                           <Post post={item?.parent_post} isParentPost />
-                        </div>
-                      )}
+                      }
+                      </Post>
                       {index === 4 && <FriendSuggestions friendSuggestions={friendSuggestions} postIndex={index} />}
                     </div>
                   ))}

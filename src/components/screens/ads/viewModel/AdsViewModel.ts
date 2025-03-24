@@ -41,7 +41,7 @@ const AdsViewModel = (repo: PostRepo) => {
   };
 
   // Quảng cáo bài viết với mã voucher
-  const advertisePost = async (params: AdvertisePostRequestModel & { voucher?: string }) => {
+  const advertisePost = async (params: AdvertisePostRequestModel & { voucher_code?: string }) => {
     try {
       setAdsLoading(true);
       const res = await repo.advertisePost(params);
@@ -62,8 +62,8 @@ const AdsViewModel = (repo: PostRepo) => {
               clearInterval(checkWindowClosed);
               if (result.location.href.includes('success')) {
                 message.success(
-                  params.voucher
-                    ? `${localStrings.Ads.AdvertisePostSuccess} - Voucher ${params.voucher} applied!`
+                  params.voucher_code
+                    ? `${localStrings.Ads.AdvertisePostSuccess} - Voucher ${params.voucher_code} applied!`
                     : localStrings.Ads.AdvertisePostSuccess
                 );
               } else {

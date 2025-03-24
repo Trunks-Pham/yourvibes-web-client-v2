@@ -43,7 +43,7 @@ export const ApiPath = {
 
   // Notification
   GET_WS_PATH: getWSPath("notification/ws/"),
-  GET_NOTIFICATIONS: getApiPath("notification?"),
+  GET_NOTIFICATIONS: getApiPath("notification/"),
   READ_NOTIFICATION: getApiPath("notification/"),
   READ_ALL_NOTIFICATION: getApiPath("notification/"),
 
@@ -54,11 +54,30 @@ export const ApiPath = {
   //Forgot Password
   GET_OTP_FORGOOT_PASSWORD: getApiPath('users/get_otp_forgot_user_password'),
   FORGOT_PASSWORD: getApiPath("users/forgot_user_password"),
+
+  //Conversation
+  CREATE_CONVERSATION: getApiPath('conversations/'),
+  GET_CONVERSATION: getApiPath('conversations/'),
+  DELETE_CONVERSATION: getApiPath('conversations/'),
+
+  //ConversationDetail
+  CREATE_CONVERSATION_DETAIL: getApiPath('conversation_details/'),
+  GET_CONVERSATION_DETAIL_BY_ID: getApiPath('conversation_details/get_by_id'),
+  GET_CONVERSATION_DETAIL_BY_USER_ID: getApiPath('conversation_details/get_by_id'),
+  DELETE_CONVERSATION_DETAIL: getApiPath('conversation_details/delete/'),
+
+  //Messages
+  CREATE_MESSAGE: getApiPath('messages/'),
+  GET_MESSAGES_BY_CONVERSATION_ID: getApiPath('messages/get_by_conversation_id'),
+  GET_MESSAGE_BY_ID: getApiPath('messages/message/'),
+  DELETE_MESSAGE: getApiPath('messages/message/'),
+  CONNECT_TO_WEBSOCKET: getApiPath('messages/ws/')
+
 };
 
 function getApiPath(path: string) {
   return `${process.env.NEXT_PUBLIC_API_ENDPOINT!}/v1/2024/${path}`;
 } 
 function getWSPath(path: string) {
-  return `${process.env.NEXT_PUBLIC_API_ENDPOINT!.replace("http", "ws")!}/v1/2024/${path}`;
+  return `${process.env.NEXT_PUBLIC_API_ENDPOINT!.replace("http", "wss")!}/v1/2024/${path}`;
 } 
