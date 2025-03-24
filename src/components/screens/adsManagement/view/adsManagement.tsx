@@ -52,13 +52,8 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
     maintainAspectRatio: true,
     aspectRatio: 1.5,
     scales: {
-      x: {
-        title: { display: true, text: localStrings.Public.Day },
-      },
-      y: {
-        title: { display: true, text: "Value" },
-        beginAtZero: true,
-      },
+      x: { title: { display: true, text: localStrings.Public.Day } },
+      y: { title: { display: true, text: "Value" }, beginAtZero: true },
     },
     plugins: {
       legend: { position: "top" as const, labels: { boxWidth: 10, padding: 10 } },
@@ -70,6 +65,36 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
     e.stopPropagation();
     onClose();
   };
+
+  // Chuẩn hóa ngày bắt đầu
+  const startDate = ad.start_date && dayjs(ad.start_date).isValid()
+    ? DateTransfer(ad.start_date)
+    : ad.created_at && dayjs(ad.created_at).isValid()
+      ? DateTransfer(ad.created_at)
+      : 'N/A';
+
+  // Chuẩn hóa ngày kết thúc
+  const endDate = ad.end_date && dayjs(ad.end_date).isValid()
+    ? DateTransfer(ad.end_date)
+    : ad.start_date && dayjs(ad.start_date).isValid()
+      ? DateTransfer(dayjs(ad.start_date).add(7, 'day').toDate()) // Giả định 7 ngày nếu không có end_date
+      : 'N/A';
+
+  // Tính toán số ngày còn lại
+  const remainingDays = (() => {
+    if (ad.day_remaining !== undefined) return ad.day_remaining;
+    if (ad.end_date && dayjs(ad.end_date).isValid()) {
+      const diff = dayjs(ad.end_date).diff(dayjs(), 'day');
+      return Math.max(diff, 0); // Đảm bảo không âm
+    }
+    return 'N/A'; // Nếu không tính được
+  })();
+
+  // Chuẩn hóa chi phí
+  const grant = ad.bill?.price ? CurrencyFormat(ad.bill.price) : 'N/A';
+
+  const paymentMethod = 'MoMo'; // Giả định, cần thay đổi nếu có dữ liệu thực tế
+  const paymentStatus = ad.bill?.status === 'success' ? localStrings.Ads.PaymentSuccess : localStrings.Ads.PaymentFailed;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={onClose}>
@@ -116,25 +141,31 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
                 </Post>
               </div>
             ) : (
-              <Spin />
+              <Spin tip="Loading post..." />
             )}
           </div>
           <div className="md:w-1/2 flex flex-col gap-2 overflow-y-auto">
             <div className="grid grid-cols-2 gap-2 text-xs text-gray-700">
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p><strong>{localStrings.Ads.StartDay}:</strong> {ad.start_date}</p>
+                <p><strong>{localStrings.Ads.StartDay}:</strong> {startDate}</p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p><strong>{localStrings.Ads.End}:</strong> {ad.end_date}</p>
+                <p><strong>{localStrings.Ads.End}:</strong> {endDate}</p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p><strong>{localStrings.Ads.RemainingTime}:</strong> {ad.day_remaining} {localStrings.Ads.Day}</p>
+                <p><strong>{localStrings.Ads.RemainingTime}:</strong> {remainingDays} {remainingDays !== 'N/A' ? localStrings.Ads.Day : ''}</p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
-                <p><strong>{localStrings.Ads.Grant}:</strong> {ad.grant}</p>
+                <p><strong>{localStrings.Ads.Grant}:</strong> {grant}</p>
+              </div>
+              <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                <p><strong>{localStrings.Ads.PaymentMethod}:</strong> {paymentMethod}</p>
+              </div>
+              <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
+                <p><strong>{localStrings.Ads.Status}:</strong> {paymentStatus}</p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200 md:col-span-2">
-                <p><strong>{localStrings.Ads.StatusActive}:</strong> {ad.is_advertisement === 1 ? 'Active' : 'Done'}</p>
+                <p><strong>{localStrings.Ads.StatusActive}:</strong> {ad.isActive ? 'Active' : 'Done'}</p>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
@@ -154,9 +185,9 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: AdvertisePostResponseModel;
           </div>
         </div>
         <div className="mt-2 text-center">
-          <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600" onClick={handleCloseModal}>
+          <Button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600" onClick={handleCloseModal}>
             {localStrings.Public.Close}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -224,13 +255,6 @@ const AdsManagementFeature = () => {
 
   const closeModal = () => {
     setSelectedAd(null);
-  };
-
-  const isAdActive = (ad: AdvertisePostResponseModel): boolean => {
-    if (ad.status !== 'success') return false;
-    const now = dayjs();
-    const end = dayjs(ad.end_date); // Để dayjs tự parse
-    return end.isValid() && now.isBefore(end);
   };
 
   const handleLoadMore = () => {
@@ -302,8 +326,8 @@ const AdsManagementFeature = () => {
           ) : (
             filteredAds.map((ad: AdvertisePostResponseModel, index) => {
               const post = postDetails[ad.post_id!];
-              const dotColor = ad.is_advertisement === 1 ? 'bg-green-500' : 'bg-gray-500';
-              const textColor = ad.is_advertisement === 1 ? 'text-green-600' : 'text-gray-600';
+              const dotColor = ad.isActive ? 'bg-green-500' : 'bg-gray-500';
+              const textColor = ad.isActive ? 'text-green-600' : 'text-gray-600';
 
               return (
                 <div
@@ -348,21 +372,19 @@ const AdsManagementFeature = () => {
 
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center gap-2">
-                      <div className={`h-2.5 w-2.5 rounded-full ${dotColor} ${isAdActive(ad) && ad.is_advertisement === 1 ? 'animate-pulse' : ''}`} />
+                      <div className={`h-2.5 w-2.5 rounded-full ${dotColor} ${ad.isActive ? 'animate-pulse' : ''}`} />
                       <span className={`${textColor} font-medium text-sm`}>
-                        {isAdActive(ad) && ad.is_advertisement === 1
-                          ? localStrings.Ads.ActiveCampaign
-                          : localStrings.Ads.Campaign}
+                        {ad.isActive ? localStrings.Ads.ActiveCampaign : localStrings.Ads.Campaign}
                       </span>
                     </div>
-                    {isAdActive(ad) && ad.is_advertisement === 1 ? (
+                    {ad.isActive ? (
                       <div className="mt-2 text-xs text-gray-700 space-y-1">
                         <p><span className="font-semibold">{localStrings.Ads.Campaign}:</span> #{index + 1}</p>
-                        <p><span className="font-semibold">{localStrings.Ads.DaysAds}:</span> {ad.start_date}</p>
-                        <p><span className="font-semibold">{localStrings.Ads.End}:</span> {ad.end_date}</p>
+                        <p><span className="font-semibold">{localStrings.Ads.DaysAds}:</span> {DateTransfer(ad.start_date)}</p>
+                        <p><span className="font-semibold">{localStrings.Ads.End}:</span> {DateTransfer(ad.end_date)}</p>
                         <p><span className="font-semibold">{localStrings.Ads.RemainingTime}:</span> {ad.day_remaining} days</p>
-                        {ad.price !== undefined && (
-                          <p><span className="font-semibold">{localStrings.Ads.Grant}:</span> {CurrencyFormat(ad.price)}</p>
+                        {ad.bill?.price !== undefined && (
+                          <p><span className="font-semibold">{localStrings.Ads.Grant}:</span> {CurrencyFormat(ad.bill.price)}</p>
                         )}
                       </div>
                     ) : null}
