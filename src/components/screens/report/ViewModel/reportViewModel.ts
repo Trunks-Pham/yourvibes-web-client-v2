@@ -21,10 +21,24 @@ const ReportViewModel = () => {
                 setShowModal(false);
                 return res;
             } else { 
-                const errorMessage = res?.message || localStrings.Report.ReportFailed;
-                message.error(errorMessage);
-                setShowModal(false);
-                return res;
+                // 0: User, 1: Post, 2: Comment
+                // const errorMessage = res?.message || localStrings.Report.ReportFailed;
+                // message.error(errorMessage);
+                // setShowModal(false);
+                // return res;
+                if (params.type === 0 ){
+                    const errorMessage = localStrings.Report.ReportUserFailed
+                    message.error(errorMessage)
+                } 
+                if (params.type === 1){
+                    const errorMessage = localStrings.Report.ReportPostFailed
+                    message.error(errorMessage)
+                }
+                if (params.type === 2){
+                    const errorMessage = localStrings.Report.ReportCommentFailed
+                    message.error(errorMessage)
+                }
+                return res
             }
         } catch (error) {
             const axiosError = error as AxiosError; 
