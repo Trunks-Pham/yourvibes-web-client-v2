@@ -66,6 +66,7 @@ export const VnLocalizedStrings = {
     Messages: "Tin Nhắn",
     SuggestedFriend: "Những người bạn có thể biết",
     LoadMore: "Tải thêm",
+    GenericError: "Đã xảy ra lỗi, vui lòng thử lại sau",
   },
   Form: {
     Label: {
@@ -304,6 +305,7 @@ Ads: {
   SearchAds: "Tìm kiếm bài viết quảng cáo",
   ExportAds: "Xuất báo cáo quảng cáo",
   StartDay: "Ngày bắt đầu",
+  EndDay: "Ngày kết thúc",
   ViewDetails: "Xem chi tiết",
   Voucher: "Mã giảm giá",
   InvalidVoucher: "Mã giảm giá không hợp lệ",
@@ -312,7 +314,7 @@ Ads: {
   Pending: "Chờ xử lý",
   Active: "Đang hoạt động",
   Completed: "Hoàn thành",
-
+  ErrorFetchingStatistics: "Không tìm thấy thống kê quảng cáo",
 },
 
 

@@ -95,7 +95,7 @@ export default function Layout({ children }: { children: React.ReactNode }): Rea
 
   return (
     <Suspense fallback={<Skeleton paragraph={{ rows: 10 }} active />}>
-      <div className="mb-10">
+      <div>
         <MainLayout>{children}</MainLayout>
       </div>
     </Suspense>

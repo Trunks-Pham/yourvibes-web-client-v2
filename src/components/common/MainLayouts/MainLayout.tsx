@@ -188,6 +188,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                     // itemPaddingInline: 0,
                     itemHeight: 55,
                   }
+
                 },
               }}
             >
@@ -234,6 +235,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               />
             </ConfigProvider>
           </Sider>
+          
           <Content
             style={{
               marginLeft: screens.lg ? 250 : 0,

@@ -24,7 +24,10 @@ export const ApiPath = {
   GET_USER_LIKES: getApiPath("posts/get_like_user/"),
   LIKE_POST: getApiPath("posts/like_post/"),
   SHARE_POST: getApiPath("posts/share_post/"),
+
+  //Advertisement
   ADVERTISE_POST: getApiPath("advertise/"),
+  ADVERTISE_STATISTICS: getApiPath("advertise/statistic/"),
 
   //Report
   REPORT: getApiPath("report/"),

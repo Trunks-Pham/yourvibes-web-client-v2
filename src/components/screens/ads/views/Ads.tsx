@@ -1,3 +1,4 @@
+// Ads.tsx
 import React, { useCallback, useEffect, useState } from "react";
 import useColor from "@/hooks/useColor";
 import Post from "@/components/common/post/views/Post";
@@ -10,10 +11,25 @@ import dayjs from "dayjs";
 import { AdsCalculate } from "@/utils/helper/AdsCalculate";
 import { FaCalculator, FaCashRegister, FaAd } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import { Spin, Button, List, DatePicker, Typography, Modal, Input, message } from "antd"; // Thêm message vào import
+import { Spin, Button, List, DatePicker, Typography, Modal, Input, message } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
+import { Line } from "react-chartjs-2"; // Import Line chart from react-chartjs-2
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const { Text } = Typography;
+
 const Ads = ({ postId }: { postId: string }) => {
   const price = 30000;
   const { brandPrimary, backgroundColor } = useColor();
@@ -23,7 +39,7 @@ const Ads = ({ postId }: { postId: string }) => {
   const [diffDay, setDiffDay] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
   const [voucher, setVoucher] = useState("");
-  const [discount, setDiscount] = useState(0); // Giảm giá mặc định là 0
+  const [discount, setDiscount] = useState(0);
   const router = useRouter();
   const {
     getPostDetail,
@@ -66,13 +82,69 @@ const Ads = ({ postId }: { postId: string }) => {
       getAdvertisePost(page, postId);
     }
   }, [postId]);
+ 
+const chartData = {
+  labels: ads?.statistics?.map((stat) => dayjs(stat.aggregation_date).format("DD/MM")) || [],
+  datasets: [
+    {
+      label: "Total Clicks",
+      data: ads?.statistics?.map((stat) => stat.clicks) || [],
+      borderColor: "#3498db", // Xanh dương tươi
+      backgroundColor: "#3498db",
+      fill: false,
+      borderWidth: 3,
+    },
+    {
+      label: "Total Reach",
+      data: ads?.statistics?.map((stat) => stat.reach) || [],
+      borderColor: "#2ecc71", // Xanh lá sáng
+      backgroundColor: "#2ecc71",
+      fill: false,
+      borderWidth: 3,
+    },
+    {
+      label: "Total Impressions",
+      data: ads?.statistics?.map((stat) => stat.impression) || [],
+      borderColor: "#e67e22", // Cam đậm tươi
+      backgroundColor: "#e67e22",
+      fill: false,
+      borderWidth: 3,
+    },
+  ],
+};
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top" as const,
+      },
+      title: {
+        display: false,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+      },
+    },
+    elements: {
+      line: {
+        tension: 0.4, // Làm đường cong mượt hơn
+      },
+      point: {
+        radius: 4, // Kích thước điểm nhỏ hơn
+        hoverRadius: 6,
+      },
+    },
+  };
 
   const renderAds = useCallback(() => {
     if (loading) return null;
-    const finalPrice = AdsCalculate(diffDay, price) * (1 - discount); // Áp dụng giảm giá
+    const finalPrice = AdsCalculate(diffDay, price) * (1 - discount);
     return (
       <>
-        {post?.is_advertisement ? (
+        {post?.is_advertisement  ? (
           <>
             {/* Advertisement history */}
             <div style={{ paddingLeft: 10, paddingRight: 10, paddingTop: 10 }}>
@@ -100,6 +172,7 @@ const Ads = ({ postId }: { postId: string }) => {
                   style={{
                     backgroundColor: "#f7f7f7",
                     borderRadius: 8,
+                    padding: 10,
                   }}
                 >
                   <div
@@ -119,11 +192,7 @@ const Ads = ({ postId }: { postId: string }) => {
                         color: "gray",
                       }}
                     >
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                        }}
-                      >
+                      <span style={{ fontWeight: "bold" }}>
                         {localStrings.Ads.Campaign}:
                       </span>{" "}
                       {DateTransfer(ads?.start_date)}
@@ -135,11 +204,7 @@ const Ads = ({ postId }: { postId: string }) => {
                         color: "gray",
                       }}
                     >
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                        }}
-                      >
+                      <span style={{ fontWeight: "bold" }}>
                         {localStrings.Ads.End}:
                       </span>{" "}
                       {DateTransfer(ads?.end_date)}
@@ -151,19 +216,75 @@ const Ads = ({ postId }: { postId: string }) => {
                         color: "gray",
                       }}
                     >
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                        }}
-                      >
+                      <span style={{ fontWeight: "bold" }}>
                         {localStrings.Ads.RemainingTime}:
                       </span>{" "}
                       {ads?.day_remaining} {localStrings.Ads.Day}
                     </span>
+                    <br />
+                    <span
+                      style={{
+                        fontSize: 14,
+                        color: "gray",
+                      }}
+                    >
+                      <span style={{ fontWeight: "bold" }}>
+                        {localStrings.Ads.Grant}:
+                      </span>{" "}
+                      {ads?.bill?.price ? CurrencyFormat(ads?.bill?.price) : "N/A"}
+                    </span>
+                    <br />
+                    <span
+                      style={{
+                        fontSize: 14,
+                        color: "gray",
+                      }}
+                    >
+                      <span style={{ fontWeight: "bold" }}>
+                        {localStrings.Ads.PaymentMethod}:
+                      </span>{" "}
+                      {method === "momo" ? "MoMo" : "Khác"}
+                    </span>
+                    <br />
+                    <span
+                      style={{
+                        fontSize: 14,
+                        color: "gray",
+                      }}
+                    >
+                      <span style={{ fontWeight: "bold" }}>
+                        {localStrings.Ads.Status}:
+                      </span>{" "}
+                      {ads?.bill?.status ? "Payment Success" : "Payment Failed"}
+                    </span>
                   </div>
+                  {/* Display Total Metrics */}
+                  <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between" }}>
+                    <div style={{ marginRight: 20 }}>
+                      <span>{localStrings.Ads.Click}: </span>
+                      <span style={{ fontWeight: "bold" }}>{ads?.total_clicks || 0} </span>
+                    </div>
+                    <div style={{ marginRight: 20 }}>
+                      <span>{localStrings.Ads.TotalReach}: </span>
+                      <span style={{ fontWeight: "bold" }}>{ads?.total_reach || 0} </span>
+                    </div>
+                    <div>
+                      <span>{localStrings.Ads.TotalImpressions}: </span>
+                      <span style={{ fontWeight: "bold" }}>{ads?.total_impression || 0} </span>
+                    </div>
+                  </div>
+                  {/* Chart */}
+                  {ads?.statistics && ads.statistics.length > 0 ? (
+                    <div style={{ marginTop: 20 }}>
+                      <Line data={chartData} options={chartOptions} />
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: 20, textAlign: "center" }}>
+                      <span>No statistics available</span>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div></div>
             </div>
           </>
         ) : (
@@ -258,7 +379,7 @@ const Ads = ({ postId }: { postId: string }) => {
                     value={voucher}
                     onChange={(e) => setVoucher(e.target.value)}
                     style={{ width: 200, marginRight: 10 }}
-                  /> 
+                  />
                 </div>
               </div>
 
@@ -304,7 +425,7 @@ const Ads = ({ postId }: { postId: string }) => {
                       start_date: (
                         dayjs().format("YYYY-MM-DDT00:00:00") + "Z"
                       ).toString(),
-                      voucher_code: voucher || undefined, 
+                      voucher_code: voucher || undefined,
                     });
                   }}
                   style={{
@@ -324,7 +445,7 @@ const Ads = ({ postId }: { postId: string }) => {
   }, [postId, adsLoading, ads, loading, post, date, voucher, discount]);
 
   return (
-    <div className="p-2.5">
+    <div className="p-2.5 h-[100vh]">
       <div className="mb-2 flex items-center">
         <Button
           icon={<CloseOutlined />}
@@ -365,6 +486,7 @@ const Ads = ({ postId }: { postId: string }) => {
                 style={{
                   backgroundColor: "#f7f7f7",
                   borderRadius: 8,
+                  padding: 10,
                 }}
               >
                 <div
@@ -387,11 +509,7 @@ const Ads = ({ postId }: { postId: string }) => {
                         color: "gray",
                       }}
                     >
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                        }}
-                      >
+                      <span style={{ fontWeight: "bold" }}>
                         {localStrings.Ads.Campaign}:
                       </span>{" "}
                       {DateTransfer(item?.start_date)}
@@ -405,11 +523,7 @@ const Ads = ({ postId }: { postId: string }) => {
                         color: "gray",
                       }}
                     >
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                        }}
-                      >
+                      <span style={{ fontWeight: "bold" }}>
                         {localStrings.Ads.End}:
                       </span>{" "}
                       {DateTransfer(item?.end_date)}
@@ -424,11 +538,7 @@ const Ads = ({ postId }: { postId: string }) => {
                           color: "gray",
                         }}
                       >
-                        <span
-                          style={{
-                            fontWeight: "bold",
-                          }}
-                        >
+                        <span style={{ fontWeight: "bold" }}>
                           {localStrings.Ads.RemainingTime}:
                         </span>{" "}
                         {item?.day_remaining
@@ -445,16 +555,12 @@ const Ads = ({ postId }: { postId: string }) => {
                         color: "gray",
                       }}
                     >
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                        }}
-                      >
+                      <span style={{ fontWeight: "bold" }}>
                         {localStrings.Ads.Grant}:
                       </span>{" "}
                       {item?.bill?.price
                         ? CurrencyFormat(item?.bill?.price)
-                        : NaN}
+                        : "N/A"}
                     </span>
                   </div>
 
@@ -465,11 +571,7 @@ const Ads = ({ postId }: { postId: string }) => {
                         color: "gray",
                       }}
                     >
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                        }}
-                      >
+                      <span style={{ fontWeight: "bold" }}>
                         {localStrings.Ads.PaymentMethod}:
                       </span>{" "}
                       {method === "momo" ? "MoMo" : "Khác"}
@@ -482,11 +584,7 @@ const Ads = ({ postId }: { postId: string }) => {
                         color: "gray",
                       }}
                     >
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                        }}
-                      >
+                      <span style={{ fontWeight: "bold" }}>
                         {localStrings.Ads.Status}:
                       </span>{" "}
                       {item?.bill?.status
