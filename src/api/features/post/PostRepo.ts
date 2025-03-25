@@ -37,18 +37,22 @@ interface IPostRepo {
   getPostLikes: (
     params: LikeUsersResponseModel
   ) => Promise<BaseApiResponseModel<LikeUsersModel[]>>;
+
+  //advertise
   advertisePost: (
     params: AdvertisePostRequestModel
   ) => Promise<BaseApiResponseModel<any>>;
   getAdvertisePost: (
     params: AdvertisePostRequestModel
   ) => Promise<BaseApiResponseModel<AdvertisePostResponseModel>>;
-
-
   getAdvertisementPosts: (
     params: GetUsersPostsRequestModel
   ) => Promise<BaseApiResponseModel<PostResponseModel[]>>
+  getAdvertiseStatistics: (
+    advertiseId: string
+  ) => Promise<BaseApiResponseModel<AdvertisePostResponseModel>>;
 }
+
 export class PostRepo implements IPostRepo {
   async createPost(
     data: CreatePostRequestModel
@@ -121,6 +125,12 @@ export class PostRepo implements IPostRepo {
   ): Promise<BaseApiResponseModel<PostResponseModel[]>> {
     const filteredData = { ...data, is_advertisement: true };
     return client.get(ApiPath.GET_POSTS, filteredData);
+  }
+
+  async getAdvertiseStatistics(
+    advertiseId: string
+  ): Promise<BaseApiResponseModel<AdvertisePostResponseModel>> {
+    return client.get(`${ApiPath.ADVERTISE_STATISTICS}${advertiseId}`);
   }
 }
 export const defaultPostRepo = new PostRepo();

@@ -1,12 +1,13 @@
+// AdsViewModel.ts
+import { useState } from "react";
+import { message } from "antd";
+import { PostRepo } from "@/api/features/post/PostRepo";
+import { useAuth } from "@/context/auth/useAuth";
 import {
   AdvertisePostRequestModel,
   AdvertisePostResponseModel,
 } from "@/api/features/post/models/AdvertisePostModel";
 import { PostResponseModel } from "@/api/features/post/models/PostResponseModel";
-import { PostRepo } from "@/api/features/post/PostRepo";
-import { useAuth } from "@/context/auth/useAuth";
-import { message } from "antd";
-import { useState } from "react";
 
 const AdsViewModel = (repo: PostRepo) => {
   const { localStrings } = useAuth();
@@ -15,12 +16,8 @@ const AdsViewModel = (repo: PostRepo) => {
   const [loading, setLoading] = useState(false);
   const [adsLoading, setAdsLoading] = useState(false);
   const [post, setPost] = useState<PostResponseModel | undefined>(undefined);
-  const [ads, setAdsPost] = useState<AdvertisePostResponseModel | undefined>(
-    undefined
-  );
-  const [adsAll, setAdsAll] = useState<
-    AdvertisePostResponseModel[] | undefined
-  >(undefined);
+  const [ads, setAdsPost] = useState<AdvertisePostResponseModel | undefined>(undefined);
+  const [adsAll, setAdsAll] = useState<AdvertisePostResponseModel[] | undefined>(undefined);
   const [page, setPage] = useState<number>(1);
 
   // Lấy chi tiết bài viết
@@ -31,10 +28,11 @@ const AdsViewModel = (repo: PostRepo) => {
       if (!res?.error) {
         setPost(res?.data);
         if (newAds && res?.data?.is_advertisement) {
+          // Optionally fetch statistics here if needed
         }
-      } else {
       }
     } catch (error: any) {
+      message.error(localStrings.Ads.ErrorFetchingStatistics);
     } finally {
       setLoading(false);
     }
@@ -101,21 +99,42 @@ const AdsViewModel = (repo: PostRepo) => {
         page: page,
         limit: 10,
       });
-      if (res?.data?.length > 0) {
-        setAdsPost(res?.data?.[0]);
-        setAdsAll(Array.isArray(res?.data) ? res?.data : []);
+      if (Array.isArray(res.data)) {
+        setAdsPost(res.data[0]);
+        setAdsAll(res.data);
+        if (res.data[0]?.id) {
+          await getAdvertiseStatistics(res.data[0].id);
+        }
       } else {
         setAdsPost(undefined);
         setAdsAll([]);
       }
     } catch (error: any) {
+      message.error(localStrings.Ads.ErrorFetchingStatistics);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Lấy thống kê quảng cáo
+  const getAdvertiseStatistics = async (advertiseId: string) => {
+    try {
+      setLoading(true);
+      const res = await repo.getAdvertiseStatistics(advertiseId);
+      if (!res?.error && res?.data) {
+        setAdsPost((prev) => (prev ? { ...prev, ...res.data } : res.data));
+      } else {
+        message.error(localStrings.Ads.ErrorFetchingStatistics);
+      }
+    } catch (error: any) {
+      message.error(localStrings.Ads.ErrorFetchingStatistics);
     } finally {
       setLoading(false);
     }
   };
 
   const loadMoreAds = () => {
-    setPage(prevPage => {
+    setPage((prevPage) => {
       const newPage = prevPage + 1;
       getAdvertisePost(newPage, post?.id ?? '');
       return newPage;
@@ -136,6 +155,7 @@ const AdsViewModel = (repo: PostRepo) => {
     advertisePost,
     adsLoading,
     getAdvertisePost,
+    getAdvertiseStatistics, 
     ads,
     setAdsPost,
     page,

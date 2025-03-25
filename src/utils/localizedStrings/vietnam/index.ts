@@ -66,6 +66,7 @@ export const VnLocalizedStrings = {
     Messages: "Tin Nhắn",
     SuggestedFriend: "Những người bạn có thể biết",
     LoadMore: "Tải thêm",
+    GenericError: "Đã xảy ra lỗi, vui lòng thử lại sau",
   },
   Form: {
     Label: {
@@ -312,7 +313,7 @@ Ads: {
   Pending: "Chờ xử lý",
   Active: "Đang hoạt động",
   Completed: "Hoàn thành",
-
+  ErrorFetchingStatistics: "Không tìm thấy thống kê quảng cáo",
 },
 
 

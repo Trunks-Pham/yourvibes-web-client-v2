@@ -68,6 +68,7 @@ export const ENGLocalizedStrings = {
     Messages: "Messages",
     SuggestedFriends: "Suggested Friends",
     LoadMore: "Load more",
+    GenericError: "An error occurred, please try again later!",
   },
   Form: {
     Label: {
@@ -316,6 +317,7 @@ export const ENGLocalizedStrings = {
     Pending: "Pending",
     Active: "Active",
     Completed: "Completed",
+    ErrorFetchingStatistics: "Error fetching statistics!",
   },
 
   Report: {
