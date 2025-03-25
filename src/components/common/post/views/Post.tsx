@@ -310,7 +310,7 @@ const Post: React.FC<IPost> = React.memo(
                   </span>
                 </Col>
                 <Col span={24}>
-                  {likedPost?.is_advertisement ? (
+                  {likedPost?.is_advertisement === 1 ? (
                     <div className="flex flex-row items-center">
                       <span
                         style={{

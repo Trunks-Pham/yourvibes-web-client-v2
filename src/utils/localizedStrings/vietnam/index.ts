@@ -305,6 +305,7 @@ Ads: {
   SearchAds: "Tìm kiếm bài viết quảng cáo",
   ExportAds: "Xuất báo cáo quảng cáo",
   StartDay: "Ngày bắt đầu",
+  EndDay: "Ngày kết thúc",
   ViewDetails: "Xem chi tiết",
   Voucher: "Mã giảm giá",
   InvalidVoucher: "Mã giảm giá không hợp lệ",

@@ -1,4 +1,4 @@
- import { defaultReportRepo } from "@/api/features/report/ReportRepo";
+import { defaultReportRepo } from "@/api/features/report/ReportRepo";
 import { ReportRequestModel } from "@/api/features/report/models/ReportRequestModel";
 import { useAuth } from "@/context/auth/useAuth";
 import { message } from "antd";
@@ -20,11 +20,20 @@ const ReportViewModel = () => {
                 message.success(localStrings.Report.ReportSuccess);
                 setShowModal(false);
                 return res;
-            } else { 
-                const errorMessage = res?.message || localStrings.Report.ReportFailed;
-                message.error(errorMessage);
-                setShowModal(false);
-                return res;
+            } else {
+                if (params.type === 0 ){
+                    const errorMessage = localStrings.Report.ReportUserFailed
+                    message.error(errorMessage)
+                } 
+                if (params.type === 1){
+                    const errorMessage = localStrings.Report.ReportPostFailed
+                    message.error(errorMessage)
+                }
+                if (params.type === 2){
+                    const errorMessage = localStrings.Report.ReportCommentFailed
+                    message.error(errorMessage)
+                }
+                return res
             }
         } catch (error) {
             const axiosError = error as AxiosError; 
