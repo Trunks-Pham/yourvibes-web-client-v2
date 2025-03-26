@@ -502,6 +502,7 @@ const AdsManagementFeature = () => {
         width={700}
         bodyStyle={{ maxHeight: "600px", overflowY: "auto", padding: "16px" }}
       >
+        
         <div className="space-y-4">
           {selectedPostId && groupedAds[selectedPostId] ? (
             groupedAds[selectedPostId].map((ad) => (
