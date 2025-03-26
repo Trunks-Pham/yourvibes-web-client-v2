@@ -319,6 +319,10 @@ export const ENGLocalizedStrings = {
     Active: "Active",
     Completed: "Completed",
     ErrorFetchingStatistics: "Error fetching statistics!",
+    ViewHistory: "View history",
+    NoHistoryFound: "No history found",
+    NoAdsHistory: "No ads history",
+    HistoryforPost: "History for post",
   },
 
   Report: {

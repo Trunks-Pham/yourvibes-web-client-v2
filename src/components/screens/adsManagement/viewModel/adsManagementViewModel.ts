@@ -17,10 +17,10 @@ interface MappedAd extends AdvertisePostResponseModel {
   start_date: string;
   end_date: string;
   day_remaining: number;
-  resultsData: number[]; 
-  reachData: number[]; 
-  impressionsData: number[]; 
-  labels: string[]; 
+  resultsData: number[];
+  reachData: number[];
+  impressionsData: number[];
+  labels: string[];
   bill: BillModel | undefined;
   isActive: boolean;
   status_action: string;
@@ -34,6 +34,7 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [ads, setAds] = useState<MappedAd[]>([]);
+  const [groupedAds, setGroupedAds] = useState<Record<string, MappedAd[]>>({});
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
   const [postDetails, setPostDetails] = useState<Record<string, AdvertisePostResponseModel>>({});
@@ -111,13 +112,16 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
       }
 
       const mappedAds: MappedAd[] = [];
+      const grouped: Record<string, MappedAd[]> = {};
+
       for (const post of filteredPosts) {
         const adsForPost = await fetchAdsByPostId(post.id || "");
         if (adsForPost) {
+          grouped[post.id || ""] = [];
           for (const ad of adsForPost) {
             const startDate = ad.start_date ? DateTransfer(new Date(ad.start_date)) : "N/A";
             const endDate = ad.end_date ? DateTransfer(new Date(ad.end_date)) : "N/A";
-            const daysRemaining = ad.day_remaining ?? 0; 
+            const daysRemaining = ad.day_remaining ?? 0;
 
             const stats = ad.id ? await fetchAdStatistics(ad.id) : null;
             const statistics: StatisticEntry[] = stats?.statistics || ad.statistics || [];
@@ -134,13 +138,13 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
               adStatus = ad.bill.status ? "success" : "failed";
             }
 
-            mappedAds.push({
+            const mappedAd: MappedAd = {
               ...ad,
               post_id: post.id,
               status: adStatus,
               start_date: startDate,
               end_date: endDate,
-              day_remaining: daysRemaining, 
+              day_remaining: daysRemaining,
               resultsData,
               reachData,
               impressionsData,
@@ -151,12 +155,16 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
               total_reach: stats?.total_reach || ad.total_reach || 0,
               total_clicks: stats?.total_clicks || ad.total_clicks || 0,
               total_impression: stats?.total_impression || ad.total_impression || 0,
-            });
+            };
+
+            mappedAds.push(mappedAd);
+            grouped[post.id || ""].push(mappedAd);
           }
         }
       }
 
       setAds((prevAds) => (page === 1 ? mappedAds : [...prevAds, ...mappedAds]));
+      setGroupedAds(grouped);
       setHasMore(filteredPosts.length === 10);
 
       setIsLoadingPostDetails(true);
@@ -210,6 +218,7 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
   return {
     loading,
     ads,
+    groupedAds,
     error,
     advertisePost,
     fetchAds,

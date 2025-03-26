@@ -24,8 +24,25 @@ import { DateTransfer } from "@/utils/helper/DateTransfer";
 import { CurrencyFormat } from "@/utils/helper/CurrencyFormat";
 import { GetUsersPostsRequestModel } from "@/api/features/post/models/GetUsersPostsModel";
 
-
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+interface MappedAd extends AdvertisePostResponseModel {
+  post_id: string | undefined;
+  status: string | undefined;
+  start_date: string;
+  end_date: string;
+  day_remaining: number;
+  resultsData: number[];
+  reachData: number[];
+  impressionsData: number[];
+  labels: string[];
+  bill: any;
+  isActive: boolean;
+  status_action: string;
+  total_reach?: number;
+  total_clicks?: number;
+  total_impression?: number;
+}
 
 const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => void; post?: any }) => {
   const { localStrings } = useAuth();
@@ -34,17 +51,15 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
 
   useEffect(() => {
     const fetchStatistics = async () => {
-      if (!ad.id) {
-        return;
-      }
+      if (!ad.id) return;
       setLoadingStats(true);
       try {
         const response = await defaultPostRepo.getAdvertiseStatistics(ad.id);
         if (response?.data) {
           setStatsData(response.data);
-        } else {
         }
       } catch (error: any) {
+        console.error("Error fetching statistics:", error);
       } finally {
         setLoadingStats(false);
       }
@@ -109,7 +124,6 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
   const grant = ad.bill?.price !== undefined ? CurrencyFormat(ad.bill.price) : "N/A";
   const paymentStatus =
     ad.bill?.status === true ? localStrings.Ads.PaymentSuccess : localStrings.Ads.PaymentFailed;
-  const paymentMethod = "N/A";
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={onClose}>
@@ -195,7 +209,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200 md:col-span-2">
                 <p>
                   <strong>{localStrings.Ads.StatusActive}:</strong>{" "}
-                  {ad.is_advertisement ? "Active" : "Done"}
+                  {ad.isActive ? "Active" : "Done"}
                 </p>
               </div>
             </div>
@@ -247,20 +261,23 @@ const AdsManagementFeature = () => {
   const {
     loading,
     ads,
+    groupedAds,
     postDetails,
     isLoadingPostDetails,
   } = useAdsManagement();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredAds, setFilteredAds] = useState<AdvertisePostResponseModel[]>([]);
-  const [selectedAd, setSelectedAd] = useState<AdvertisePostResponseModel | null>(null);
+  const [filteredAds, setFilteredAds] = useState<MappedAd[]>([]);
+  const [selectedAd, setSelectedAd] = useState<MappedAd | null>(null);
   const [isPostListModalVisible, setIsPostListModalVisible] = useState(false);
   const [modalPosts, setModalPosts] = useState<any[]>([]);
   const [isLoadingModalPosts, setIsLoadingModalPosts] = useState(false);
+  const [isHistoryModalVisible, setIsHistoryModalVisible] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const { localStrings, user } = useAuth();
   const repo: PostRepo = defaultPostRepo;
 
   useEffect(() => {
-    const filter = ads.filter((ad: AdvertisePostResponseModel) => {
+    const filter = ads.filter((ad: MappedAd) => {
       const postIdMatch = ad.post_id && ad.post_id.toLowerCase().includes(searchTerm.toLowerCase());
       const postContentMatch =
         postDetails[ad.post_id!] && postDetails[ad.post_id!].content?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -297,13 +314,26 @@ const AdsManagementFeature = () => {
     }
   }, [isPostListModalVisible]);
 
-  const openModal = (ad: AdvertisePostResponseModel) => {
+  const openModal = (ad: MappedAd) => {
     setSelectedAd(ad);
+    closeHistoryModal(); // Đóng modal lịch sử sau khi chọn
   };
 
   const closeModal = () => {
     setSelectedAd(null);
   };
+
+  const openHistoryModal = (postId: string) => {
+    setSelectedPostId(postId);
+    setIsHistoryModalVisible(true);
+  };
+
+  const closeHistoryModal = () => {
+    setIsHistoryModalVisible(false);
+    setSelectedPostId(null);
+  };
+
+  const uniquePostIds = Array.from(new Set(filteredAds.map((ad) => ad.post_id).filter(Boolean))) as string[];
 
   return (
     <div className="p-6 min-h-screen">
@@ -361,7 +391,7 @@ const AdsManagementFeature = () => {
         <div className="flex justify-center items-center h-64">
           <Spin size="large" />
         </div>
-      ) : filteredAds.length === 0 ? (
+      ) : uniquePostIds.length === 0 ? (
         <p className="text-center text-gray-500 text-lg py-10">{localStrings.Ads.NoAdsFound}</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -370,16 +400,15 @@ const AdsManagementFeature = () => {
               <Spin size="large" />
             </div>
           ) : (
-            filteredAds.map((ad: AdvertisePostResponseModel, index) => {
-              const post = postDetails[ad.post_id!];
-              const dotColor = ad.is_advertisement ? "bg-green-500" : "bg-gray-500";
-              const textColor = ad.is_advertisement ? "text-green-600" : "text-gray-600";
+            uniquePostIds.map((postId) => {
+              const post = postDetails[postId];
+              const adsForPost = groupedAds[postId] || [];
+              const firstAd = adsForPost[0];
 
               return (
                 <div
-                  key={ad.id || index}
+                  key={postId}
                   className="group p-6 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 cursor-pointer hover:border-blue-300"
-                  onClick={() => openModal(ad)}
                 >
                   <div
                     className="w-full max-w-full flex justify-center items-center rounded-lg overflow-hidden bg-gray-50"
@@ -416,42 +445,45 @@ const AdsManagementFeature = () => {
                     )}
                   </div>
 
-                  <div className="mt-4 space-y-2">
-                    {/* <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2.5 w-2.5 rounded-full ${dotColor} ${ad.is_advertisement ? "animate-pulse" : ""
-                          }`}
-                      />
-                      <span className={`${textColor} font-medium text-sm`}>
-                        {ad.is_advertisement ? localStrings.Ads.ActiveCampaign : localStrings.Ads.Campaign}
-                      </span>
-                    </div> */}
+                  <div className="mt-3 space-y-2">
                     <div className="mt-2 text-xs text-gray-700 space-y-1">
-                      {ad.start_date && (
+                      {firstAd?.start_date && (
                         <p>
                           <span className="font-semibold">{localStrings.Ads.StartDay}:</span>{" "}
-                          {ad.start_date}
+                          {firstAd.start_date}
                         </p>
                       )}
-                      {ad.end_date && (
+                      {firstAd?.end_date && (
                         <p>
                           <span className="font-semibold">{localStrings.Ads.EndDay}:</span>{" "}
-                          {ad.end_date}
+                          {firstAd.end_date}
                         </p>
                       )}
-                      {ad.bill?.price !== undefined && (
+                      {firstAd?.bill?.price !== undefined && (
                         <p>
                           <span className="font-semibold">{localStrings.Ads.Grant}:</span>{" "}
-                          {CurrencyFormat(ad.bill.price)}
+                          {CurrencyFormat(firstAd.bill.price)}
                         </p>
                       )}
                     </div>
                   </div>
 
                   <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <button className="w-full py-1.5 text-xs text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200">
-                      {localStrings.Ads.ViewDetails}
-                    </button>
+                    {adsForPost.length > 1 ? (
+                      <button
+                        className="w-full py-1.5 text-xs text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
+                        onClick={() => openHistoryModal(postId)}
+                      >
+                        {localStrings.Ads.ViewHistory} ({adsForPost.length})
+                      </button>
+                    ) : (
+                      <button
+                        className="w-full py-1.5 text-xs text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
+                        onClick={() => openModal(firstAd)}
+                      >
+                        {localStrings.Ads.ViewDetails}
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -461,6 +493,43 @@ const AdsManagementFeature = () => {
       )}
 
       {selectedAd && <AdDetailsModal ad={selectedAd} onClose={closeModal} post={postDetails[selectedAd.post_id!]} />}
+
+      <Modal
+        title={`${localStrings.Ads.HistoryforPost}: ${selectedPostId && postDetails[selectedPostId]?.content ? postDetails[selectedPostId].content : localStrings.Ads.NoAdsHistory}`}
+        open={isHistoryModalVisible}
+        onCancel={closeHistoryModal}
+        footer={null}
+        width={700}
+        bodyStyle={{ maxHeight: "600px", overflowY: "auto", padding: "16px" }}
+      >
+        
+        <div className="space-y-4">
+          {selectedPostId && groupedAds[selectedPostId] ? (
+            groupedAds[selectedPostId].map((ad) => (
+              <div
+                key={ad.id}
+                className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                onClick={() => openModal(ad)}
+              >
+                <p>
+                  <strong>{localStrings.Ads.StartDay}:</strong> {ad.start_date}
+                </p>
+                <p>
+                  <strong>{localStrings.Ads.EndDay}:</strong> {ad.end_date}
+                </p>
+                <p>
+                  <strong>{localStrings.Ads.Grant}:</strong> {ad.bill?.price ? CurrencyFormat(ad.bill.price) : "N/A"}
+                </p>
+                <p>
+                  <strong>{localStrings.Ads.Status}:</strong> {ad.status_action}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p>{localStrings.Ads.NoHistoryFound}</p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };
