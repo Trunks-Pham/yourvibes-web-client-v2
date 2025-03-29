@@ -317,12 +317,14 @@ export const ENGLocalizedStrings = {
     StatusActive: "Status Active Campaign",
     Pending: "Pending",
     Active: "Active",
+    Done: "Done",
     Completed: "Completed",
     ErrorFetchingStatistics: "Error fetching statistics!",
     ViewHistory: "View history",
     NoHistoryFound: "No history found",
     NoAdsHistory: "No ads history",
     HistoryforPost: "History for post",
+    Discount: "Discount",
   },
 
   Report: {

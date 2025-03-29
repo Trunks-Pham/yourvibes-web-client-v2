@@ -1,19 +1,19 @@
-// Ads.tsx
 import React, { useCallback, useEffect, useState } from "react";
 import useColor from "@/hooks/useColor";
 import Post from "@/components/common/post/views/Post";
 import { useAuth } from "@/context/auth/useAuth";
 import AdsViewModel from "../viewModel/AdsViewModel";
 import { defaultPostRepo } from "@/api/features/post/PostRepo";
-import { DateTransfer, getDayDiff } from "@/utils/helper/DateTransfer";
+import { DateTransfer, getDayDiffAds } from "@/utils/helper/DateTransfer";
 import { CurrencyFormat } from "@/utils/helper/CurrencyFormat";
 import dayjs from "dayjs";
 import { AdsCalculate } from "@/utils/helper/AdsCalculate";
-import { FaCalculator, FaCashRegister, FaAd } from "react-icons/fa";
+import { MdDateRange } from "react-icons/md";
+import { FaCashRegister, FaAd } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { Spin, Button, List, DatePicker, Typography, Modal, Input, message } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
-import { Line } from "react-chartjs-2"; // Import Line chart from react-chartjs-2
+import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -54,6 +54,7 @@ const Ads = ({ postId }: { postId: string }) => {
     getTomorrow,
   } = AdsViewModel(defaultPostRepo);
 
+  // Khởi tạo ngày bắt đầu là ngày mai (30/03/2025 nếu hôm nay là 29/03/2025)
   const [date, setDate] = useState<Date>(getTomorrow());
 
   const paymentMethods = [
@@ -83,35 +84,46 @@ const Ads = ({ postId }: { postId: string }) => {
     }
   }, [postId]);
  
-const chartData = {
-  labels: ads?.statistics?.map((stat) => dayjs(stat.aggregation_date).format("DD/MM")) || [],
-  datasets: [
-    {
-      label: "Total Clicks",
-      data: ads?.statistics?.map((stat) => stat.clicks) || [],
-      borderColor: "#3498db", // Xanh dương tươi
-      backgroundColor: "#3498db",
-      fill: false,
-      borderWidth: 3,
-    },
-    {
-      label: "Total Reach",
-      data: ads?.statistics?.map((stat) => stat.reach) || [],
-      borderColor: "#2ecc71", // Xanh lá sáng
-      backgroundColor: "#2ecc71",
-      fill: false,
-      borderWidth: 3,
-    },
-    {
-      label: "Total Impressions",
-      data: ads?.statistics?.map((stat) => stat.impression) || [],
-      borderColor: "#e67e22", // Cam đậm tươi
-      backgroundColor: "#e67e22",
-      fill: false,
-      borderWidth: 3,
-    },
-  ],
+// Hàm handleDateChange của bạn đã gọi đúng và cập nhật date và diffDay
+const handleDateChange = (selectedDate: dayjs.Dayjs | null) => {
+  if (selectedDate) {
+    const newDate = selectedDate.toDate();
+    setDate(newDate);
+    const dayDiff = getDayDiffAds(newDate); 
+    setDiffDay(dayDiff);
+  }
 };
+
+
+  const chartData = {
+    labels: ads?.statistics?.map((stat) => dayjs(stat.aggregation_date).format("DD/MM")) || [],
+    datasets: [
+      {
+        label: "Total Clicks",
+        data: ads?.statistics?.map((stat) => stat.clicks) || [],
+        borderColor: "#3498db",
+        backgroundColor: "#3498db",
+        fill: false,
+        borderWidth: 3,
+      },
+      {
+        label: "Total Reach",
+        data: ads?.statistics?.map((stat) => stat.reach) || [],
+        borderColor: "#2ecc71",
+        backgroundColor: "#2ecc71",
+        fill: false,
+        borderWidth: 3,
+      },
+      {
+        label: "Total Impressions",
+        data: ads?.statistics?.map((stat) => stat.impression) || [],
+        borderColor: "#e67e22",
+        backgroundColor: "#e67e22",
+        fill: false,
+        borderWidth: 3,
+      },
+    ],
+  };
 
   const chartOptions = {
     responsive: true,
@@ -130,10 +142,10 @@ const chartData = {
     },
     elements: {
       line: {
-        tension: 0.4, // Làm đường cong mượt hơn
+        tension: 0.4,
       },
       point: {
-        radius: 4, // Kích thước điểm nhỏ hơn
+        radius: 4,
         hoverRadius: 6,
       },
     },
@@ -144,7 +156,7 @@ const chartData = {
     const finalPrice = AdsCalculate(diffDay, price) * (1 - discount);
     return (
       <>
-        {post?.is_advertisement  ? (
+        {post?.is_advertisement ? (
           <>
             {/* Advertisement history */}
             <div style={{ paddingLeft: 10, paddingRight: 10, paddingTop: 10 }}>
@@ -183,7 +195,7 @@ const chartData = {
                     }}
                   >
                     <span>{localStrings.Ads.Campaign} #1</span>
-                    <FaCalculator size={20} color={brandPrimary} />
+                    <MdDateRange size={20} color={brandPrimary} />
                   </div>
                   <div style={{ marginTop: 10 }}>
                     <span
@@ -193,7 +205,7 @@ const chartData = {
                       }}
                     >
                       <span style={{ fontWeight: "bold" }}>
-                        {localStrings.Ads.Campaign}:
+                        {localStrings.Ads.StartDay}:
                       </span>{" "}
                       {DateTransfer(ads?.start_date)}
                     </span>
@@ -205,7 +217,7 @@ const chartData = {
                       }}
                     >
                       <span style={{ fontWeight: "bold" }}>
-                        {localStrings.Ads.End}:
+                        {localStrings.Ads.EndDay}:
                       </span>{" "}
                       {DateTransfer(ads?.end_date)}
                     </span>
@@ -297,6 +309,7 @@ const chartData = {
                     fontSize: 16,
                     fontWeight: "bold",
                     marginBottom: 5,
+                    display: "block",
                   }}
                 >
                   {localStrings.Ads.TimeAndBudget}
@@ -305,12 +318,10 @@ const chartData = {
                   style={{
                     color: "gray",
                     fontSize: 14,
+                    display: "block",
                   }}
                 >
-                  {localStrings.Ads.Minimum.replace(
-                    "{{price}}",
-                    `${CurrencyFormat(price)}`
-                  )}
+                  {localStrings.Ads.Minimum.replace("{{price}}", `${CurrencyFormat(price)}`)}
                 </span>
                 <span
                   style={{
@@ -325,7 +336,7 @@ const chartData = {
               {/* Select advertising date */}
               <div>
                 <div className="flex flex-row mt-4 mb-2 items-center">
-                  <FaCalculator size={24} color={brandPrimary} />
+                  <MdDateRange size={24} color={brandPrimary} />
                   <span
                     style={{
                       fontWeight: "bold",
@@ -333,24 +344,16 @@ const chartData = {
                       paddingLeft: 10,
                     }}
                   >
-                    {localStrings.Ads.TimeAds} {diffDay}{" "}
-                    {localStrings.Public.Day}
+                    {localStrings.Ads.TimeAds} {diffDay} {localStrings.Public.Day}
                   </span>
                 </div>
 
                 <DatePicker
                   format={"DD/MM/YYYY"}
                   value={dayjs(date)}
-                  onChange={(date) => {
-                    if (date) {
-                      setDate(date.toDate());
-                      setDiffDay(getDayDiff(date.toDate()));
-                    }
-                  }}
+                  onChange={handleDateChange}
                   style={{ width: "100%" }}
-                  disabledDate={(current) =>
-                    current && current < dayjs().endOf("day")
-                  }
+                  disabledDate={(current) => current && current < dayjs().endOf("day")}
                 />
               </div>
 
@@ -358,11 +361,10 @@ const chartData = {
               <div className="flex mt-4 mb-2 items-center">
                 <FaCashRegister size={24} color={brandPrimary} />
                 <span style={{ paddingLeft: 10 }}>
-                  {localStrings.Ads.BudgetAds}{" "}
-                  {CurrencyFormat(finalPrice)}{" "}
+                  {localStrings.Ads.BudgetAds} {CurrencyFormat(finalPrice)}{" "}
                   {discount > 0 && (
                     <span style={{ color: "green" }}>
-                      (Giảm {discount * 100}%)
+                      ({localStrings.Ads.Discount} {discount * 100}%)
                     </span>
                   )}
                 </span>
@@ -397,8 +399,7 @@ const chartData = {
                       style={{
                         borderWidth: 1,
                         borderColor: method === item.id ? "#4CAF50" : "#ccc",
-                        backgroundColor:
-                          method === item.id ? "#E8F5E9" : "transparent",
+                        backgroundColor: method === item.id ? "#E8F5E9" : "transparent",
                         padding: 5,
                         marginRight: 10,
                         borderRadius: 10,
@@ -419,12 +420,8 @@ const chartData = {
                     advertisePost({
                       post_id: postId,
                       redirect_url: `${window.location.origin}/ads/${postId}`,
-                      end_date: (
-                        dayjs(date).format("YYYY-MM-DDT00:00:00") + "Z"
-                      ).toString(),
-                      start_date: (
-                        dayjs().format("YYYY-MM-DDT00:00:00") + "Z"
-                      ).toString(),
+                      end_date: (dayjs(date).format("YYYY-MM-DDT00:00:00") + "Z").toString(),
+                      start_date: (dayjs().format("YYYY-MM-DDT00:00:00") + "Z").toString(),
                       voucher_code: voucher || undefined,
                     });
                   }}
@@ -477,7 +474,12 @@ const chartData = {
         open={showCampaign}
         onCancel={() => setShowCampaign(false)}
         footer={null}
-        bodyStyle={{ maxHeight: "70vh", overflowY: "scroll", scrollbarWidth: "none", msOverflowStyle: "none" }}
+        bodyStyle={{
+          maxHeight: "70vh",
+          overflowY: "scroll",
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+        }}
       >
         {(adsAll?.length ?? 0) > 0 ? (
           (adsAll ?? []).map((item, index) => (
@@ -499,7 +501,7 @@ const chartData = {
                   <span>
                     {localStrings.Ads.Campaign} #{index + 1}
                   </span>
-                  <FaCalculator size={20} color={brandPrimary} />
+                  <MdDateRange size={20} color={brandPrimary} />
                 </div>
                 <div style={{ marginTop: 10 }}>
                   <div>
@@ -510,7 +512,7 @@ const chartData = {
                       }}
                     >
                       <span style={{ fontWeight: "bold" }}>
-                        {localStrings.Ads.Campaign}:
+                        {localStrings.Ads.StartDay}:
                       </span>{" "}
                       {DateTransfer(item?.start_date)}
                     </span>
@@ -524,7 +526,7 @@ const chartData = {
                       }}
                     >
                       <span style={{ fontWeight: "bold" }}>
-                        {localStrings.Ads.End}:
+                        {localStrings.Ads.EndDay}:
                       </span>{" "}
                       {DateTransfer(item?.end_date)}
                     </span>
@@ -558,9 +560,7 @@ const chartData = {
                       <span style={{ fontWeight: "bold" }}>
                         {localStrings.Ads.Grant}:
                       </span>{" "}
-                      {item?.bill?.price
-                        ? CurrencyFormat(item?.bill?.price)
-                        : "N/A"}
+                      {item?.bill?.price ? CurrencyFormat(item?.bill?.price) : "N/A"}
                     </span>
                   </div>
 
