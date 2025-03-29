@@ -129,7 +129,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={onClose}>
       <div
         className="bg-white p-6 rounded-xl shadow-2xl relative overflow-hidden"
-        style={{ width: "1000px", maxHeight: "900px" }}
+        style={{ width: "1000px", maxHeight: "1000px" }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -182,13 +182,13 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                 <p>
-                  <strong>{localStrings.Ads.End}:</strong> {endDate}
+                  <strong>{localStrings.Ads.EndDay}:</strong> {endDate}
                 </p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                 <p>
                   <strong>{localStrings.Ads.RemainingTime}:</strong>{" "}
-                  {remainingDays !== "N/A" ? `${remainingDays} ${localStrings.Ads.Day}` : "N/A"}
+                  {`${remainingDays} ${localStrings.Ads.Day}`}
                 </p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
@@ -209,7 +209,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200 md:col-span-2">
                 <p>
                   <strong>{localStrings.Ads.StatusActive}:</strong>{" "}
-                  {ad.isActive ? "Active" : "Done"}
+                  {Number(ad.is_advertisement) === 1 ? localStrings.Ads.Active : localStrings.Ads.Done}
                 </p>
               </div>
             </div>
@@ -316,7 +316,7 @@ const AdsManagementFeature = () => {
 
   const openModal = (ad: MappedAd) => {
     setSelectedAd(ad);
-    closeHistoryModal(); // Đóng modal lịch sử sau khi chọn
+    closeHistoryModal();
   };
 
   const closeModal = () => {
@@ -356,9 +356,9 @@ const AdsManagementFeature = () => {
         footer={null}
         width={700}
         centered
-        bodyStyle={{ maxHeight: "700px", overflowY: "auto", padding: "16px" }}
+        bodyStyle={{ maxHeight: "1500px", overflowY: "auto", padding: "16px" }}
       >
-        <div style={{ maxHeight: "650px", overflowY: "auto", padding: "8px" }}>
+        <div style={{ maxHeight: "1500px", overflowY: "auto", padding: "8px" }}>
           {isLoadingModalPosts ? (
             <div className="flex justify-center">
               <Spin />
@@ -503,12 +503,12 @@ const AdsManagementFeature = () => {
         bodyStyle={{ maxHeight: "600px", overflowY: "auto", padding: "16px" }}
       >
         
-        <div className="space-y-4">
+        <div className="space-y-3">
           {selectedPostId && groupedAds[selectedPostId] ? (
             groupedAds[selectedPostId].map((ad) => (
               <div
                 key={ad.id}
-                className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                 onClick={() => openModal(ad)}
               >
                 <p>
@@ -519,9 +519,6 @@ const AdsManagementFeature = () => {
                 </p>
                 <p>
                   <strong>{localStrings.Ads.Grant}:</strong> {ad.bill?.price ? CurrencyFormat(ad.bill.price) : "N/A"}
-                </p>
-                <p>
-                  <strong>{localStrings.Ads.Status}:</strong> {ad.status_action}
                 </p>
               </div>
             ))

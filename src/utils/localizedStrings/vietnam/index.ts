@@ -313,12 +313,14 @@ Ads: {
   StatusActive: "Trạng thái hoạt động của chiến dịch",
   Pending: "Chờ xử lý",
   Active: "Đang hoạt động",
+  Done: "Đã hoàn thành",
   Completed: "Hoàn thành",
   ErrorFetchingStatistics: "Không tìm thấy thống kê quảng cáo",
   ViewHistory: "Xem lịch sử",
   NoHistoryFound: "Không tìm thấy lịch sử quảng cáo",
   HistoryforPost: "Lịch sử quảng cáo cho bài viết",
   NoAdsHistory: "Không có lịch sử quảng cáo",
+  Discount: "Giảm giá",
 },
 
 

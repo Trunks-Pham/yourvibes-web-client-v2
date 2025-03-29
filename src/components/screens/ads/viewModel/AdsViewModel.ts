@@ -1,4 +1,3 @@
-// AdsViewModel.ts
 import { useState } from "react";
 import { message } from "antd";
 import { PostRepo } from "@/api/features/post/PostRepo";
