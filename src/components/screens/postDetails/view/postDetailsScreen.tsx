@@ -222,6 +222,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 setReplyModalVisible={setReplyModalVisible}
                 setSelectedCommentId={setSelectedCommentId}
                 postId={postId || ""}
+                likeCount={likeCount[comment.id]}
               />
             ))}
           </div>

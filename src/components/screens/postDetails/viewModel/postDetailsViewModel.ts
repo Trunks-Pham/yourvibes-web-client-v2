@@ -194,47 +194,47 @@ const PostDetailsViewModel = (
     }
   }, [isEditModalVisible]);
 
-  const handleDelete = (commentId: string) => {
+const handleDelete = async (commentId: string) => {
     Modal.confirm({
       title: `${localStrings.PostDetails.DeleteComment}`,
       content: "",
       okText: `${localStrings.PostDetails.Yes}`,
       cancelText: `${localStrings.PostDetails.No}`,
       onCancel: () => {},
-      onOk: () => {
-        defaultCommentRepo.deleteComment(commentId)
-          .then(() => {
-            // Cập nhật trạng thái comments
+      onOk: async () => {
+        try {
+          await defaultCommentRepo.deleteComment(commentId);
+          // Xác định xem commentId là comment hay reply
+          const isTopLevelComment = comments.some((c) => c.id === commentId);
+          if (isTopLevelComment) {
             setComments((prevComments) =>
               prevComments.filter((comment) => comment.id !== commentId)
             );
-            // Cập nhật trạng thái replyMap
-            if (replyMap[commentId]) {
-              setReplyMap((prevReplyMap) => {
-                const updatedReplies = prevReplyMap[commentId].filter(
+          } else {
+            // Tìm parentId của reply
+            const parentId = Object.keys(replyMap).find((key) =>
+              replyMap[key].some((reply) => reply.id === commentId)
+            );
+            if (parentId) {
+              setReplyMap((prevReplyMap) => ({
+                ...prevReplyMap,
+                [parentId]: prevReplyMap[parentId].filter(
                   (reply) => reply.id !== commentId
-                );
-                return { ...prevReplyMap, [commentId]: updatedReplies };
-              });
+                ),
+              }));
+              await fetchReplies(postId || "", parentId); // Fetch lại replies cho parentId
             }
-  
-            // Fetch comments and replies
-            fetchComments();
-            fetchReplies(postId || "", commentId);
-          })
-          .then(() => {
-            // Hiển thị thông báo khi xóa thành công
-            message.success({
-              content: localStrings.PostDetails.DeleteCommentSusesfully,
-            });
-          })
-          .catch((error) => {
-            // Hiển thị thông báo khi xóa thất bại
-            message.error({
-              content: localStrings.PostDetails.DeleteCommentFailed,
-            });
-            console.error(error);
+          }
+          await fetchComments(); // Fetch lại comments
+          message.success({
+            content: localStrings.PostDetails.DeleteCommentSusesfully,
           });
+        } catch (error) {
+          message.error({
+            content: localStrings.PostDetails.DeleteCommentFailed,
+          });
+          console.error(error);
+        }
       },
     });
   };
