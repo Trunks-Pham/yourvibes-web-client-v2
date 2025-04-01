@@ -83,23 +83,22 @@ const Ads = ({ postId }: { postId: string }) => {
       getAdvertisePost(page, postId);
     }
   }, [postId]);
- 
-// Hàm handleDateChange của bạn đã gọi đúng và cập nhật date và diffDay
-const handleDateChange = (selectedDate: dayjs.Dayjs | null) => {
-  if (selectedDate) {
-    const newDate = selectedDate.toDate();
-    setDate(newDate);
-    const dayDiff = getDayDiffAds(newDate); 
-    setDiffDay(dayDiff);
-  }
-};
 
+  // Hàm handleDateChange của bạn đã gọi đúng và cập nhật date và diffDay
+  const handleDateChange = (selectedDate: dayjs.Dayjs | null) => {
+    if (selectedDate) {
+      const newDate = selectedDate.toDate();
+      setDate(newDate);
+      const dayDiff = getDayDiffAds(newDate);
+      setDiffDay(dayDiff);
+    }
+  };
 
   const chartData = {
     labels: ads?.statistics?.map((stat) => dayjs(stat.aggregation_date).format("DD/MM")) || [],
     datasets: [
       {
-        label: "Total Clicks",
+        label: `${localStrings.Ads.Click}`,
         data: ads?.statistics?.map((stat) => stat.clicks) || [],
         borderColor: "#3498db",
         backgroundColor: "#3498db",
@@ -107,7 +106,7 @@ const handleDateChange = (selectedDate: dayjs.Dayjs | null) => {
         borderWidth: 3,
       },
       {
-        label: "Total Reach",
+        label: `${localStrings.Ads.TotalReach}`,
         data: ads?.statistics?.map((stat) => stat.reach) || [],
         borderColor: "#2ecc71",
         backgroundColor: "#2ecc71",
@@ -115,7 +114,7 @@ const handleDateChange = (selectedDate: dayjs.Dayjs | null) => {
         borderWidth: 3,
       },
       {
-        label: "Total Impressions",
+        label: `${localStrings.Ads.TotalImpressions}`,
         data: ads?.statistics?.map((stat) => stat.impression) || [],
         borderColor: "#e67e22",
         backgroundColor: "#e67e22",
@@ -267,21 +266,21 @@ const handleDateChange = (selectedDate: dayjs.Dayjs | null) => {
                       <span style={{ fontWeight: "bold" }}>
                         {localStrings.Ads.Status}:
                       </span>{" "}
-                      {ads?.bill?.status ? "Payment Success" : "Payment Failed"}
+                      {ads?.bill?.status ? `${localStrings.Ads.PaymentSuccess}` : `${localStrings.Ads.PaymentFailed}`}
                     </span>
                   </div>
                   {/* Display Total Metrics */}
                   <div style={{ marginTop: 10, display: "flex", justifyContent: "space-between" }}>
                     <div style={{ marginRight: 20 }}>
-                      <span>{localStrings.Ads.Click}: </span>
+                      <span style={{ fontSize: 14, color: "gray" }}>{localStrings.Ads.Click}: </span>
                       <span style={{ fontWeight: "bold" }}>{ads?.total_clicks || 0} </span>
                     </div>
                     <div style={{ marginRight: 20 }}>
-                      <span>{localStrings.Ads.TotalReach}: </span>
+                      <span style={{ fontSize: 14, color: "gray" }}>{localStrings.Ads.TotalReach}: </span>
                       <span style={{ fontWeight: "bold" }}>{ads?.total_reach || 0} </span>
                     </div>
                     <div>
-                      <span>{localStrings.Ads.TotalImpressions}: </span>
+                      <span style={{ fontSize: 14, color: "gray" }}>{localStrings.Ads.TotalImpressions}: </span>
                       <span style={{ fontWeight: "bold" }}>{ads?.total_impression || 0} </span>
                     </div>
                   </div>
@@ -292,7 +291,7 @@ const handleDateChange = (selectedDate: dayjs.Dayjs | null) => {
                     </div>
                   ) : (
                     <div style={{ marginTop: 20, textAlign: "center" }}>
-                      <span>No statistics available</span>
+                      <span>{localStrings.Ads.ErrorFetchingStatistics}</span>
                     </div>
                   )}
                 </div>
@@ -353,7 +352,13 @@ const handleDateChange = (selectedDate: dayjs.Dayjs | null) => {
                   value={dayjs(date)}
                   onChange={handleDateChange}
                   style={{ width: "100%" }}
-                  disabledDate={(current) => current && current < dayjs().endOf("day")}
+                  disabledDate={(current) => {
+                    if (current && current < dayjs().endOf("day")) {
+                      return true;
+                    }
+                    // Giới hạn không quá 30 ngày kể từ ngày mai
+                    return current && current > dayjs().add(30, 'day');
+                  }}
                 />
               </div>
 
@@ -590,6 +595,45 @@ const handleDateChange = (selectedDate: dayjs.Dayjs | null) => {
                       {item?.bill?.status
                         ? localStrings.Ads.PaymentSuccess
                         : localStrings.Ads.PaymentFailed}
+                    </span>
+                  </div>
+                  <div>
+                    <span
+                      style={{
+                        fontSize: 14,
+                        color: "gray",
+                      }}
+                    >
+                      <span style={{ fontWeight: "bold" }}>
+                        {localStrings.Ads.Click}:
+                      </span>{" "}
+                      {ads?.total_clicks}
+                    </span>
+                  </div>
+                  <div>
+                    <span
+                      style={{
+                        fontSize: 14,
+                        color: "gray",
+                      }}
+                    >
+                      <span style={{ fontWeight: "bold" }}>
+                        {localStrings.Ads.TotalReach}:
+                      </span>{" "}
+                      {ads?.total_reach}
+                    </span>
+                  </div>
+                  <div>
+                    <span
+                      style={{
+                        fontSize: 14,
+                        color: "gray",
+                      }}
+                    >
+                      <span style={{ fontWeight: "bold" }}>
+                        {localStrings.Ads.TotalImpressions}:
+                      </span>{" "}
+                      {ads?.total_impression}
                     </span>
                   </div>
                 </div>

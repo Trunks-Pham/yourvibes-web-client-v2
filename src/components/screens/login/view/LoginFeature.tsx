@@ -1,26 +1,30 @@
 "use client";
 import React from "react";
-import { Form, Input, Button, message, Row, Col, Switch } from "antd";
+import { Form, Input, Button, message, Row, Col, Spin } from "antd"; // Import Spin
 import { GoogleOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import LoginViewModel from "../viewModel/loginViewModel";
 import { AuthenRepo } from "@/api/features/authenticate/AuthenRepo";
 import "antd/dist/reset.css";
 import { useAuth } from "@/context/auth/useAuth";
+import { useState } from "react"; // Import useState
 
 const LoginPage = () => {
   const { localStrings, changeLanguage } = useAuth();
   const router = useRouter();
   const { login, loading, getGoogleLoginUrl, googleLoading } = LoginViewModel(new AuthenRepo());
+  const [isLoggingIn, setIsLoggingIn] = useState(false); // State to track login process
 
   const handleLanguageChange = () => {
     changeLanguage();
   };
 
   const onFinish = async (values: any) => {
+    setIsLoggingIn(true); // Start the spin effect
     message.loading({
       content: `${localStrings.Public.LoginLoading}`,
       key: "login",
+      duration: 0, // Keep the message visible until manually closed
     });
 
     try {
@@ -32,9 +36,8 @@ const LoginPage = () => {
         message.error(localStrings.Login.LoginFailed);
       }
     } finally {
-      if (!loading) {
-        message.destroy("login");
-      }
+      setIsLoggingIn(false); // Stop the spin effect
+      message.destroy("login"); // Close the loading message
     }
   };
 
@@ -61,115 +64,120 @@ const LoginPage = () => {
               boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
             }}
           >
-            <Form
-              name="login"
-              layout="vertical"
-              onFinish={onFinish}
-              className="w-full"
-            >
-              <Col span={24} className="h-fit pb-4">
-                <div className="flex justify-center">
-                  <img
-                    src="/image/yourvibes_black.png"
-                    alt="YourVibes"
-                    className="font-cursive text-black w-[60%] sm:w-[50%] md:w-[40%] lg:hidden block"
+            <Spin spinning={isLoggingIn} tip={localStrings.Public.LoginLoading}> {/* Spin component */}
+              <Form
+                name="login"
+                layout="vertical"
+                onFinish={onFinish}
+                className="w-full"
+              >
+                <Col span={24} className="h-fit pb-4">
+                  <div className="flex justify-center">
+                    <img
+                      src="/image/yourvibes_black.png"
+                      alt="YourVibes"
+                      className="font-cursive text-black w-[60%] sm:w-[50%] md:w-[40%] lg:hidden block"
+                    />
+                  </div>
+                </Col>
+                {/* Trường Email */}
+                <Form.Item
+                  name="email"
+                  rules={[
+                    {
+                      required: true,
+                      message:
+                        localStrings.Form.RequiredMessages.EmailRequiredMessage,
+                    },
+                    {
+                      type: "email",
+                      message: localStrings.Form.TypeMessage.EmailTypeMessage,
+                    },
+                  ]}
+                >
+                  <Input
+                    placeholder="Email"
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                </div>
-              </Col>
-              {/* Trường Email */}
-              <Form.Item
-                name="email"
-                rules={[
-                  {
-                    required: true,
-                    message:
-                      localStrings.Form.RequiredMessages.EmailRequiredMessage,
-                  },
-                  {
-                    type: "email",
-                    message: localStrings.Form.TypeMessage.EmailTypeMessage,
-                  },
-                ]}
-              >
-                <Input
-                  placeholder="Email"
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </Form.Item>
+                </Form.Item>
 
-              {/* Trường Password */}
-              <Form.Item
-                name="password"
-                rules={[
-                  {
-                    required: true,
-                    message:
-                      localStrings.Form.RequiredMessages.PasswordRequiredMessage,
-                  },
-                ]}
-              >
-                <Input.Password
-                  placeholder={localStrings.Form.Label.Password}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </Form.Item>
-
-              {/* Quên mật khẩu */}
-              <div className="mb-4 text-center text-xs">
-                <a
-                  href="/forgotPassword"
-                  className="text-blue-500 hover:underline"
+                {/* Trường Password */}
+                <Form.Item
+                  name="password"
+                  rules={[
+                    {
+                      required: true,
+                      message:
+                        localStrings.Form.RequiredMessages.PasswordRequiredMessage,
+                    },
+                  ]}
                 >
-                  {localStrings.Login.ForgotPasswordText}
-                </a>
-              </div>
+                  <Input.Password
+                    placeholder={localStrings.Form.Label.Password}
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </Form.Item>
 
-              {/* Nút Đăng nhập */}
-              <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800"
-                  loading={loading}
-                >
-                  {localStrings.Login.LoginButton}
-                </Button>
-              </Form.Item>
-
-              {/* Đăng ký */}
-              <div className="text-center text-sm">
-                <span>
-                  {localStrings.Login.DontHaveAccout}{" "}
-                  <a href="/register" className="text-blue-500 hover:underline">
-                    {localStrings.Login.SignUpNow}
+                {/* Quên mật khẩu */}
+                <div className="mb-4 text-center text-xs">
+                  <a
+                    href="/forgotPassword"
+                    className="text-blue-500 hover:underline"
+                  >
+                    {localStrings.Login.ForgotPasswordText}
                   </a>
-                </span>
-              </div>
+                </div>
 
-              {/* Hoặc đăng nhập với */}
-              <div className="mt-4 text-center text-sm font-semibold">
-                {localStrings.Login.Or}
-              </div>
+                {/* Nút Đăng nhập */}
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800"
+                    loading={loading}
+                    disabled={isLoggingIn} // Disable the button while logging in
+                  >
+                    {localStrings.Login.LoginButton}
+                  </Button>
+                </Form.Item>
 
-              <div className="mt-4 text-center">
-                <Button
-                  type="default"
-                  icon={<GoogleOutlined />}
-                  className="w-full flex items-center justify-center"
-                  onClick={() => {
-                    router.push(getGoogleLoginUrl)
-                  }}
-                  loading={googleLoading}
-                >
-                  Google
-                </Button>
-              </div>
-            </Form>
+                {/* Đăng ký */}
+                <div className="text-center text-sm">
+                  <span>
+                    {localStrings.Login.DontHaveAccout}{" "}
+                    <a href="/register" className="text-blue-500 hover:underline">
+                      {localStrings.Login.SignUpNow}
+                    </a>
+                  </span>
+                </div>
+
+                {/* Hoặc đăng nhập với */}
+                <div className="mt-4 text-center text-sm font-semibold">
+                  {localStrings.Login.Or}
+                </div>
+
+                <div className="mt-4 text-center">
+                  <Button
+                    type="default"
+                    icon={<GoogleOutlined />}
+                    className="w-full flex items-center justify-center"
+                    onClick={() => {
+                      router.push(getGoogleLoginUrl)
+                    }}
+                    loading={googleLoading}
+                    disabled={isLoggingIn} // Disable the button while logging in
+                  >
+                    Google
+                  </Button>
+                </div>
+              </Form>
+            </Spin>
             <Button
               type="primary"
               htmlType="submit"
               onClick={handleLanguageChange}
               className="w-full mt-4 bg-black text-white py-2 rounded-md hover:bg-gray-800"
+              disabled={isLoggingIn} // Disable the button while logging in
             >
               {localStrings.Login.changeLanguage}
             </Button>
