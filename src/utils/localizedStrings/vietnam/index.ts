@@ -177,6 +177,7 @@ export const VnLocalizedStrings = {
     Sponsor: "Được tài trợ",
     NoPosts: "Không có bài viết nào",
     ShareContent: "Nhập nội dung chia sẻ của bạn...",
+    CharacterLimit: "10000 ký tự",
   },
   PostDetails:{
     ViewReplies: "Xem phản hồi",
@@ -206,6 +207,7 @@ export const VnLocalizedStrings = {
     Yes:"Xác nhận",
     No:"Không",
     CommentNotFound: "Không tìm thấy bình luận!",
+    CommentLimit: "500 ký tự!",
   },
   Profile: {
     Posts: {

@@ -1,5 +1,6 @@
 import { Select, Upload } from "antd";
 import Search from "antd/es/transfer/search";
+import { Chart } from "chart.js";
 import { changeLanguage } from "i18next";
 
 export const ENGLocalizedStrings = {
@@ -179,6 +180,7 @@ export const ENGLocalizedStrings = {
     NoPosts: "No posts found",
     ShareContent: 
     "Enter the content you want to share...",
+    CharacterLimit: "10000 characters",
   },
   PostDetails: {
     ViewReplies: "View replies",
@@ -208,6 +210,7 @@ export const ENGLocalizedStrings = {
     Yes: "Yes",
     No: "No",
     CommentNotFound: "Comment not found!",
+    CommentLimit: "500 characters",
   },
   Profile: {
     Posts: {
