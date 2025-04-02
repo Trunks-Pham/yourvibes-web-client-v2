@@ -7,7 +7,8 @@ import {
   GetCoversationRequestModel,
   GetConversationByIDRequestModel,
   DeleteConversationByIDRequestModel,
-  ConversationResponseModel
+  ConversationResponseModel,
+  UpdateConversationRequestModel 
 } from "./models/ConversationModel";
 
 import {
@@ -15,7 +16,8 @@ import {
   GetConversationDetailByIDRequestModel,
   GetConversationDetailByUserIDRequestModel,
   DeleteConversationDetailRequestModel,
-  ConversationDetailResponseModel
+  ConversationDetailResponseModel,
+  UpdateConversationDetail
 } from "./models/ConversationDetailModel";
 
 import {
@@ -26,21 +28,22 @@ import {
   MessageResponseModel
 } from "./models/MessageModel";
 
-// Định nghĩa interface cho repo của tin nhắn
 interface IMessagesRepo {
-  // Các phương thức liên quan đến Conversation
+  // Conversation methods
   createConversation(data: CreateConversationRequestModel): Promise<BaseApiResponseModel<ConversationResponseModel>>;
   getConversations(params: GetCoversationRequestModel): Promise<BaseApiResponseModel<ConversationResponseModel>>;
   getConversationById(params: GetConversationByIDRequestModel): Promise<BaseApiResponseModel<ConversationResponseModel>>;
   deleteConversation(data: DeleteConversationByIDRequestModel): Promise<BaseApiResponseModel<any>>;
+  updateConversation(data: UpdateConversationRequestModel): Promise<BaseApiResponseModel<ConversationResponseModel>>; // New method
 
-  // Các phương thức liên quan đến Conversation Detail
+  // Conversation Detail methods
   createConversationDetail(data: CreateConversationDetailRequestModel): Promise<BaseApiResponseModel<ConversationDetailResponseModel>>;
   getConversationDetailByID(data: GetConversationDetailByIDRequestModel): Promise<BaseApiResponseModel<ConversationDetailResponseModel>>;
   getConversationDetailByUserID(data: GetConversationDetailByUserIDRequestModel): Promise<BaseApiResponseModel<ConversationDetailResponseModel>>;
   deleteConversationDetail(data: DeleteConversationDetailRequestModel): Promise<BaseApiResponseModel<any>>;
+  updateConversationDetail(data: UpdateConversationDetail): Promise<BaseApiResponseModel<ConversationDetailResponseModel>>; // New method
 
-  // Các phương thức liên quan đến Message
+  // Message methods
   createMessage(data: CreateMessageRequestModel): Promise<BaseApiResponseModel<MessageResponseModel>>;
   getMessagesByConversationId(data: GetMessagesByConversationIdRequestModel): Promise<BaseApiResponseModel<MessageResponseModel>>;
   getMessageByID(data: GetMessageByIDRequestModel): Promise<BaseApiResponseModel<MessageResponseModel>>;
@@ -50,9 +53,37 @@ interface IMessagesRepo {
 export class MessagesRepo implements IMessagesRepo {
   // Conversation methods
   async createConversation(
-    data: CreateConversationRequestModel
+    data: CreateConversationRequestModel | FormData
   ): Promise<BaseApiResponseModel<ConversationResponseModel>> {
-    return client.post(ApiPath.CREATE_CONVERSATION, data);
+    if (data instanceof FormData) {
+      return client.post(ApiPath.CREATE_CONVERSATION, data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+    }
+  
+    const formData = new FormData();
+    
+    if (data.name) {
+      formData.append('name', data.name);
+    }
+    
+    if (data.image) {
+      if (typeof data.image === 'string') {
+        formData.append('image', data.image);
+      } else {
+        formData.append('image', data.image);
+      }
+    }
+    
+    if (data.user_ids && data.user_ids.length > 0) {
+      data.user_ids.forEach(userId => {
+        formData.append('user_ids', userId);
+      });
+    }
+  
+    return client.post(ApiPath.CREATE_CONVERSATION, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
   }
 
   async getConversations(
@@ -71,6 +102,44 @@ export class MessagesRepo implements IMessagesRepo {
     data: DeleteConversationByIDRequestModel
   ): Promise<BaseApiResponseModel<any>> {
     return client.delete(`${ApiPath.DELETE_CONVERSATION}${data.conversation_id}`);
+  }
+
+  async updateConversation(
+    data: UpdateConversationRequestModel
+  ): Promise<BaseApiResponseModel<ConversationResponseModel>> {
+    const formData = new FormData();
+    
+    if (data.name) {
+      formData.append('name', data.name);
+    }
+    
+    if (data.image) {
+      if (data.image instanceof File) {
+        formData.append('image', data.image);
+      } else if (typeof data.image === 'string' && data.image.startsWith('data:')) {
+        try {
+          const response = await fetch(data.image);
+          const blob = await response.blob();
+          const file = new File([blob], 'image.jpg', { type: 'image/jpeg' });
+          formData.append('image', file);
+        } catch (error) {
+          console.error('Error converting base64 to file:', error);
+        }
+      } else if (typeof data.image === 'string') {
+        try {
+          const response = await fetch(data.image);
+          const blob = await response.blob();
+          const file = new File([blob], 'image.jpg', { type: 'image/jpeg' });
+          formData.append('image', file);
+        } catch (error) {
+          console.error('Error converting URL to file:', error);
+        }
+      }
+    }
+    
+    return client.patch(`${ApiPath.UPDATE_CONVERSATION}${data.conversation_id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
   }
 
   // Conversation Detail methods
@@ -92,8 +161,19 @@ export class MessagesRepo implements IMessagesRepo {
     return client.get(ApiPath.GET_CONVERSATION_DETAIL_BY_USER_ID, data);
   }
 
-  async deleteConversationDetail(data: DeleteConversationDetailRequestModel): Promise<BaseApiResponseModel<any>> {
-      return client.delete(`${ApiPath.DELETE_CONVERSATION_DETAIL}${data.user_id}/${data.conversation_id}`);
+  async deleteConversationDetail(
+    data: DeleteConversationDetailRequestModel
+  ): Promise<BaseApiResponseModel<any>> {
+    return client.delete(`${ApiPath.DELETE_CONVERSATION_DETAIL}${data.user_id}/${data.conversation_id}`);
+  }
+
+  async updateConversationDetail(
+    data: UpdateConversationDetail
+  ): Promise<BaseApiResponseModel<ConversationDetailResponseModel>> {
+    return client.patch(ApiPath.UPDATE_CONVERSATION_DETAIL, {
+      conversation_id: data.conversation_id,
+      user_id: data.user_id
+    });
   }
 
   // Message methods
@@ -115,8 +195,10 @@ export class MessagesRepo implements IMessagesRepo {
     return client.get(`${ApiPath.GET_MESSAGE_BY_ID}${data.messageId}`);
   }
 
-  async deleteMessage(data: DeleteMessageRequestModel): Promise<BaseApiResponseModel<any>> {
-      return client.delete(`${ApiPath.DELETE_MESSAGE}${data.message_id}`)
+  async deleteMessage(
+    data: DeleteMessageRequestModel
+  ): Promise<BaseApiResponseModel<any>> {
+    return client.delete(`${ApiPath.DELETE_MESSAGE}${data.message_id}`);
   }
 }
 

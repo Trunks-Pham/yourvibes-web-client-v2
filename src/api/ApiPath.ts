@@ -62,12 +62,14 @@ export const ApiPath = {
   CREATE_CONVERSATION: getApiPath('conversations/'),
   GET_CONVERSATION: getApiPath('conversations/'),
   DELETE_CONVERSATION: getApiPath('conversations/'),
+  UPDATE_CONVERSATION: getApiPath('conversations/'), 
 
   //ConversationDetail
   CREATE_CONVERSATION_DETAIL: getApiPath('conversation_details/'),
   GET_CONVERSATION_DETAIL_BY_ID: getApiPath('conversation_details/get_by_id'),
   GET_CONVERSATION_DETAIL_BY_USER_ID: getApiPath('conversation_details/get_by_id'),
   DELETE_CONVERSATION_DETAIL: getApiPath('conversation_details/delete/'),
+  UPDATE_CONVERSATION_DETAIL: getApiPath('conversation_details/update'), 
 
   //Messages
   CREATE_MESSAGE: getApiPath('messages/'),
@@ -85,5 +87,5 @@ function getApiPath(path: string) {
   return `${process.env.NEXT_PUBLIC_API_ENDPOINT!}/v1/2024/${path}`;
 } 
 function getWSPath(path: string) {
-  return `${process.env.NEXT_PUBLIC_API_ENDPOINT!.replace("http", "wss")!}/v1/2024/${path}`;
-} 
+  return `${process.env.NEXT_PUBLIC_API_ENDPOINT!.replace("http", "ws")!}/v1/2024/${path}`;
+}
