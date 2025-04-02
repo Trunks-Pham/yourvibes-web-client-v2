@@ -148,7 +148,7 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
                                         onClick={() => handleSendFriendRequest(suggestion.id!)}
                                         disabled={suggestion.requestSent}
                                     >
-                                        {suggestion.requestSent ? "Đã gửi" : "Kết Bạn"}
+                                        {suggestion.requestSent ? `${localStrings.Suggested.FriendRequestSent}` : `${localStrings.Suggested.AddFriend}`}
                                     </Button>
                                     <Button block onClick={() => handleRemoveSuggestion(suggestion.id!)}>{localStrings.Suggested.Hide}</Button>
                                 </Card>
