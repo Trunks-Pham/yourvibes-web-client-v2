@@ -288,8 +288,10 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                   }));
                 }
               }}
+              cancelText={localStrings.Public.Cancel}
+              okText={localStrings.Public.Reply}
               okButtonProps={{ disabled: !isContentLengthValid(replyContent) }}
-              styles={{ body: { padding: "16px" } }} // Thay bodyStyle bằng styles.body
+              styles={{ body: { padding: "16px" } }} 
             >
               <div className="relative">
                 <textarea
@@ -342,7 +344,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 }
               }}
               okButtonProps={{ disabled: !isContentLengthValid(editCommentContent) }}
-              styles={{ body: { padding: "16px" } }} // Thay bodyStyle bằng styles.body
+              styles={{ body: { padding: "16px" } }}
             >
               <div className="relative">
                 <textarea
@@ -390,7 +392,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
             open={showModal}
             onCancel={() => setShowModal(false)}
             footer={null}
-            styles={{ body: { padding: "16px" } }} // Thay bodyStyle bằng styles.body
+            styles={{ body: { padding: "16px" } }} 
           >
             <ReportScreen commentId={currentCommentId} setShowModal={setShowModal} />
           </Modal>
