@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import useColor from "@/hooks/useColor";
 import Post from "@/components/common/post/views/Post";
 import HomeViewModel from "../viewModel/HomeViewModel";
@@ -20,6 +20,9 @@ const Homepage = ({ friendSuggestions }: any) => {
   const router = useRouter();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { friends, fetchMyFriends, page } = ProfileViewModel();
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -125,8 +128,34 @@ const Homepage = ({ friendSuggestions }: any) => {
     );
   };
 
+  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    setIsDragging(true);
+    setStartY(event.clientY);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setStartY(0);
+  };
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (isDragging && scrollContainerRef.current) {
+      const deltaY = event.clientY - startY;
+      if (deltaY > 100) { // Adjust the threshold as needed
+        fetchNewFeeds();
+        setStartY(event.clientY); // Reset startY after fetching
+      }
+    }
+  };
+
   return (
-    <div className="lg:flex mt-4 ">
+    <div className="lg:flex mt-4 "
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onMouseMove={handleMouseMove}
+      ref={scrollContainerRef}
+    >
       {/* Content */}
       {loading ? (
         <div className="flex-auto w-auto flex items-center justify-center">
@@ -147,12 +176,11 @@ const Homepage = ({ friendSuggestions }: any) => {
                 >
                   {newFeeds.map((item, index) => (
                     <div key={item?.id} style={{ width: "100%", maxWidth: "600px" }}>
-                      <Post post={item} onDeleteNewFeed={handleDeleteNewFeed} />
-                      {item?.parent_post && (
-                        <div style={{ marginLeft: "20px" }}>
+                      <Post post={item} onDeleteNewFeed={handleDeleteNewFeed}>
+                      {item?.parent_post && 
                           <Post post={item?.parent_post} isParentPost />
-                        </div>
-                      )}
+                      }
+                      </Post>
                       {index === 4 && <FriendSuggestions friendSuggestions={friendSuggestions} postIndex={index} />}
                     </div>
                   ))}

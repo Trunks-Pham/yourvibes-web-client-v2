@@ -24,9 +24,6 @@ import AddPostViewModel from "../viewModel/AddpostViewModel";
 import { defaultPostRepo } from "@/api/features/post/PostRepo";
 import { Privacy } from "@/api/baseApiResponseModel/baseApiResponseModel";
 import { UploadFile, UploadProps } from "antd/es/upload";
-import HomeViewModel from "../../home/viewModel/HomeViewModel";
-import { defaultNewFeedRepo } from "@/api/features/newFeed/NewFeedRepo";
-import ProfileViewModel from "../../profile/viewModel/ProfileViewModel";
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -65,7 +62,6 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
   } = AddPostViewModel(defaultPostRepo, router);
   const pathname = usePathname();
 
-
   const uploadButton = (
     <button style={{ border: 0, background: "none" }} type="button">
       <PlusOutlined />
@@ -73,22 +69,33 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
     </button>
   );
 
+  // Hàm kiểm tra độ dài nội dung hợp lệ
+  const isContentLengthValid = () => {
+    const contentLength = postContent.trim().length;
+    return contentLength >= 2 && contentLength <= 10000;
+  };
+
   const handleSubmit = async () => {
+    if (!isContentLengthValid()) { 
+      return;
+    }
+
     try {
-      await handleSubmitPost(); // Gọi hàm tạo bài đăng
+      await handleSubmitPost();
       if (pathname === "/home" && fetchNewFeeds) {
-        fetchNewFeeds(); // Fetch lại newFeeds ở trang Home
+        fetchNewFeeds();
       } else if (pathname === "/profile" && fetchUserPosts) {
-        fetchUserPosts(); // Fetch lại bài đăng của người dùng ở trang Profile
+        fetchUserPosts();
       }
       if (onPostSuccess) {
         onPostSuccess();
       }
-    } catch (error) {
-      console.error("Error submitting post:", error);
+    } catch (error) { 
     }
   };
-  
+
+  // Tính số ký tự hiện tại
+  const currentCharCount = postContent.length;
 
   return (
     <div style={{ padding: "20px" }}>
@@ -118,6 +125,9 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
               value={postContent}
               onChange={(e) => setPostContent(e.target.value)}
             />
+            <Text type={currentCharCount > 10000 ? "danger" : "secondary"} style={{ float: "right" }}>
+              {currentCharCount}/{localStrings.Post.CharacterLimit}
+            </Text>
           </Form.Item>
         </div>
       </div>
@@ -175,7 +185,7 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
           style={{ marginLeft: "auto" }}
           type="primary"
           onClick={handleSubmit}
-          disabled={!postContent.trim() && selectedMediaFiles.length === 0}
+          disabled={!isContentLengthValid() && selectedMediaFiles.length === 0}
           loading={createLoading}
         >
           {createLoading
