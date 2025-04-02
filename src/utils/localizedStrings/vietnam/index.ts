@@ -73,6 +73,8 @@ export const VnLocalizedStrings = {
     SeeMore: "Xem thêm",
     Why: "Tại sao tôi lại thấy những người bạn này?",
     Dont: "Tôi không muốn thấy những người bạn này",
+    AddFriend: "Kết bạn",
+    FriendRequestSent: "Đã gửi lời mời kết bạn",
   },
   Form: {
     Label: {

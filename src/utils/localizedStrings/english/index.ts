@@ -77,6 +77,8 @@ export const ENGLocalizedStrings = {
     SeeMore: "See more",
     Why: "Why do I see these friends?",
     Dont: "I don't want to see these friends",
+    FriendRequestSent: "Friend request sent",
+    AddFriend: "Add friend",
   },
 
   Form: {
