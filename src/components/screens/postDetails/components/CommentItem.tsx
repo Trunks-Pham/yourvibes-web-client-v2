@@ -50,7 +50,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
   const userId = user?.id;
   const { brandPrimaryTap } = useColor();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const emojiPickerRef = useRef(null); 
+  const emojiPickerRef = useRef(null);
+
   const handleClickOutside: React.MouseEventHandler = (event) => {
     if (
       showEmojiPicker &&
@@ -61,7 +62,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
     }
   };
 
-  const {localStrings} = useAuth();
+  const { localStrings } = useAuth();
 
   return (
     <div className="comment-item bg-gray-50 p-4 rounded-lg shadow-sm text-sm hover:shadow-md">
@@ -93,14 +94,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   strokeWidth: 2,
                   marginRight: 5,
                 }}
-                onClick={() =>
-                  handleLike(comment.id).then(() => {
-                    setLikedComment({
-                      is_liked: !likedComment.is_liked,
-                    });
-                    fetchComments();
-                  })
-                }
+                onClick={() => handleLike(comment.id)}
               />
               <span
                 style={{
@@ -109,7 +103,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   opacity: 0.5,
                 }}
               >
-                {/* {likeCount} */}
+                {likeCount}
               </span>
             </Col>
             {userId === comment.user?.id ? (
@@ -123,7 +117,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     marginRight: 50,
                   }}
                   onClick={() => handleDelete(comment.id)}
-                  
                 />
               </Col>
             ) : null}
@@ -215,7 +208,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
               setReplyModalVisible={setReplyModalVisible}
               setSelectedCommentId={setSelectedCommentId}
               postId={postId}
-              likeCount={likeCount}
+              likeCount={likeCount} // Truyền lại likeCount cho reply
             />
           ))}
       </div>

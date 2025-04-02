@@ -84,7 +84,6 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
   const emojiPickerRefComment = useRef(null);
   const emojiPickerRefEditComment = useRef(null);
 
-  // Hàm kiểm tra độ dài nội dung hợp lệ
   const isContentLengthValid = (content: string) => {
     const contentLength = content.trim().length;
     return contentLength >= 2 && contentLength <= 500;
@@ -160,7 +159,6 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
     } else {
       document.removeEventListener("mousedown", handleClickOutside);
     }
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -182,19 +180,15 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
         </div>
       )}
       <div className="container mx-auto flex flex-col xl:flex-row gap-6">
-        {/* Cột hiển thị bài viết */}
         <div className="post-container flex-1 bg-white p-6 rounded-lg shadow-md">
           <Post noComment={true} post={post || undefined}>
             {post?.parent_post && <Post post={post?.parent_post} isParentPost />}
           </Post>
         </div>
-
-        {/* Cột hiển thị bình luận */}
         <div className="comments-container flex-1 bg-white p-6 rounded-lg shadow-md">
           <span className="text-lg font-semibold text-gray-800">
             {localStrings.Public.Comment}
           </span>
-          {/* Danh sách bình luận */}
           <div
             className="comments-list space-y-6 max-h-[70vh] overflow-y-auto"
             style={{ scrollbarWidth: "none" }}
@@ -222,12 +216,10 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 setReplyModalVisible={setReplyModalVisible}
                 setSelectedCommentId={setSelectedCommentId}
                 postId={postId || ""}
-                likeCount={likeCount[comment.id]}
+                likeCount={likeCount[comment.id] || 0}
               />
             ))}
           </div>
-
-          {/* Phản hồi đến bình luận */}
           <div className="add-comment mt-2">
             <div className="relative">
               <textarea
@@ -256,7 +248,6 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 😊
               </button>
             </div>
-
             {showEmojiPicker.comment && (
               <div
                 ref={emojiPickerRefComment}
@@ -269,7 +260,6 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 />
               </div>
             )}
-
             <button
               onClick={handlePostAction}
               className="post-btn mt-4 w-full bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-800"
@@ -279,8 +269,6 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 (replyToCommentId || replyToReplyId ? "Reply" : "Post")}
             </button>
           </div>
-
-          {/* Modal Reply */}
           {isReplyModalVisible && (
             <Modal
               title={`${localStrings.Public.Reply}`}
@@ -301,6 +289,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 }
               }}
               okButtonProps={{ disabled: !isContentLengthValid(replyContent) }}
+              styles={{ body: { padding: "16px" } }} // Thay bodyStyle bằng styles.body
             >
               <div className="relative">
                 <textarea
@@ -340,8 +329,6 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
               )}
             </Modal>
           )}
-
-          {/* Modal Edit */}
           {isEditModalVisible && (
             <Modal
               title={`${localStrings.PostDetails.EditComment}`}
@@ -352,10 +339,10 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 if (isContentLengthValid(editCommentContent)) {
                   handleUpdate(editCommnetId, editCommentContent, replyToCommentId || "");
                   setEditModalVisible(false);
-                  console.log("Edit", editCommnetId, editCommentContent);
                 }
               }}
               okButtonProps={{ disabled: !isContentLengthValid(editCommentContent) }}
+              styles={{ body: { padding: "16px" } }} // Thay bodyStyle bằng styles.body
             >
               <div className="relative">
                 <textarea
@@ -397,14 +384,13 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
               )}
             </Modal>
           )}
-
-          {/* Modal hiển thị khi nhấn FaFlag */}
           <Modal
             centered
             title={localStrings.Public.ReportFriend}
             open={showModal}
             onCancel={() => setShowModal(false)}
             footer={null}
+            styles={{ body: { padding: "16px" } }} // Thay bodyStyle bằng styles.body
           >
             <ReportScreen commentId={currentCommentId} setShowModal={setShowModal} />
           </Modal>
