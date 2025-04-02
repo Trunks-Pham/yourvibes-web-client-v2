@@ -67,10 +67,18 @@ export const ENGLocalizedStrings = {
     Profile: "Profile",
     LoginStatus: "Please log in again",
     Messages: "Messages",
-    SuggestedFriends: "Suggested Friends",
     LoadMore: "Load more",
     GenericError: "An error occurred, please try again later!",
   },
+
+  Suggested: {
+    SuggestedFriends: "Suggested Friends",
+    Hide: "Hide",
+    SeeMore: "See more",
+    Why: "Why do I see these friends?",
+    Dont: "I don't want to see these friends",
+  },
+
   Form: {
     Label: {
       Email: "Email",
@@ -117,9 +125,10 @@ export const ENGLocalizedStrings = {
     DontHaveAccout: "Don't have an account?",
     SignUpNow: "Sign up now!",
     Or: "Or",
-    LoginFailed: "Login failed!",
+    LoginFailed: "Email or password is wrong!",
     AccountLocked: "Your account is locked!",
     changeLanguage: "Change Language: Vietnamese",
+    InvalidInput: "Invalid input!",
   },
   SignUp: {
     SignUpButton: "Sign up",
@@ -178,8 +187,8 @@ export const ENGLocalizedStrings = {
     NoContent: "Content is empty",
     Sponsor: "Sponsored",
     NoPosts: "No posts found",
-    ShareContent: 
-    "Enter the content you want to share...",
+    ShareContent:
+      "Enter the content you want to share...",
     CharacterLimit: "10000 characters",
   },
   PostDetails: {
@@ -338,10 +347,10 @@ export const ENGLocalizedStrings = {
     ReportFailed: "Report failed!",
     ReportUserFailed: "Report failed, you have already reported this account!",
     ReportPostFailed: "Report failed, you have already reported this post!",
-    ReportCommentFailed:"Report failed, you have already reported this comment!",
+    ReportCommentFailed: "Report failed, you have already reported this comment!",
     Note: "If you see a threat or someone in danger, don't hesitate to seek help and report to local emergency services before reporting to YourVibes.",
     placeholder: "Write your report here...",
-    Report: "Report", 
+    Report: "Report",
     ReportAlreadyExists: "Report already exists",
   },
   ChangePassword: {

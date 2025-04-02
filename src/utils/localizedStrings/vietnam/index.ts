@@ -63,10 +63,16 @@ export const VnLocalizedStrings = {
     Settings: "Cài đặt",
     Profile: "Tài khoản",
     LoginStatus:"Vui lòng đăng nhập lại",
-    Messages: "Tin Nhắn",
-    SuggestedFriend: "Những người bạn có thể biết",
+    Messages: "Tin Nhắn", 
     LoadMore: "Tải thêm",
     GenericError: "Đã xảy ra lỗi, vui lòng thử lại sau",
+  },
+  Suggested: {
+    SuggestedFriends: "Những người bạn có thể biết",
+    Hide: "Ẩn",
+    SeeMore: "Xem thêm",
+    Why: "Tại sao tôi lại thấy những người bạn này?",
+    Dont: "Tôi không muốn thấy những người bạn này",
   },
   Form: {
     Label: {
@@ -113,9 +119,10 @@ export const VnLocalizedStrings = {
     DontHaveAccout: "Bạn chưa có tài khoản?",
     SignUpNow: "Đăng ký ngay!",
     Or: "Hoặc",
-    LoginFailed: "Đăng nhập thất bại!",
+    LoginFailed: "Sai tài khoản hoặc mật khẩu!",
     AccountLocked:"Tài khoản của bạn đã bị khóa",
     changeLanguage: "Thay đổi ngôn ngữ sang: Tiếng Anh",
+    InvalidInput: "Không hợp lệ",
   },
   SignUp: {
     SignUpButton: "Đăng ký",

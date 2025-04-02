@@ -7,37 +7,40 @@ import LoginViewModel from "../viewModel/loginViewModel";
 import { AuthenRepo } from "@/api/features/authenticate/AuthenRepo";
 import "antd/dist/reset.css";
 import { useAuth } from "@/context/auth/useAuth";
-import { useState } from "react"; // Import useState
+import { useState } from "react"; 
 
 const LoginPage = () => {
   const { localStrings, changeLanguage } = useAuth();
   const router = useRouter();
   const { login, loading, getGoogleLoginUrl, googleLoading } = LoginViewModel(new AuthenRepo());
-  const [isLoggingIn, setIsLoggingIn] = useState(false); // State to track login process
+  const [isLoggingIn, setIsLoggingIn] = useState(false); 
 
   const handleLanguageChange = () => {
     changeLanguage();
   };
 
   const onFinish = async (values: any) => {
-    setIsLoggingIn(true); // Start the spin effect
+    setIsLoggingIn(true); 
     message.loading({
       content: `${localStrings.Public.LoginLoading}`,
       key: "login",
-      duration: 0, // Keep the message visible until manually closed
+      duration: 0
     });
 
     try {
       await login(values);
-    } catch (error: any) {
-      if (error.response.status === 403) {
+    } catch (error: any) { 
+      if (error.response?.status === 400) {
+        const errorMessage = error.response?.data?.message;
+        message.error(errorMessage);
+      } else if (error.response?.status === 403) {
         message.error(localStrings.Login.AccountLocked);
       } else {
         message.error(localStrings.Login.LoginFailed);
       }
     } finally {
-      setIsLoggingIn(false); // Stop the spin effect
-      message.destroy("login"); // Close the loading message
+      setIsLoggingIn(false); 
+      message.destroy("login"); 
     }
   };
 
@@ -64,7 +67,7 @@ const LoginPage = () => {
               boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
             }}
           >
-            <Spin spinning={isLoggingIn} tip={localStrings.Public.LoginLoading}> {/* Spin component */}
+            <Spin spinning={isLoggingIn} tip={localStrings.Public.LoginLoading}>
               <Form
                 name="login"
                 layout="vertical"
@@ -135,7 +138,7 @@ const LoginPage = () => {
                     htmlType="submit"
                     className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800"
                     loading={loading}
-                    disabled={isLoggingIn} // Disable the button while logging in
+                    disabled={isLoggingIn} 
                   >
                     {localStrings.Login.LoginButton}
                   </Button>
@@ -165,7 +168,7 @@ const LoginPage = () => {
                       router.push(getGoogleLoginUrl)
                     }}
                     loading={googleLoading}
-                    disabled={isLoggingIn} // Disable the button while logging in
+                    disabled={isLoggingIn} 
                   >
                     Google
                   </Button>
@@ -177,7 +180,7 @@ const LoginPage = () => {
               htmlType="submit"
               onClick={handleLanguageChange}
               className="w-full mt-4 bg-black text-white py-2 rounded-md hover:bg-gray-800"
-              disabled={isLoggingIn} // Disable the button while logging in
+              disabled={isLoggingIn} 
             >
               {localStrings.Login.changeLanguage}
             </Button>
