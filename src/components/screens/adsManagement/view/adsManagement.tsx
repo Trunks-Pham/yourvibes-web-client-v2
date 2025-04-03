@@ -297,7 +297,7 @@ const AdsManagementFeature = () => {
       };
       const res = await repo.getPosts(request);
       if (res?.data) {
-        const filteredPosts = res.data.filter((post) => post.is_advertisement);
+        const filteredPosts = res.data.filter((post) => post.is_advertisement=== 0 );
         setModalPosts(filteredPosts);
       }
     } catch (err) {
