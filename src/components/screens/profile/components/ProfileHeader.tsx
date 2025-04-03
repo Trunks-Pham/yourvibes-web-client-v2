@@ -94,6 +94,7 @@ const ProfileHeader = ({
     },
   ];
 
+  // Render friend để check status
   const renderFriendButton = useCallback(() => {
     switch (newFriendStatus) {
       case FriendStatus.NotFriend:
