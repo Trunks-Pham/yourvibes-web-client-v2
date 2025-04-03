@@ -171,7 +171,7 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
                         <Button type="link" onClick={showModal} style={{ color: "black" }}>{localStrings.Suggested.SeeMore}</Button>
                     </div>
 
-                    <Modal title="Những người bạn có thể biết" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+                    <Modal title={localStrings.Suggested.SuggestedFriends} visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                             {friendSuggestions.map((suggestion) => (
                                 !suggestion.hidden && (

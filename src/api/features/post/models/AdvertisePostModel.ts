@@ -83,6 +83,8 @@ export interface BillModel {
 }
 
 export interface AdvertisePostResponseModel {
+  media?: MediaModel[];
+  content?: string;
   id?: string;
   post_id?: string;
   start_date?: string;

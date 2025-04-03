@@ -19,8 +19,7 @@ import { useAuth } from "@/context/auth/useAuth";
 import Post from "@/components/common/post/views/Post";
 import dayjs from "dayjs";
 import useAdsManagement from "../viewModel/adsManagementViewModel";
-import PostList from "../../profile/components/PostList";
-import { DateTransfer } from "@/utils/helper/DateTransfer";
+import PostList from "../../profile/components/PostList"; 
 import { CurrencyFormat } from "@/utils/helper/CurrencyFormat";
 import { GetUsersPostsRequestModel } from "@/api/features/post/models/GetUsersPostsModel";
 
@@ -298,7 +297,7 @@ const AdsManagementFeature = () => {
       };
       const res = await repo.getPosts(request);
       if (res?.data) {
-        const filteredPosts = res.data.filter((post) => post.is_advertisement === false);
+        const filteredPosts = res.data.filter((post) => post.is_advertisement);
         setModalPosts(filteredPosts);
       }
     } catch (err) {
