@@ -74,12 +74,17 @@ export const VnLocalizedStrings = {
   },
   Suggested: {
     SuggestedFriends: "Những người bạn có thể biết",
-    Hide: "Ẩn",
+    Hide: "Ẩn",
     SeeMore: "Xem thêm",
     Why: "Tại sao tôi lại thấy những người bạn này?",
     Dont: "Tôi không muốn thấy những người bạn này",
     AddFriend: "Kết bạn",
-    FriendRequestSent: "Đã gửi lời mời kết bạn",
+    FriendRequestSent: "Đã gửi..",
+    WhyExplanation: "Những gợi ý này dựa trên các yếu tố như:",
+    WhyFactor1: "Bạn bè chung",
+    WhyFactor2: "Sở thích tương đồng",
+    WhyFactor3: "Hoạt động gần đây trên mạng xã hội",
+    WhyConclusion: "Chúng tôi sử dụng thuật toán để tìm những người bạn có thể quen biết hoặc muốn kết nối!"
   },
   Form: {
     Label: {
