@@ -82,8 +82,13 @@ export const ENGLocalizedStrings = {
     SeeMore: "See more",
     Why: "Why do I see these friends?",
     Dont: "I don't want to see these friends",
-    FriendRequestSent: "Friend request sent",
+    FriendRequestSent: "Waiting...",
     AddFriend: "Add friend",
+    WhyExplanation: "These suggestions are based on factors such as:",
+    WhyFactor1: "Mutual friends",
+    WhyFactor2: "Similar interests",
+    WhyFactor3: "Recent activity on social media",
+    WhyConclusion: "We use an algorithm to find people you might know or want to connect with!"
   },
 
   Form: {

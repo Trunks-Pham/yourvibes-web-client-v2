@@ -19,6 +19,7 @@ interface FriendSuggestionWithStatus extends SuggestionUserModel {
 const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
     const router = useRouter();
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isWhyModalVisible, setIsWhyModalVisible] = useState(false);
     const [friendSuggestions, setFriendSuggestions] = useState<FriendSuggestionWithStatus[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [friendRequestLoading, setFriendRequestLoading] = useState<Record<string, boolean>>({});
@@ -37,41 +38,42 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
         setIsModalVisible(false);
     };
 
-    const menu = (
-        <Menu>
-            <Menu.Item key="1">{localStrings.Suggested.Why}</Menu.Item>
-            <Menu.Item key="2">{localStrings.Suggested.Dont}</Menu.Item>
-        </Menu>
-    );
+    const handleWhyModalOk = () => {
+        setIsWhyModalVisible(false);
+    };
+
+    const handleWhyModalCancel = () => {
+        setIsWhyModalVisible(false);
+    };
+
+    const fetchSuggestions = async () => {
+        setLoading(true);
+        try {
+            const requestData: NewFeedRequestModel = {
+                limit: 10,
+                page: 1,
+            };
+            const response = await defaultNewFeedRepo.getSuggestion(requestData);
+            if (response.code === 20001) {
+                const suggestionsWithStatus: FriendSuggestionWithStatus[] = response.data.map(
+                    (suggestion: SuggestionUserModel) => ({
+                        ...suggestion,
+                        requestSent: false,
+                        hidden: false,
+                    })
+                );
+                setFriendSuggestions(suggestionsWithStatus);
+            } else {
+                message.error(response.message);
+            }
+        } catch (error: any) {
+            message.error(error?.error?.message_detail || error?.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchSuggestions = async () => {
-            setLoading(true);
-            try {
-                const requestData: NewFeedRequestModel = {
-                    limit: 10,
-                    page: 1,
-                };
-                const response = await defaultNewFeedRepo.getSuggestion(requestData);
-                if (response.code === 20001) {
-                    const suggestionsWithStatus: FriendSuggestionWithStatus[] = response.data.map(
-                        (suggestion: SuggestionUserModel) => ({
-                            ...suggestion,
-                            requestSent: false,
-                            hidden: false,
-                        })
-                    );
-                    setFriendSuggestions(suggestionsWithStatus);
-                } else {
-                    console.error("Error fetching suggestions:", response.message);
-                }
-            } catch (error) {
-                console.error("Error fetching suggestions:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchSuggestions();
     }, []);
 
@@ -86,20 +88,11 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
                         suggestion.id === userId ? { ...suggestion, requestSent: true } : suggestion
                     )
                 );
-            } else if (response.code === 50007) {
-                message.error(response.error?.message_detail || response.message || "Bạn đã gửi lời mời kết bạn cho người này rồi.");
             } else {
-                // Xử lý các lỗi khác từ server
-                message.error(response.message || "Có lỗi xảy ra khi gửi lời mời kết bạn.");
+                message.error(response.error?.message_detail || response.message);
             }
         } catch (error: any) {
-            // Xử lý lỗi từ Axios (bao gồm lỗi 400)
-            console.error("Error sending friend request:", error);
-            if (error.response?.status === 400) {
-                message.error("Yêu cầu không hợp lệ. Vui lòng kiểm tra lại.");
-            } else {
-                message.error("Có lỗi xảy ra khi gửi lời mời kết bạn.");
-            }
+            message.error(error?.error?.message_detail || error?.message);
         } finally {
             setFriendRequestLoading((prevLoading) => ({ ...prevLoading, [userId]: false }));
         }
@@ -112,6 +105,24 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
             )
         );
     };
+
+    const handleMenuClick = (e: any) => {
+        if (e.key === "1") {
+            setIsWhyModalVisible(true);
+        } else if (e.key === "2") {
+            setFriendSuggestions((prevSuggestions) =>
+                prevSuggestions.map((suggestion) => ({ ...suggestion, hidden: true }))
+            );
+            fetchSuggestions();
+        }
+    };
+
+    const menu = (
+        <Menu onClick={handleMenuClick}>
+            <Menu.Item key="1">{localStrings.Suggested.Why}</Menu.Item>
+            <Menu.Item key="2">{localStrings.Suggested.Dont}</Menu.Item>
+        </Menu>
+    );
 
     if (postIndex >= 5) {
         return null;
@@ -182,6 +193,21 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
                                 )
                             ))}
                         </div>
+                    </Modal>
+
+                    <Modal
+                        title={localStrings.Suggested.Why}
+                        visible={isWhyModalVisible}
+                        onOk={handleWhyModalOk}
+                        onCancel={handleWhyModalCancel}
+                    >
+                        <p>{localStrings.Suggested.WhyExplanation}</p>
+                        <ul>
+                            <li>{localStrings.Suggested.WhyFactor1}</li>
+                            <li>{localStrings.Suggested.WhyFactor2}</li>
+                            <li>{localStrings.Suggested.WhyFactor3}</li>
+                        </ul>
+                        <p>{localStrings.Suggested.WhyConclusion}</p>
                     </Modal>
                 </>
             )}
