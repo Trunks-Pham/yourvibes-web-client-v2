@@ -208,7 +208,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200 md:col-span-2">
                 <p>
                   <strong>{localStrings.Ads.StatusActive}:</strong>{" "}
-                  {Number(ad.is_advertisement) === 1 ? localStrings.Ads.Active : localStrings.Ads.Done}
+                  {Number(ad.is_advertisement) === 1 ?  localStrings.Ads.Done:localStrings.Ads.Active}
                 </p>
               </div>
             </div>
