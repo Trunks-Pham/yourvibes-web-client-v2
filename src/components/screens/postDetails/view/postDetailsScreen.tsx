@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Post from "@/components/common/post/views/Post";
-import { Avatar, Button, Col, Row, Typography } from "antd";
+import { Avatar, Button, Col, Empty, Row, Typography } from "antd";
 import {
   FaEdit,
   FaHeart,
@@ -194,8 +194,17 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({
         {/* Cột hiển thị bài viết */}
         <div className="post-container flex-1 bg-white p-6 rounded-lg shadow-md">
           <Post noComment={true} post={post || undefined}>
-            {post?.parent_post && (
+            {post?.parent_post ? (
               <Post post={post?.parent_post} isParentPost />
+            ):(
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+            <Empty description={
+              <span style={{ color: 'gray', fontSize: 16 }}>
+                {localStrings.Post.NoPosts}
+              </span>
+            }
+            />
+          </div>
             )}
           </Post>
         </div>
