@@ -353,7 +353,7 @@ const AdsManagementFeature = () => {
         open={isPostListModalVisible}
         onCancel={() => setIsPostListModalVisible(false)}
         footer={null}
-        width={700}
+        width={700} 
         centered
         bodyStyle={{ maxHeight: "1500px", overflowY: "auto", padding: "16px" }}
       >

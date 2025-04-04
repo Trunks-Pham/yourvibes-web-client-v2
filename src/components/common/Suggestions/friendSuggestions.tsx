@@ -45,7 +45,7 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
         const suggestionsWithStatus: FriendSuggestionWithStatus[] = response.data.map(
           (suggestion: SuggestionUserModel) => ({
             ...suggestion,
-            friendStatus: suggestion.friend_status || FriendStatus.NotFriend,
+            friendStatus: (suggestion as any).friend_status || FriendStatus.NotFriend,
             hidden: false,
           })
         );
@@ -90,7 +90,7 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
   const cancelFriendRequest = async (userId: string) => {
     setFriendRequestLoading((prev) => ({ ...prev, [userId]: true }));
     try {
-      const response = await defaultProfileRepo.cancelFriendRequest(userId); // Giả sử có API này
+      const response = await defaultProfileRepo.cancelFriendRequest(userId);
       if (response.code === 20001) {
         message.success(`${localStrings.Public.CancelFriendRequest} success`);
         setFriendSuggestions((prev) =>

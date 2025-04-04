@@ -135,6 +135,7 @@ export const VnLocalizedStrings = {
     AccountLocked:"Tài khoản của bạn đã bị khóa",
     changeLanguage: "Thay đổi ngôn ngữ sang: Tiếng Anh",
     InvalidInput: "Không hợp lệ",
+    LoginSuccess: "Đăng nhập thành công!",
   },
   SignUp: {
     SignUpButton: "Đăng ký",
@@ -197,6 +198,7 @@ export const VnLocalizedStrings = {
     NoPosts: "Không có bài viết nào",
     ShareContent: "Nhập nội dung chia sẻ của bạn...",
     CharacterLimit: "10000 ký tự",
+    CharacterLimitR: "255 ký tự",
   },
   PostDetails:{
     ViewReplies: "Xem phản hồi",
