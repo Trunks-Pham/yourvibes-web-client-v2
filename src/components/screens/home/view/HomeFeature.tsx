@@ -141,9 +141,9 @@ const Homepage = ({ friendSuggestions }: any) => {
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (isDragging && scrollContainerRef.current) {
       const deltaY = event.clientY - startY;
-      if (deltaY > 100) { // Adjust the threshold as needed
+      if (deltaY > 100) {  
         fetchNewFeeds();
-        setStartY(event.clientY); // Reset startY after fetching
+        setStartY(event.clientY);  
       }
     }
   };

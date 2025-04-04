@@ -141,6 +141,7 @@ export const ENGLocalizedStrings = {
     AccountLocked: "Your account is locked!",
     changeLanguage: "Change Language: Vietnamese",
     InvalidInput: "Invalid input!",
+    LoginSuccess: "Login successful!",
   },
   SignUp: {
     SignUpButton: "Sign up",
@@ -202,6 +203,7 @@ export const ENGLocalizedStrings = {
     ShareContent:
       "Enter the content you want to share...",
     CharacterLimit: "10000 characters",
+    CharacterLimitR:"255 characters"
   },
   PostDetails: {
     ViewReplies: "View replies",

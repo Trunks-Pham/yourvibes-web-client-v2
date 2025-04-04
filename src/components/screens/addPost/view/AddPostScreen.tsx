@@ -7,15 +7,11 @@ import {
   Typography,
   Upload,
   Spin,
-  GetProp,
   Image,
   Select,
 } from "antd";
-import {
-  CloseOutlined,
-  PictureOutlined,
-  PlusOutlined,
-  VideoCameraOutlined,
+import { 
+  PlusOutlined, 
 } from "@ant-design/icons";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth/useAuth";
@@ -24,11 +20,10 @@ import AddPostViewModel from "../viewModel/AddpostViewModel";
 import { defaultPostRepo } from "@/api/features/post/PostRepo";
 import { Privacy } from "@/api/baseApiResponseModel/baseApiResponseModel";
 import { UploadFile, UploadProps } from "antd/es/upload";
+import { useEffect } from "react";
 
 const { TextArea } = Input;
 const { Text } = Typography;
-
-type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
 interface AddPostScreenProps {
   onPostSuccess?: () => void;
@@ -40,48 +35,11 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
   const { user, localStrings } = useAuth();
   const savedPost = usePostContext();
   const router = useRouter();
-  const {
-    postContent,
-    setPostContent,
-    createPost,
-    createLoading,
-    privacy,
-    setPrivacy,
-    handleSubmitPost,
-    selectedMediaFiles,
-    setSelectedMediaFiles,
-    image,
-    setImage,
-    handleChange,
-    handlePreview,
-    fileList,
-    previewImage,
-    previewOpen,
-    setPreviewOpen,
-    setPreviewImage,
-  } = AddPostViewModel(defaultPostRepo, router);
+  const viewModel = AddPostViewModel(defaultPostRepo, router);
   const pathname = usePathname();
 
-  const uploadButton = (
-    <button style={{ border: 0, background: "none" }} type="button">
-      <PlusOutlined />
-      <div style={{ marginTop: 8 }}>{localStrings.AddPost.UploadImage}</div>
-    </button>
-  );
-
-  // Hàm kiểm tra độ dài nội dung hợp lệ
-  const isContentLengthValid = () => {
-    const contentLength = postContent.trim().length;
-    return contentLength >= 2 && contentLength <= 10000;
-  };
-
-  const handleSubmit = async () => {
-    if (!isContentLengthValid()) { 
-      return;
-    }
-
-    try {
-      await handleSubmitPost();
+  const PostUpdateObserver = {
+    update: () => {
       if (pathname === "/home" && fetchNewFeeds) {
         fetchNewFeeds();
       } else if (pathname === "/profile" && fetchUserPosts) {
@@ -90,12 +48,33 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
       if (onPostSuccess) {
         onPostSuccess();
       }
-    } catch (error) { 
     }
   };
 
-  // Tính số ký tự hiện tại
-  const currentCharCount = postContent.length;
+  useEffect(() => {
+    viewModel.registerObserver(PostUpdateObserver); 
+  }, [viewModel]);  
+
+  const uploadButton = (
+    <button style={{ border: 0, background: "none" }} type="button">
+      <PlusOutlined />
+      <div style={{ marginTop: 8 }}>{localStrings.AddPost.UploadImage}</div>
+    </button>
+  );
+
+  const isContentLengthValid = () => {
+    const contentLength = viewModel.postContent.trim().length;
+    return contentLength >= 2 && contentLength <= 10000;
+  };
+
+  const handleSubmit = async () => {
+    if (!isContentLengthValid() && viewModel.fileList.length === 0) {
+      return;
+    }
+    await viewModel.handleSubmitPost();
+  };
+
+  const currentCharCount = viewModel.postContent.length;
 
   return (
     <div style={{ padding: "20px" }}>
@@ -122,8 +101,8 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
             <TextArea
               placeholder={localStrings.AddPost.WhatDoYouThink}
               autoSize={{ minRows: 3, maxRows: 5 }}
-              value={postContent}
-              onChange={(e) => setPostContent(e.target.value)}
+              value={viewModel.postContent}
+              onChange={(e) => viewModel.setPostContent(e.target.value)}
             />
             <Text type={currentCharCount > 10000 ? "danger" : "secondary"} style={{ float: "right" }}>
               {currentCharCount}/{localStrings.Post.CharacterLimit}
@@ -136,23 +115,23 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
         className="pt-4"
         accept=".jpg, .jpeg, .gif, .png, .svg, .mp4, .mov"
         listType="picture-card"
-        fileList={fileList}
-        onChange={handleChange}
-        onPreview={handlePreview}
+        fileList={viewModel.fileList}
+        onChange={viewModel.handleChange}
+        onPreview={viewModel.handlePreview}
         beforeUpload={() => false}
       >
-        {fileList.length >= 8 ? null : uploadButton}
+        {viewModel.fileList.length >= 8 ? null : uploadButton}
       </Upload>
 
-      {previewImage && (
+      {viewModel.previewImage && (
         <Image
           wrapperStyle={{ display: "none" }}
           preview={{
-            visible: previewOpen,
-            onVisibleChange: (visible) => setPreviewOpen(visible),
-            afterOpenChange: (visible) => !visible && setPreviewImage(""),
+            visible: viewModel.previewOpen,
+            onVisibleChange: (visible) => viewModel.setPreviewOpen(visible),
+            afterOpenChange: (visible) => !visible && viewModel.setPreviewImage(""),
           }}
-          src={previewImage}
+          src={viewModel.previewImage}
         />
       )}
 
@@ -166,8 +145,8 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
       >
         <Text>{localStrings.AddPost.PrivacyText}: </Text>
         <Select
-          value={privacy}
-          onChange={(value) => setPrivacy(value)}
+          value={viewModel.privacy}
+          onChange={(value) => viewModel.setPrivacy(value)}
           style={{ width: 120, marginLeft: "10px" }}
         >
           <Select.Option value={Privacy.PUBLIC}>
@@ -185,11 +164,11 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
           style={{ marginLeft: "auto" }}
           type="primary"
           onClick={handleSubmit}
-          disabled={!isContentLengthValid() && selectedMediaFiles.length === 0}
-          loading={createLoading}
+          disabled={!isContentLengthValid() && viewModel.selectedMediaFiles.length === 0}
+          loading={viewModel.createLoading}
         >
-          {createLoading
-            ? createLoading && <Spin style={{ color: "white" }} />
+          {viewModel.createLoading
+            ? viewModel.createLoading && <Spin style={{ color: "white" }} />
             : localStrings.AddPost.PostNow}
         </Button>
       </div>
