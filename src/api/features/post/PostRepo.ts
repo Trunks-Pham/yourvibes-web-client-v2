@@ -16,6 +16,7 @@ import {
   AdvertisePostResponseModel,
   GetAdvertiseRequestModel,
 } from "./models/AdvertisePostModel";
+import { ReportPostRequestModel } from "./models/ReportPost";
 
 interface IPostRepo {
   createPost: (
@@ -37,22 +38,20 @@ interface IPostRepo {
   getPostLikes: (
     params: LikeUsersResponseModel
   ) => Promise<BaseApiResponseModel<LikeUsersModel[]>>;
-
-  //advertise
   advertisePost: (
     params: AdvertisePostRequestModel
   ) => Promise<BaseApiResponseModel<any>>;
-  getAdvertisementPosts: (
-    params: GetUsersPostsRequestModel
-  ) => Promise<BaseApiResponseModel<PostResponseModel[]>>
   getAdvertisePost: (
     params: AdvertisePostRequestModel
   ) => Promise<BaseApiResponseModel<AdvertisePostResponseModel>>;
-  getAdvertiseStatistics: (
-    advertiseId: string
-  ) => Promise<BaseApiResponseModel<AdvertisePostResponseModel>>;
-}
+  reportPost: (
+    params: ReportPostRequestModel
+  ) => Promise<BaseApiResponseModel<any>>;
 
+  getAdvertisementPosts: (
+    params: GetUsersPostsRequestModel
+  ) => Promise<BaseApiResponseModel<PostResponseModel[]>>
+}
 export class PostRepo implements IPostRepo {
   async createPost(
     data: CreatePostRequestModel
@@ -113,12 +112,6 @@ export class PostRepo implements IPostRepo {
   ): Promise<BaseApiResponseModel<any>> {
     return client.post(ApiPath.ADVERTISE_POST, params);
   }
-  async getAdvertisementPosts(
-    data: GetUsersPostsRequestModel
-  ): Promise<BaseApiResponseModel<PostResponseModel[]>> {
-    const filteredData = { ...data, is_advertisement: true };
-    return client.get(ApiPath.GET_POSTS, filteredData);
-  }
 
   async getAdvertisePost(
     params: GetAdvertiseRequestModel
@@ -126,10 +119,17 @@ export class PostRepo implements IPostRepo {
     return client.get(ApiPath.ADVERTISE_POST, params);
   }
 
-  async getAdvertiseStatistics(
-    advertiseId: string
-  ): Promise<BaseApiResponseModel<AdvertisePostResponseModel>> {
-    return client.get(`${ApiPath.ADVERTISE_STATISTICS}${advertiseId}`);
+  async reportPost(
+    params: ReportPostRequestModel
+  ): Promise<BaseApiResponseModel<any>> {
+    return client.post(ApiPath.REPORT_POST, params);
+  }
+
+  async getAdvertisementPosts(
+    data: GetUsersPostsRequestModel
+  ): Promise<BaseApiResponseModel<PostResponseModel[]>> {
+    const filteredData = { ...data, is_advertisement: true };
+    return client.get(ApiPath.GET_POSTS, filteredData);
   }
 }
 export const defaultPostRepo = new PostRepo();

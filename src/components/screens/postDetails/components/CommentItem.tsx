@@ -23,7 +23,6 @@ interface CommentItemProps {
   setReplyModalVisible: (visible: boolean) => void;
   setSelectedCommentId: (id: string) => void;
   postId: string;
-  likeCount: number;
 }
 
 const CommentItem: React.FC<CommentItemProps> = ({
@@ -44,7 +43,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
   setReplyModalVisible,
   setSelectedCommentId,
   postId,
-  likeCount,
 }) => {
   const { user } = useAuth();
   const userId = user?.id;
@@ -61,8 +59,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
       setShowEmojiPicker(false);
     }
   };
-
-  const { localStrings } = useAuth();
 
   return (
     <div className="comment-item bg-gray-50 p-4 rounded-lg shadow-sm text-sm hover:shadow-md">
@@ -94,7 +90,14 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   strokeWidth: 2,
                   marginRight: 5,
                 }}
-                onClick={() => handleLike(comment.id)}
+                onClick={() =>
+                  handleLike(comment.id).then(() => {
+                    setLikedComment({
+                      is_liked: !likedComment.is_liked,
+                    });
+                    fetchComments();
+                  })
+                }
               />
               <span
                 style={{
@@ -103,7 +106,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   opacity: 0.5,
                 }}
               >
-                {likeCount}
+                {/* {likeCount[comment.id]} */}
               </span>
             </Col>
             {userId === comment.user?.id ? (
@@ -183,8 +186,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
             className="show-replies-btn text-blue-500 text-xs mb-2"
           >
             {visibleReplies[comment.id]
-              ? `${localStrings.PostDetails.HideReplies}`
-              : `${localStrings.PostDetails.ViewReplies}`}
+              ? "Hide Replies"
+              : "View Replies"}
           </button>
         )}
         {visibleReplies[comment.id] &&
@@ -208,7 +211,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
               setReplyModalVisible={setReplyModalVisible}
               setSelectedCommentId={setSelectedCommentId}
               postId={postId}
-              likeCount={likeCount} // Truyền lại likeCount cho reply
             />
           ))}
       </div>
