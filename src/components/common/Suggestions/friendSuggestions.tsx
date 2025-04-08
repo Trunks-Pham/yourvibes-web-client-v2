@@ -148,10 +148,10 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        gap: "8px", // Tăng khoảng cách giữa icon và text
-        width: "100%", // Đảm bảo nút chiếm toàn bộ chiều rộng
-        padding: "0 10px", // Thêm padding để nút dài hơn
-        whiteSpace: "nowrap", // Giữ text trên một dòng
+        gap: "8px",
+        width: "100%", 
+        padding: "0 10px", 
+        whiteSpace: "nowrap", 
       };
 
       switch (suggestion.friendStatus) {
@@ -162,7 +162,7 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
               block
               loading={isLoading}
               onClick={() => handleFriendRequest(userId, "send")}
-              style={{ height: "36px" }} // Tăng chiều cao nút cho hợp lý
+              style={{ height: "36px" }} 
             >
               <div style={buttonStyles}>
                 <FaUserPlus size={16} />
