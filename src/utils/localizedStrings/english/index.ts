@@ -1,6 +1,5 @@
 import { Select, Upload } from "antd";
 import Search from "antd/es/transfer/search";
-import { Chart } from "chart.js";
 import { changeLanguage } from "i18next";
 
 export const ENGLocalizedStrings = {
@@ -67,30 +66,14 @@ export const ENGLocalizedStrings = {
     Profile: "Profile",
     LoginStatus: "Please log in again",
     Messages: "Messages",
+    SuggestedFriends: "Suggested Friends",
     LoadMore: "Load more",
     Search: "Search",
     Error: "Error",
     Yes: "Yes",
     No: "No",
     Delete: "Delete",
-    GenericError: "An error occurred, please try again later!",
   },
-
-  Suggested: {
-    SuggestedFriends: "Suggested Friends",
-    Hide: "Hide",
-    SeeMore: "See more",
-    Why: "Why do I see these friends?",
-    Dont: "I don't want to see these friends",
-    FriendRequestSent: "Waiting...",
-    AddFriend: "Add friend",
-    WhyExplanation: "These suggestions are based on factors such as:",
-    WhyFactor1: "Mutual friends",
-    WhyFactor2: "Similar interests",
-    WhyFactor3: "Recent activity on social media",
-    WhyConclusion: "We use an algorithm to find people you might know or want to connect with!"
-  },
-
   Form: {
     Label: {
       Email: "Email",
@@ -137,10 +120,9 @@ export const ENGLocalizedStrings = {
     DontHaveAccout: "Don't have an account?",
     SignUpNow: "Sign up now!",
     Or: "Or",
-    LoginFailed: "Email or password is wrong!",
+    LoginFailed: "Login failed!",
     AccountLocked: "Your account is locked!",
     changeLanguage: "Change Language: Vietnamese",
-    InvalidInput: "Invalid input!",
   },
   SignUp: {
     SignUpButton: "Sign up",
@@ -199,9 +181,8 @@ export const ENGLocalizedStrings = {
     NoContent: "Content is empty",
     Sponsor: "Sponsored",
     NoPosts: "No posts found",
-    ShareContent:
-      "Enter the content you want to share...",
-    CharacterLimit: "10000 characters",
+    ShareContent: 
+    "Enter the content you want to share...",
   },
   PostDetails: {
     ViewReplies: "View replies",
@@ -231,7 +212,6 @@ export const ENGLocalizedStrings = {
     Yes: "Yes",
     No: "No",
     CommentNotFound: "Comment not found!",
-    CommentLimit: "500 characters",
   },
   Profile: {
     Posts: {
@@ -324,7 +304,7 @@ export const ENGLocalizedStrings = {
     NoCampaign: "No campaign found",
     AdvertisePostPending: "Advertisement is pending, please check the process again.",
     CampaignStatus: "Campaign status",
-    Click: "Total clicks",
+    TotalResults: "Total results",
     TotalReach: "Total reach",
     TotalImpressions: "Total impressions",
     AdsManagement: "Ads Management",
@@ -333,7 +313,6 @@ export const ENGLocalizedStrings = {
     SearchAds: "Search . . .",
     ExportAds: "Export Ads",
     StartDay: "Start day",
-    EndDay: "End day",
     ViewDetails: "View details",
     Voucher: "Voucher",
     VoucherApplied: "Voucher applied",
@@ -341,14 +320,7 @@ export const ENGLocalizedStrings = {
     StatusActive: "Status Active Campaign",
     Pending: "Pending",
     Active: "Active",
-    Done: "Done",
     Completed: "Completed",
-    ErrorFetchingStatistics: "Error fetching statistics!",
-    ViewHistory: "View history",
-    NoHistoryFound: "No history found",
-    NoAdsHistory: "No ads history",
-    HistoryforPost: "History for post",
-    Discount: "Discount",
   },
 
   Report: {
@@ -359,11 +331,10 @@ export const ENGLocalizedStrings = {
     ReportFailed: "Report failed!",
     ReportUserFailed: "Report failed, you have already reported this account!",
     ReportPostFailed: "Report failed, you have already reported this post!",
-    ReportCommentFailed: "Report failed, you have already reported this comment!",
+    ReportCommentFailed:"Report failed, you have already reported this comment!",
     Note: "If you see a threat or someone in danger, don't hesitate to seek help and report to local emergency services before reporting to YourVibes.",
     placeholder: "Write your report here...",
-    Report: "Report",
-    ReportAlreadyExists: "Report already exists",
+    Report: "Report", 
   },
   ChangePassword: {
     ChangePassword: "Change password",
@@ -442,6 +413,13 @@ export const ENGLocalizedStrings = {
     ConversationNameRequired: "Conversation Name Required",
     GroupName: "Group Name",
     ConversationUpdated: "Conversation Updated",
+    MembersAdded: "Members Added",
+    AddMembers: "Add Members",
+    Add: "Add",
+    SelectFriendsToAdd: "Select Friends To Add",
+    NoFriendsToAdd: "No Friend To Add",
+    ConfirmLeaveConversation: "Confirm Leave Conversation",
+    LeftConversation: "Left Conversation",
 
   }
 };

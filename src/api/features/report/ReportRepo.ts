@@ -1,16 +1,18 @@
-import { ApiPath } from "../../ApiPath";
-import { BaseApiResponseModel } from "../../baseApiResponseModel/baseApiResponseModel";
-import client from "../../client";
-import { ReportRequestModel } from "./models/ReportRequestModel";
+import { ApiPath } from "@/api/ApiPath";
+import { ReportRequestModel } from "../report/models/ReportRequestModel";
+import { BaseApiResponseModel } from "@/api/baseApiResponseModel/baseApiResponseModel";
+import client from "@/api/client";
+
 
 interface IReportRepo {
-    report: (params: ReportRequestModel) => Promise<BaseApiResponseModel<any>>;
+    report(params: ReportRequestModel): Promise<BaseApiResponseModel<ReportRequestModel>>;
 }
 
 export class ReportRepo implements IReportRepo {
-    async report(params: ReportRequestModel): Promise<BaseApiResponseModel<any>> {
+    async report(params: ReportRequestModel): Promise<BaseApiResponseModel<ReportRequestModel>> {
         return client.post(ApiPath.REPORT, params);
     }
 }
+
 
 export const defaultReportRepo = new ReportRepo();

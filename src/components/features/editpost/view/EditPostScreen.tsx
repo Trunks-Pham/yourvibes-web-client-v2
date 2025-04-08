@@ -1,5 +1,4 @@
 "use client";
-
 import {
   Button,
   Form,
@@ -17,7 +16,6 @@ import EditPostViewModel from "../viewModel/EditPostViewModel";
 import { defaultPostRepo } from "@/api/features/post/PostRepo";
 import { Privacy } from "@/api/baseApiResponseModel/baseApiResponseModel";
 import { useEffect, useState } from "react";
-
 const { TextArea } = Input;
 const { Text } = Typography;
 
@@ -56,18 +54,10 @@ const EditPostScreen = ({
     setPreviewImage,
   } = EditPostViewModel(defaultPostRepo, id, postId);
 
+
   useEffect(() => {
     getDetailPost(id);
   }, [id]);
-
-  // Hàm kiểm tra độ dài nội dung hợp lệ
-  const isContentLengthValid = () => {
-    const contentLength = postContent.trim().length;
-    return contentLength >= 2 && contentLength <= 10000;
-  };
-
-  // Tính số ký tự hiện tại
-  const currentCharCount = postContent.length;
 
   const uploadButton = (
     <button style={{ border: 0, background: "none" }} type="button">
@@ -77,24 +67,22 @@ const EditPostScreen = ({
   );
 
   const handleSubmitEditPost = async () => {
-    if (!isContentLengthValid() && selectedMediaFiles.length === 0) {
-      message.error("Content must be between 2 and 10,000 characters or include media.");
-      return;
+   try {
+    await handleSubmit();
+    if (fetchUserPosts) {
+      console.log("fetchUserPosts");
+      
+      fetchUserPosts(); // Fetch lại bài đăng của người dùng ở trang Profile
     }
+    if (onEditPostSuccess) {
+      onEditPostSuccess();
+    }
+  } catch (error) {
+    console.error("Error submitting post:", error);
+  }
+  }
 
-    try {
-      await handleSubmit();
-      if (fetchUserPosts) {
-        console.log("fetchUserPosts");
-        fetchUserPosts(); // Fetch lại bài đăng của người dùng ở trang Profile
-      }
-      if (onEditPostSuccess) {
-        onEditPostSuccess();
-      }
-    } catch (error) {
-      console.error("Error submitting post:", error);
-    }
-  };
+
 
   return (
     <div style={{ padding: "20px" }}>
@@ -118,7 +106,8 @@ const EditPostScreen = ({
         <Avatar src={user?.avatar_url} size="large" />
         <div style={{ marginLeft: "10px" }}>
           <Text strong>
-            {user?.family_name + " " + user?.name || localStrings.Public.UnknownUser}
+            {user?.family_name + " " + user?.name ||
+              localStrings.Public.UnknownUser}
           </Text>
         </div>
       </div>
@@ -131,12 +120,6 @@ const EditPostScreen = ({
           onChange={(e) => setPostContent(e.target.value)}
           placeholder={localStrings.AddPost.WhatDoYouThink}
         />
-        <Text
-          type={currentCharCount > 10000 ? "danger" : "secondary"}
-          style={{ float: "right", marginTop: 4 }}
-        >
-          {currentCharCount}/{localStrings.Post.CharacterLimit}
-        </Text>
       </Form.Item>
 
       {/* Image/Media Upload */}
@@ -154,6 +137,7 @@ const EditPostScreen = ({
           src={previewImage}
           style={{ display: "block" }}
           onClick={() => setPreviewOpen(true)}
+          
         />
       )}
       {previewOpen && (
@@ -171,35 +155,32 @@ const EditPostScreen = ({
           }}
           onClick={() => setPreviewOpen(false)}
         >
-          <img src={previewImage} style={{ maxWidth: "80%", maxHeight: "80%" }} />
+          <img
+            src={previewImage}
+            style={{ maxWidth: "80%", maxHeight: "80%" }}
+          />
         </div>
       )}
 
       {/* Privacy Text */}
       <div style={{ display: "flex" }}>
         <div style={{ marginRight: "auto", marginTop: "10px" }}>
-          <Text>{localStrings.AddPost.PrivacyText}: </Text>
+          <Text style={{}}>{localStrings.AddPost.PrivacyText}: </Text>
           <Select
             value={privacy}
             onChange={(value) => setPrivacy(value)}
             style={{ width: 120 }}
           >
-            <Select.Option value={Privacy.PUBLIC}>
-              {localStrings.Public.Public}
-            </Select.Option>
-            <Select.Option value={Privacy.FRIEND_ONLY}>
-              {localStrings.Public.Friend}
-            </Select.Option>
-            <Select.Option value={Privacy.PRIVATE}>
-              {localStrings.Public.Private}
-            </Select.Option>
+            <Select.Option value={Privacy.PUBLIC}>{localStrings.Public.Public}</Select.Option>
+            <Select.Option value={Privacy.FRIEND_ONLY}>{localStrings.Public.Friend}</Select.Option>
+            <Select.Option value={Privacy.PRIVATE}>{localStrings.Public.Private}</Select.Option>
           </Select>
         </div>
         <div style={{ marginLeft: "auto" }}>
           <Button
             type="primary"
             onClick={handleSubmitEditPost}
-            disabled={!isContentLengthValid() && selectedMediaFiles.length === 0}
+            // disabled={!postContent.trim() && selectedMediaFiles.length === 0}
             loading={updateLoading}
           >
             {localStrings.Public.Save}
@@ -210,4 +191,4 @@ const EditPostScreen = ({
   );
 };
 
-export default EditPostScreen;
+export default EditPostScreen; 

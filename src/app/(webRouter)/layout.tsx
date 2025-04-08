@@ -64,8 +64,7 @@ export default function Layout({ children }: { children: React.ReactNode }): Rea
 
   return (
     <Suspense fallback={<Skeleton paragraph={{ rows: 10 }} active />}>
-      {/* <div className="overflow-hidden"> */}
-      <div>
+      <div className="overflow-hidden">
         <MainLayout>{children}</MainLayout>
       </div>
     </Suspense>
