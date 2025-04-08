@@ -108,7 +108,6 @@ export class MessagesRepo implements IMessagesRepo {
   async updateConversation(
     data: UpdateConversationRequestModel
   ): Promise<BaseApiResponseModel<ConversationResponseModel>> {
-    // Tạo FormData để gửi multipart/form-data
     const formData = new FormData();
     
     if (data.name) {
