@@ -39,7 +39,6 @@ export const ApiPath = {
   DELETE_COMMENT: getApiPath("comments/"),
   GET_COMMENT_REPLIES: getApiPath("comments/"),
 
-
   //Like Comment
   GET_LIKE_COMMENT: getApiPath("comments/like_comment/"),
   POST_LIKE_COMMENT: getApiPath("comments/like_comment/"),
