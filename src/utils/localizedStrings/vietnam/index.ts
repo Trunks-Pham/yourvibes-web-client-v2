@@ -71,7 +71,6 @@ export const VnLocalizedStrings = {
     No: "Không",
     Delete: "Xóa",
     GenericError: "Đã xảy ra lỗi, vui lòng thử lại sau",
-    Message: "Nhắn tin",
   },
   Suggested: {
     SuggestedFriends: "Những người bạn có thể biết",

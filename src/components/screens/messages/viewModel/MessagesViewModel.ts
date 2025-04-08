@@ -12,7 +12,6 @@ interface ExtendedMessageResponseModel extends MessageResponseModel {
   isDateSeparator?: boolean;
 }
 
-
 type MessageWithDate = ExtendedMessageResponseModel;
 
 export const useMessagesViewModel = () => {
@@ -375,15 +374,6 @@ export const useMessagesViewModel = () => {
       
       if (createResponse.data) {
         const newConversation = createResponse.data;
-        
-        if (isWebSocketConnected) {
-          wsSendMessage({
-            type: "new_conversation",
-            conversation: newConversation,
-            members: userIds
-          });
-        }
-        
         await fetchConversations();
         return newConversation;
       }
@@ -532,50 +522,6 @@ export const useMessagesViewModel = () => {
     }
   };
 
-  const addConversationMembers = async (conversationId: string, userIds: string[]) => {
-    if (!user?.id || !conversationId) return null;
-    
-    try {
-      const createPromises = userIds.map(userId => 
-        defaultMessagesRepo.createConversationDetail({
-          conversation_id: conversationId,
-          user_id: userId
-        })
-      );
-      
-      await Promise.all(createPromises);
-      
-      await fetchConversations();
-      
-      return true;
-    } catch (error) {
-      console.error("Error adding members to conversation:", error);
-      throw error;
-    }
-  };
-
-  const leaveConversation = async (conversationId: string) => {
-    if (!user?.id || !conversationId) return;
-    
-    try {
-      await defaultMessagesRepo.deleteConversationDetail({
-        user_id: user.id,
-        conversation_id: conversationId
-      });
-      
-      await fetchConversations();
-      
-      if (currentConversation?.id === conversationId) {
-        setCurrentConversation(null);
-      }
-      
-      return true;
-    } catch (error) {
-      console.error("Error leaving conversation:", error);
-      throw error;
-    }
-  };
-
   const markConversationAsRead = async (conversationId: string) => {
     if (!user?.id || !conversationId) return;
     
@@ -618,6 +564,7 @@ export const useMessagesViewModel = () => {
     setCurrentConversation: (conversation: ConversationResponseModel | null) => {
       setCurrentConversation(conversation);
       
+      // Mark conversation as read when selected
       if (conversation?.id) {
         markConversationAsRead(conversation.id);
       }
@@ -638,7 +585,5 @@ export const useMessagesViewModel = () => {
     markConversationAsRead, 
     loadMoreMessages,
     handleScroll,
-    addConversationMembers,
-    leaveConversation,
   };
 };
