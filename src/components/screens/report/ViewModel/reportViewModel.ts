@@ -1,4 +1,4 @@
- import { defaultReportRepo } from "@/api/features/report/ReportRepo";
+import { defaultReportRepo } from "@/api/features/report/ReportRepo";
 import { ReportRequestModel } from "@/api/features/report/models/ReportRequestModel";
 import { useAuth } from "@/context/auth/useAuth";
 import { message } from "antd";
@@ -20,7 +20,7 @@ const ReportViewModel = () => {
                 message.success(localStrings.Report.ReportSuccess);
                 setShowModal(false);
                 return res;
-            } else { 
+            } else {
                 if (params.type === 0 ){
                     const errorMessage = localStrings.Report.ReportUserFailed
                     message.error(errorMessage)

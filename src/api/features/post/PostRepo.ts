@@ -42,12 +42,12 @@ interface IPostRepo {
   advertisePost: (
     params: AdvertisePostRequestModel
   ) => Promise<BaseApiResponseModel<any>>;
-  getAdvertisePost: (
-    params: AdvertisePostRequestModel
-  ) => Promise<BaseApiResponseModel<AdvertisePostResponseModel>>;
   getAdvertisementPosts: (
     params: GetUsersPostsRequestModel
   ) => Promise<BaseApiResponseModel<PostResponseModel[]>>
+  getAdvertisePost: (
+    params: AdvertisePostRequestModel
+  ) => Promise<BaseApiResponseModel<AdvertisePostResponseModel>>;
   getAdvertiseStatistics: (
     advertiseId: string
   ) => Promise<BaseApiResponseModel<AdvertisePostResponseModel>>;
@@ -113,18 +113,17 @@ export class PostRepo implements IPostRepo {
   ): Promise<BaseApiResponseModel<any>> {
     return client.post(ApiPath.ADVERTISE_POST, params);
   }
-
-  async getAdvertisePost(
-    params: GetAdvertiseRequestModel
-  ): Promise<BaseApiResponseModel<AdvertisePostResponseModel>> {
-    return client.get(ApiPath.ADVERTISE_POST, params);
-  }
-
   async getAdvertisementPosts(
     data: GetUsersPostsRequestModel
   ): Promise<BaseApiResponseModel<PostResponseModel[]>> {
     const filteredData = { ...data, is_advertisement: true };
     return client.get(ApiPath.GET_POSTS, filteredData);
+  }
+
+  async getAdvertisePost(
+    params: GetAdvertiseRequestModel
+  ): Promise<BaseApiResponseModel<AdvertisePostResponseModel>> {
+    return client.get(ApiPath.ADVERTISE_POST, params);
   }
 
   async getAdvertiseStatistics(

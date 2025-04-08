@@ -4,6 +4,7 @@ export interface AdvertisePostRequestModel {
   end_date?: string;
   redirect_url?: string;
   voucher_code?: string;
+  day_remaining?: number;
 }
 
 export interface GetAdvertiseRequestModel {
