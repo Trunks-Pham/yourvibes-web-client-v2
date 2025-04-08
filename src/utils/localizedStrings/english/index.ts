@@ -82,8 +82,13 @@ export const ENGLocalizedStrings = {
     SeeMore: "See more",
     Why: "Why do I see these friends?",
     Dont: "I don't want to see these friends",
-    FriendRequestSent: "Friend request sent",
+    FriendRequestSent: "Waiting...",
     AddFriend: "Add friend",
+    WhyExplanation: "These suggestions are based on factors such as:",
+    WhyFactor1: "Mutual friends",
+    WhyFactor2: "Similar interests",
+    WhyFactor3: "Recent activity on social media",
+    WhyConclusion: "We use an algorithm to find people you might know or want to connect with!"
   },
 
   Form: {
@@ -136,6 +141,7 @@ export const ENGLocalizedStrings = {
     AccountLocked: "Your account is locked!",
     changeLanguage: "Change Language: Vietnamese",
     InvalidInput: "Invalid input!",
+    LoginSuccess: "Login successful!",
   },
   SignUp: {
     SignUpButton: "Sign up",
@@ -197,6 +203,7 @@ export const ENGLocalizedStrings = {
     ShareContent:
       "Enter the content you want to share...",
     CharacterLimit: "10000 characters",
+    CharacterLimitR:"255 characters"
   },
   PostDetails: {
     ViewReplies: "View replies",

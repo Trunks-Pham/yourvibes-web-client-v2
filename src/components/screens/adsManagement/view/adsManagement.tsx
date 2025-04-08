@@ -19,8 +19,7 @@ import { useAuth } from "@/context/auth/useAuth";
 import Post from "@/components/common/post/views/Post";
 import dayjs from "dayjs";
 import useAdsManagement from "../viewModel/adsManagementViewModel";
-import PostList from "../../profile/components/PostList";
-import { DateTransfer } from "@/utils/helper/DateTransfer";
+import PostList from "../../profile/components/PostList"; 
 import { CurrencyFormat } from "@/utils/helper/CurrencyFormat";
 import { GetUsersPostsRequestModel } from "@/api/features/post/models/GetUsersPostsModel";
 
@@ -209,7 +208,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200 md:col-span-2">
                 <p>
                   <strong>{localStrings.Ads.StatusActive}:</strong>{" "}
-                  {Number(ad.is_advertisement) === 1 ? localStrings.Ads.Active : localStrings.Ads.Done}
+                  {Number(ad.is_advertisement) === 1 ?  localStrings.Ads.Done:localStrings.Ads.Active}
                 </p>
               </div>
             </div>
@@ -298,7 +297,7 @@ const AdsManagementFeature = () => {
       };
       const res = await repo.getPosts(request);
       if (res?.data) {
-        const filteredPosts = res.data.filter((post) => post.is_advertisement === false);
+        const filteredPosts = res.data.filter((post) => post.is_advertisement=== 0 );
         setModalPosts(filteredPosts);
       }
     } catch (err) {
@@ -354,7 +353,7 @@ const AdsManagementFeature = () => {
         open={isPostListModalVisible}
         onCancel={() => setIsPostListModalVisible(false)}
         footer={null}
-        width={700}
+        width={700} 
         centered
         bodyStyle={{ maxHeight: "1500px", overflowY: "auto", padding: "16px" }}
       >

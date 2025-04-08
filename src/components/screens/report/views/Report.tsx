@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Input, Button, Typography } from "antd";
 import { useAuth } from "@/context/auth/useAuth";
-import ReportViewModel from "../ViewModel/reportViewModel";
+import ReportViewModel, { ReportFactory } from "../ViewModel/reportViewModel";
 
 const { TextArea } = Input;
 const { Text, Title } = Typography;
@@ -25,13 +25,11 @@ const ReportScreen: React.FC<ReportScreenProps> = ({
   const { localStrings } = useAuth();
   const { report, reportLoading } = ReportViewModel();
 
-  // Hàm kiểm tra độ dài nội dung hợp lệ
   const isContentLengthValid = () => {
     const contentLength = reportReason.trim().length;
-    return contentLength >= 2 && contentLength <= 10000;
+    return contentLength >= 2 && contentLength <= 255;
   };
-
-  // Tính số ký tự hiện tại
+ 
   const currentCharCount = reportReason.length;
 
   const handleReport = async () => {
@@ -49,19 +47,12 @@ const ReportScreen: React.FC<ReportScreenProps> = ({
       reportedId = commentId;
     }
 
-    if (
-      type !== undefined &&
-      reportedId !== undefined &&
-      isContentLengthValid()  
-    ) {
-      try {
-        await report({
-          type,
-          reason: reportReason,
-          reported_id: reportedId,
-        });
+    if (type !== undefined && reportedId !== undefined && isContentLengthValid()) {
+      try { 
+        const reportRequest = ReportFactory.createReport(type, reportReason, reportedId);
+        await report(reportRequest);
         setReportReason("");
-        setShowModal(false);  
+        setShowModal(false);
       } catch (error) { 
       }
     }
@@ -90,10 +81,10 @@ const ReportScreen: React.FC<ReportScreenProps> = ({
           placeholder={localStrings.Report.placeholder}
         />
         <Text
-          type={currentCharCount > 10000 ? "danger" : "secondary"}
+          type={currentCharCount > 255 ? "danger" : "secondary"}
           style={{ float: "right", marginTop: 4 }}
         >
-          {currentCharCount}/{localStrings.Post.CharacterLimit}
+          {currentCharCount}/{localStrings.Post.CharacterLimitR}
         </Text>
       </div>
 
@@ -103,7 +94,7 @@ const ReportScreen: React.FC<ReportScreenProps> = ({
           block
           onClick={handleReport}
           loading={reportLoading}
-          disabled={!isContentLengthValid()} // Vô hiệu hóa nếu nội dung không hợp lệ
+          disabled={!isContentLengthValid()}
         >
           {localStrings?.Public?.ReportFriend || "Submit Report"}
         </Button>
