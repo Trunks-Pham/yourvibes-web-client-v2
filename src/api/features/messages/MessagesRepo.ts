@@ -8,7 +8,7 @@ import {
   GetConversationByIDRequestModel,
   DeleteConversationByIDRequestModel,
   ConversationResponseModel,
-  UpdateConversationRequestModel 
+  UpdateConversationRequestModel // Import the existing update model
 } from "./models/ConversationModel";
 
 import {
@@ -17,7 +17,7 @@ import {
   GetConversationDetailByUserIDRequestModel,
   DeleteConversationDetailRequestModel,
   ConversationDetailResponseModel,
-  UpdateConversationDetail
+  UpdateConversationDetailRequestModel // Import the existing update model
 } from "./models/ConversationDetailModel";
 
 import {
@@ -28,6 +28,7 @@ import {
   MessageResponseModel
 } from "./models/MessageModel";
 
+// Updated interface for repo of messages
 interface IMessagesRepo {
   // Conversation methods
   createConversation(data: CreateConversationRequestModel): Promise<BaseApiResponseModel<ConversationResponseModel>>;
@@ -41,7 +42,7 @@ interface IMessagesRepo {
   getConversationDetailByID(data: GetConversationDetailByIDRequestModel): Promise<BaseApiResponseModel<ConversationDetailResponseModel>>;
   getConversationDetailByUserID(data: GetConversationDetailByUserIDRequestModel): Promise<BaseApiResponseModel<ConversationDetailResponseModel>>;
   deleteConversationDetail(data: DeleteConversationDetailRequestModel): Promise<BaseApiResponseModel<any>>;
-  updateConversationDetail(data: UpdateConversationDetail): Promise<BaseApiResponseModel<ConversationDetailResponseModel>>; // New method
+  updateConversationDetail(data: UpdateConversationDetailRequestModel): Promise<BaseApiResponseModel<ConversationDetailResponseModel>>; // New method
 
   // Message methods
   createMessage(data: CreateMessageRequestModel): Promise<BaseApiResponseModel<MessageResponseModel>>;
@@ -107,6 +108,7 @@ export class MessagesRepo implements IMessagesRepo {
   async updateConversation(
     data: UpdateConversationRequestModel
   ): Promise<BaseApiResponseModel<ConversationResponseModel>> {
+    // Tạo FormData để gửi multipart/form-data
     const formData = new FormData();
     
     if (data.name) {
@@ -168,7 +170,7 @@ export class MessagesRepo implements IMessagesRepo {
   }
 
   async updateConversationDetail(
-    data: UpdateConversationDetail
+    data: UpdateConversationDetailRequestModel
   ): Promise<BaseApiResponseModel<ConversationDetailResponseModel>> {
     return client.patch(ApiPath.UPDATE_CONVERSATION_DETAIL, {
       conversation_id: data.conversation_id,

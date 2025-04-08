@@ -24,14 +24,16 @@ class AuthManager {
   private router: any;
   private listeners: Array<() => void> = [];
 
-  private constructor(router: any) { 
+  private constructor(router: any) {
+    // Nếu instance chưa tồn tại, đây là lần khởi tạo đầu tiên
     if (!AuthManager.instance) {
-      AuthManager.instance = this;  
+      AuthManager.instance = this; // Gán chính instance hiện tại cho biến static instance
     }
     this.router = router;
   }
 
-  public static getInstance(router?: any): AuthManager { 
+  public static getInstance(router?: any): AuthManager {
+    // Phương thức tĩnh để lấy instance duy nhất của AuthManager
     if (!AuthManager.instance && router)
       return new AuthManager(router);
     return AuthManager.instance!;
@@ -166,7 +168,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const router = useRouter();
-  const authManager = AuthManager.getInstance(router);  
+  const authManager = AuthManager.getInstance(router); // Lấy instance của AuthManager, nếu chưa có thì sẽ tạo
 
   const [state, setState] = useState({});
 
@@ -178,8 +180,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   }, [authManager]);
 
   useEffect(() => {
-    authManager.checkLanguage();  
-    authManager.checkAuthStatus(); 
+    authManager.checkLanguage(); // call checkLanguage in client side
+    authManager.checkAuthStatus(); // call checkAuthStatus in client side
   }, []);
 
   return (
@@ -190,7 +192,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         localStrings: authManager.getLocalStrings(),
         changeLanguage: authManager.changeLanguage.bind(authManager),
         language: authManager.getLanguage(),
-        setLanguage: () => { },  
+        setLanguage: () => { }, // No need for setter
         isAuthenticated: authManager.getIsAuthenticated(),
         user: authManager.getUser(),
         onUpdateProfile: authManager.onUpdateProfile.bind(authManager),

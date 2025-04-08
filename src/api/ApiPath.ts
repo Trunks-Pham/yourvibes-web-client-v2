@@ -24,13 +24,16 @@ export const ApiPath = {
   GET_USER_LIKES: getApiPath("posts/get_like_user/"),
   LIKE_POST: getApiPath("posts/like_post/"),
   SHARE_POST: getApiPath("posts/share_post/"),
-
-  //Advertisement
   ADVERTISE_POST: getApiPath("advertise/"),
-  ADVERTISE_STATISTICS: getApiPath("advertise/statistic/"),
 
   //Report
-  REPORT: getApiPath("report/"),
+  REPORT_USER: getApiPath("users/report"),
+  REPORT_POST: getApiPath("posts/report"),
+  REPORT_COMMENT: getApiPath("comments/report"),
+  //=====
+  REPORT: getApiPath("report"),
+  //====
+
 
   //Comment
   CREATE_COMMENT: getApiPath("comments/"),
@@ -45,10 +48,10 @@ export const ApiPath = {
   POST_LIKE_COMMENT: getApiPath("comments/like_comment/"),
 
   // Notification
-  GET_WS_PATH_NOTIFICATION: getWSPath("notification/ws/"),
-  GET_NOTIFICATIONS: getApiPath("notification/"),
-  READ_NOTIFICATION: getApiPath("notification/"),
-  READ_ALL_NOTIFICATION: getApiPath("notification/"),
+  GET_WS_PATH: getWSPath("users/notifications/ws/"),
+  GET_NOTIFICATIONS: getApiPath("users/notifications"),
+  READ_NOTIFICATION: getApiPath("users/notifications/"),
+  READ_ALL_NOTIFICATION: getApiPath("users/notifications/"),
 
   //New Feeds
   GET_NEW_FEEDS: getApiPath('posts/new_feeds/'),
@@ -76,10 +79,7 @@ export const ApiPath = {
   GET_MESSAGES_BY_CONVERSATION_ID: getApiPath('messages/get_by_conversation_id'),
   GET_MESSAGE_BY_ID: getApiPath('messages/message/'),
   DELETE_MESSAGE: getApiPath('messages/message/'),
-  CONNECT_TO_WEBSOCKET: getApiPath('messages/ws/'),
-
-  //Suggestion
-  GET_SUGGESTION: getApiPath('users/friends/suggestion'),
+  CONNECT_TO_WEBSOCKET: getApiPath('messages/ws/')
 
 };
 
