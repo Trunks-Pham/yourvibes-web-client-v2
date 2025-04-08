@@ -63,28 +63,14 @@ export const VnLocalizedStrings = {
     Settings: "Cài đặt",
     Profile: "Tài khoản",
     LoginStatus:"Vui lòng đăng nhập lại",
-    Messages: "Tin Nhắn", 
+    Messages: "Tin Nhắn",
+    SuggestedFriend: "Những người bạn có thể biết",
     LoadMore: "Tải thêm",
     Search: "Tìm kiếm",
     Error: "Lỗi",
     Yes: "Có",
     No: "Không",
     Delete: "Xóa",
-    GenericError: "Đã xảy ra lỗi, vui lòng thử lại sau",
-  },
-  Suggested: {
-    SuggestedFriends: "Những người bạn có thể biết",
-    Hide: "Ẩn",
-    SeeMore: "Xem thêm",
-    Why: "Tại sao tôi lại thấy những người bạn này?",
-    Dont: "Tôi không muốn thấy những người bạn này",
-    AddFriend: "Kết bạn",
-    FriendRequestSent: "Đã gửi..",
-    WhyExplanation: "Những gợi ý này dựa trên các yếu tố như:",
-    WhyFactor1: "Bạn bè chung",
-    WhyFactor2: "Sở thích tương đồng",
-    WhyFactor3: "Hoạt động gần đây trên mạng xã hội",
-    WhyConclusion: "Chúng tôi sử dụng thuật toán để tìm những người bạn có thể quen biết hoặc muốn kết nối!"
   },
   Form: {
     Label: {
@@ -131,11 +117,9 @@ export const VnLocalizedStrings = {
     DontHaveAccout: "Bạn chưa có tài khoản?",
     SignUpNow: "Đăng ký ngay!",
     Or: "Hoặc",
-    LoginFailed: "Sai tài khoản hoặc mật khẩu!",
+    LoginFailed: "Đăng nhập thất bại!",
     AccountLocked:"Tài khoản của bạn đã bị khóa",
     changeLanguage: "Thay đổi ngôn ngữ sang: Tiếng Anh",
-    InvalidInput: "Không hợp lệ",
-    LoginSuccess: "Đăng nhập thành công!",
   },
   SignUp: {
     SignUpButton: "Đăng ký",
@@ -197,8 +181,6 @@ export const VnLocalizedStrings = {
     Sponsor: "Được tài trợ",
     NoPosts: "Không có bài viết nào",
     ShareContent: "Nhập nội dung chia sẻ của bạn...",
-    CharacterLimit: "10000 ký tự",
-    CharacterLimitR: "255 ký tự",
   },
   PostDetails:{
     ViewReplies: "Xem phản hồi",
@@ -228,7 +210,6 @@ export const VnLocalizedStrings = {
     Yes:"Xác nhận",
     No:"Không",
     CommentNotFound: "Không tìm thấy bình luận!",
-    CommentLimit: "500 ký tự!",
   },
   Profile: {
     Posts: {
@@ -319,7 +300,7 @@ Ads: {
   NoCampaign:"Không có chiến dịch nào",
   AdvertisePostPending: "Quảng cáo đang chờ xử lý, vui lòng kiểm tra lại quá trình.",
   CampaignStatus: "Trạng thái chiến dịch",
-  Click: "Tổng số lượt ấn vào",
+  TotalResults: "Tổng số lượt ấn vào",
   TotalReach: "Tổng số lượt người tiếp cận",
   TotalImpressions: "Tổng số lượt xem",
   AdsManagement: "Bài quảng cáo",
@@ -328,7 +309,6 @@ Ads: {
   SearchAds: "Tìm kiếm bài viết quảng cáo",
   ExportAds: "Xuất báo cáo quảng cáo",
   StartDay: "Ngày bắt đầu",
-  EndDay: "Ngày kết thúc",
   ViewDetails: "Xem chi tiết",
   Voucher: "Mã giảm giá",
   InvalidVoucher: "Mã giảm giá không hợp lệ",
@@ -336,14 +316,8 @@ Ads: {
   StatusActive: "Trạng thái hoạt động của chiến dịch",
   Pending: "Chờ xử lý",
   Active: "Đang hoạt động",
-  Done: "Đã hoàn thành",
   Completed: "Hoàn thành",
-  ErrorFetchingStatistics: "Không tìm thấy thống kê quảng cáo",
-  ViewHistory: "Xem lịch sử",
-  NoHistoryFound: "Không tìm thấy lịch sử quảng cáo",
-  HistoryforPost: "Lịch sử quảng cáo cho bài viết",
-  NoAdsHistory: "Không có lịch sử quảng cáo",
-  Discount: "Giảm giá",
+
 },
 
 
@@ -359,7 +333,6 @@ Report: {
   Note: "Nếu bạn nhận thấy sự đe dọa hoặc ai đó dang gặp nguy hiểm, đừng chần chừ mà hãy tìm ngay sự giúp đỡ và báo cho dịch vụ khẩn cấp ở địa phương trước khi báo cáo với YourVibes.",
   placeholder:"Viết lý do báo cáo của bạn ở đây...",
   Report:"Báo cáo", 
-  ReportAlreadyExists: "Báo cáo đã tồn tại",
 },
 
 ChangePassword:{
@@ -438,5 +411,12 @@ Messages: {
   ConversationNameRequired: "Tên cuộc trò chuyện là bắt buộc",  
   GroupName: "Tên nhóm",  
   ConversationUpdated: "Cuộc trò chuyện đã được cập nhật",  
+  MembersAdded: "Thành viên đã thêm",
+  AddMembers: "Thêm thành viên",
+  Add: "Thêm",
+  SelectFriendsToAdd: "Chọn bạn bè để thêm",
+  NoFriendsToAdd: "Không có bạn bè để thêm",
+  ConfirmLeaveConversation: "Xác nhận rời khỏi cuộc trò chuyện",
+  LeftConversation: "Rời cuộc trò chuyện",
 }
 };
