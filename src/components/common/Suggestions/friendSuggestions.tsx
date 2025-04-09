@@ -7,7 +7,7 @@ import { defaultNewFeedRepo } from "@/api/features/newFeed/NewFeedRepo";
 import { SuggestionUserModel, NewFeedRequestModel } from "@/api/features/newFeed/Model/NewFeedModel";
 import { defaultProfileRepo } from "@/api/features/profile/ProfileRepository";
 import { useAuth } from "@/context/auth/useAuth";
-import { FriendStatus } from "@/api/baseApiResponseModel/baseApiResponseModel"; // Import FriendStatus
+import { FriendStatus } from "@/api/baseApiResponseModel/baseApiResponseModel";
 import { FaUserPlus, FaUserCheck } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 
@@ -22,120 +22,148 @@ interface FriendSuggestionWithStatus extends SuggestionUserModel {
 
 const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
   const router = useRouter();
+  const { localStrings } = useAuth();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isWhyModalVisible, setIsWhyModalVisible] = useState(false);
   const [friendSuggestions, setFriendSuggestions] = useState<FriendSuggestionWithStatus[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [friendRequestLoading, setFriendRequestLoading] = useState<Record<string, boolean>>({});
 
-  const { localStrings } = useAuth();
+  // Lấy danh sách gợi ý khi component khởi tạo
+  useEffect(() => {
+    fetchSuggestions();
+  }, []);
 
-  const showModal = () => setIsModalVisible(true);
-  const handleOk = () => setIsModalVisible(false);
-  const handleCancel = () => setIsModalVisible(false);
-  const handleWhyModalOk = () => setIsWhyModalVisible(false);
-  const handleWhyModalCancel = () => setIsWhyModalVisible(false);
-
-  const fetchSuggestions = async () => {
+  // Memoized fetch function
+  const fetchSuggestions = useCallback(async () => {
     setLoading(true);
     try {
       const requestData: NewFeedRequestModel = { limit: 10, page: 1 };
       const response = await defaultNewFeedRepo.getSuggestion(requestData);
       if (response.code === 20001) {
-        const suggestionsWithStatus: FriendSuggestionWithStatus[] = response.data.map(
-          (suggestion: SuggestionUserModel) => ({
-            ...suggestion,
-            friendStatus: (suggestion as any).friend_status || FriendStatus.NotFriend,
-            hidden: false,
-          })
-        );
+        const suggestionsWithStatus = response.data.map((suggestion: SuggestionUserModel) => ({
+          ...suggestion,
+          friendStatus: suggestion.is_send_friend_request
+            ? FriendStatus.SendFriendRequest
+            : (suggestion as any).friend_status || FriendStatus.NotFriend,
+          hidden: false,
+        }));
         setFriendSuggestions(suggestionsWithStatus);
       } else {
-        message.error(response.message);
+        throw new Error(response.message);
       }
     } catch (error: any) {
-      message.error(error?.error?.message_detail || error?.message);
+      message.error(error?.error?.message_detail || error?.message || "Failed to fetch suggestions");
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchSuggestions();
   }, []);
 
-  const sendFriendRequest = async (userId: string) => {
-    setFriendRequestLoading((prev) => ({ ...prev, [userId]: true }));
-    try {
-      const response = await defaultProfileRepo.sendFriendRequest(userId);
-      if (response.code === 20001) {
-        message.success(`${localStrings.Profile.Friend.SendRequestSuccess}`);
-        setFriendSuggestions((prev) =>
-          prev.map((suggestion) =>
-            suggestion.id === userId
-              ? { ...suggestion, friendStatus: FriendStatus.SendFriendRequest }
-              : suggestion
-          )
-        );
-      } else {
-        message.error(response.error?.message_detail || response.message);
+  // Memoized friend request handlers
+  const handleFriendRequest = useCallback(
+    async (userId: string, action: "send" | "cancel" | "accept" | "refuse") => {
+      setFriendRequestLoading((prev) => ({ ...prev, [userId]: true }));
+      try {
+        let response;
+        switch (action) {
+          case "send":
+            response = await defaultProfileRepo.sendFriendRequest(userId);
+            if (response.code === 20001) {
+              message.success(localStrings.Profile.Friend.SendRequestSuccess);
+              setFriendSuggestions((prev) =>
+                prev.map((s) =>
+                  s.id === userId ? { ...s, friendStatus: FriendStatus.SendFriendRequest, is_send_friend_request: true } : s
+                )
+              );
+            }
+            break;
+          case "cancel":
+            response = await defaultProfileRepo.cancelFriendRequest(userId);
+            if (response.code === 20001) {
+              message.success(`${localStrings.Public.CancelFriendRequest} success`);
+              setFriendSuggestions((prev) =>
+                prev.map((s) =>
+                  s.id === userId ? { ...s, friendStatus: FriendStatus.NotFriend, is_send_friend_request: false } : s
+                )
+              );
+            }
+            break;
+          case "accept":
+            response = await defaultProfileRepo.acceptFriendRequest(userId);
+            if (response.code === 20001) {
+              message.success("Friend request accepted");
+              setFriendSuggestions((prev) =>
+                prev.map((s) => (s.id === userId ? { ...s, friendStatus: FriendStatus.IsFriend } : s))
+              );
+            }
+            break;
+          case "refuse":
+            response = await defaultProfileRepo.refuseFriendRequest(userId);
+            if (response.code === 20001) {
+              setFriendSuggestions((prev) =>
+                prev.map((s) => (s.id === userId ? { ...s, hidden: true } : s))
+              );
+            }
+            break;
+        }
+        if (response?.code !== 20001) throw new Error(response?.error?.message_detail || response?.message);
+      } catch (error: any) {
+        message.error(error?.message || "Action failed");
+      } finally {
+        setFriendRequestLoading((prev) => ({ ...prev, [userId]: false }));
       }
-    } catch (error: any) {
-      message.error(error?.error?.message_detail || error?.message);
-    } finally {
-      setFriendRequestLoading((prev) => ({ ...prev, [userId]: false }));
-    }
-  };
+    },
+    [localStrings]
+  );
 
-  const cancelFriendRequest = async (userId: string) => {
-    setFriendRequestLoading((prev) => ({ ...prev, [userId]: true }));
-    try {
-      const response = await defaultProfileRepo.cancelFriendRequest(userId);
-      if (response.code === 20001) {
-        message.success(`${localStrings.Public.CancelFriendRequest} success`);
-        setFriendSuggestions((prev) =>
-          prev.map((suggestion) =>
-            suggestion.id === userId ? { ...suggestion, friendStatus: FriendStatus.NotFriend } : suggestion
-          )
-        );
-      }
-    } catch (error: any) {
-      message.error(error?.error?.message_detail || error?.message);
-    } finally {
-      setFriendRequestLoading((prev) => ({ ...prev, [userId]: false }));
-    }
-  };
-
-  const handleRemoveSuggestion = (userId: string) => {
+  const handleRemoveSuggestion = useCallback((userId: string) => {
     setFriendSuggestions((prev) =>
       prev.map((suggestion) => (suggestion.id === userId ? { ...suggestion, hidden: true } : suggestion))
     );
-  };
+  }, []);
 
   const renderFriendButton = useCallback(
     (suggestion: FriendSuggestionWithStatus) => {
       const userId = suggestion.id!;
+      const isLoading = friendRequestLoading[userId];
+
+      const buttonStyles = {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "8px",
+        width: "100%",
+        padding: "0 10px",
+        whiteSpace: "nowrap",
+      };
+
       switch (suggestion.friendStatus) {
         case FriendStatus.NotFriend:
           return (
             <Button
               type="primary"
               block
-              onClick={() => sendFriendRequest(userId)}
-              loading={friendRequestLoading[userId]}
+              loading={isLoading}
+              onClick={() => handleFriendRequest(userId, "send")}
+              style={{ height: "36px" }}
             >
-              <div className="flex flex-row items-center justify-center">
-                <FaUserPlus name="user-plus" size={16} />
-                <span style={{ marginLeft: 5 }}>{localStrings.Suggested.AddFriend}</span>
+              <div style={buttonStyles}>
+                <FaUserPlus size={16} />
+                <span>{localStrings.Suggested.AddFriend}</span>
               </div>
             </Button>
           );
         case FriendStatus.IsFriend:
           return (
-            <Button type="primary" block disabled>
-              <div className="flex flex-row items-center justify-center">
-                <FaUserCheck name="user-check" size={16} />
-                <span style={{ marginLeft: 5 }}>{localStrings.Public.Friend}</span>
+            <Button
+              type="primary"
+              block
+              disabled
+              style={{ height: "36px" }}
+            >
+              <div style={buttonStyles}>
+                <FaUserCheck size={16} />
+                <span>{localStrings.Public.Friend}</span>
               </div>
             </Button>
           );
@@ -144,12 +172,13 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
             <Button
               type="default"
               block
-              onClick={() => cancelFriendRequest(userId)}
-              loading={friendRequestLoading[userId]}
+              loading={isLoading}
+              onClick={() => handleFriendRequest(userId, "cancel")}
+              style={{ height: "36px" }}
             >
-              <div className="flex flex-row items-center justify-center">
-                <RxCross2 name="cross" size={16} />
-                <span style={{ marginLeft: 5 }}>{localStrings.Public.CancelFriendRequest}</span>
+              <div style={buttonStyles}>
+                <RxCross2 size={16} />
+                <span>{localStrings.Public.CancelFriendRequest}</span>
               </div>
             </Button>
           );
@@ -159,144 +188,141 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
               <Button
                 type="primary"
                 block
-                onClick={async () => {
-                  await defaultProfileRepo.acceptFriendRequest(userId); // Giả sử có API này
-                  setFriendSuggestions((prev) =>
-                    prev.map((s) =>
-                      s.id === userId ? { ...s, friendStatus: FriendStatus.IsFriend } : s
-                    )
-                  );
-                }}
-                loading={friendRequestLoading[userId]}
+                loading={isLoading}
+                onClick={() => handleFriendRequest(userId, "accept")}
+                style={{ height: "36px" }}
               >
                 {localStrings.Public.AcceptFriendRequest}
               </Button>
               <Button
-                type="default"
                 block
-                onClick={() => defaultProfileRepo.refuseFriendRequest(userId)} // Giả sử có API này
+                onClick={() => handleFriendRequest(userId, "refuse")}
+                style={{ height: "36px" }}
               >
                 {localStrings.Public.RefuseFriendRequest}
               </Button>
             </div>
           );
         default:
-          return (
-            <Button type="primary" block onClick={() => sendFriendRequest(userId)}>
-              {localStrings.Suggested.AddFriend}
-            </Button>
-          );
+          return null;
       }
     },
-    [friendRequestLoading, localStrings]
+    [friendRequestLoading, localStrings, handleFriendRequest]
   );
 
-  const handleMenuClick = (e: any) => {
-    if (e.key === "1") {
-      setIsWhyModalVisible(true);
-    } else if (e.key === "2") {
-      setFriendSuggestions((prev) => prev.map((s) => ({ ...s, hidden: true })));
-      fetchSuggestions();
-    }
-  };
-
   const menu = (
-    <Menu onClick={handleMenuClick}>
+    <Menu
+      onClick={({ key }) => {
+        if (key === "1") setIsWhyModalVisible(true);
+        if (key === "2") {
+          setFriendSuggestions((prev) => prev.map((s) => ({ ...s, hidden: true })));
+          fetchSuggestions();
+        }
+      }}
+    >
       <Menu.Item key="1">{localStrings.Suggested.Why}</Menu.Item>
       <Menu.Item key="2">{localStrings.Suggested.Dont}</Menu.Item>
     </Menu>
   );
 
-  if (!loading && friendSuggestions.length === 0) return null;
-  if (postIndex >= 5) return null;
+  if (postIndex >= 5 || (!loading && friendSuggestions.every((s) => s.hidden))) return null;
 
   return (
-    <div
-      style={{
-        width: "100%",
-        padding: "15px",
-        backgroundColor: "#fff",
-        marginTop: "10px",
-        borderRadius: "10px",
-        boxShadow: "0px 2px 5px rgba(0,0,0,0.1)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "10px",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <UsergroupAddOutlined style={{ fontSize: "18px", marginRight: "8px" }} />
+    <div className="friend-suggestions" style={{ padding: "15px", background: "#fff", borderRadius: "10px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)", marginTop: "10px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <UsergroupAddOutlined style={{ fontSize: "18px" }} />
           <h3 style={{ margin: 0, fontWeight: "bold" }}>{localStrings.Suggested.SuggestedFriends}</h3>
         </div>
         <Dropdown overlay={menu} trigger={["click"]}>
           <MoreOutlined style={{ fontSize: "20px", cursor: "pointer" }} />
         </Dropdown>
       </div>
+
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100px" }}>
           <Spin size="large" />
         </div>
       ) : (
         <>
-          <div style={{ display: "flex", overflowX: "auto", gap: "10px" }}>
-            {friendSuggestions.map(
-              (suggestion) =>
-                !suggestion.hidden && (
-                  <Card
-                    key={suggestion.id}
-                    hoverable
-                    style={{ width: 150, textAlign: "center", borderRadius: "10px", padding: "10px", flexShrink: 0 }}
+          <div style={{ display: "flex", overflowX: "auto", gap: "10px", paddingBottom: "10px" }}>
+            {friendSuggestions
+              .filter((s) => !s.hidden)
+              .map((suggestion) => (
+                <Card
+                  key={suggestion.id}
+                  hoverable
+                  style={{ width: 175, textAlign: "center", borderRadius: "10px", padding: "10px", flexShrink: 0 }}
+                >
+                  <div
+                    onClick={() => router.push(`/user/${suggestion.id}`)}
+                    style={{ cursor: "pointer" }}
                   >
-                    <Avatar src={suggestion.avatar_url} size={64} style={{ marginBottom: "10px" }} />
-                    <p style={{ fontWeight: "bold", margin: "5px 0" }}>
+                    <Avatar
+                      src={suggestion.avatar_url}
+                      size={64}
+                      style={{ marginBottom: "10px" }}
+                    />
+                    <p
+                      style={{
+                        fontWeight: "bold",
+                        margin: "5px 0",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
                       {suggestion.family_name} {suggestion.name}
                     </p>
-                    {renderFriendButton(suggestion)}
-                    <Button block onClick={() => handleRemoveSuggestion(suggestion.id!)} style={{ marginTop: "5px" }}>
-                      {localStrings.Suggested.Hide}
-                    </Button>
-                  </Card>
-                )
-            )}
+                  </div>
+                  {renderFriendButton(suggestion)}
+                  <Button block style={{ marginTop: "5px" }} onClick={() => handleRemoveSuggestion(suggestion.id!)}>
+                    {localStrings.Suggested.Hide}
+                  </Button>
+                </Card>
+              ))}
           </div>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "10px" }}>
-            <Button type="link" onClick={showModal} style={{ color: "black" }}>
+
+          <div style={{ textAlign: "center", marginTop: "10px" }}>
+            <Button type="link" onClick={() => setIsModalVisible(true)}>
               {localStrings.Suggested.SeeMore}
             </Button>
           </div>
-          <Modal title={localStrings.Suggested.SuggestedFriends} visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+
+          <Modal
+            title={localStrings.Suggested.SuggestedFriends}
+            open={isModalVisible}
+            onOk={() => setIsModalVisible(false)}
+            onCancel={() => setIsModalVisible(false)}
+            footer={null}
+          >
             <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-              {friendSuggestions.map(
-                (suggestion) =>
-                  !suggestion.hidden && (
-                    <Card
-                      key={suggestion.id}
-                      hoverable
-                      style={{ width: 150, textAlign: "center", borderRadius: "10px", padding: "10px" }}
-                    >
-                      <Avatar src={suggestion.avatar_url} size={64} style={{ marginBottom: "10px" }} />
-                      <p style={{ fontWeight: "bold", margin: "5px 0" }}>
-                        {suggestion.family_name} {suggestion.name}
-                      </p>
-                      {renderFriendButton(suggestion)}
-                      <Button block onClick={() => handleRemoveSuggestion(suggestion.id!)} style={{ marginTop: "5px" }}>
-                        {localStrings.Suggested.Hide}
-                      </Button>
-                    </Card>
-                  )
-              )}
+              {friendSuggestions
+                .filter((s) => !s.hidden)
+                .map((suggestion) => (
+                  <Card
+                    key={suggestion.id}
+                    hoverable
+                    style={{ width: 175, textAlign: "center", borderRadius: "10px", padding: "10px" }}
+                  >
+                    <Avatar src={suggestion.avatar_url} size={64} style={{ marginBottom: "10px" }} />
+                    <p style={{ fontWeight: "bold", margin: "5px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {suggestion.family_name} {suggestion.name}
+                    </p>
+                    {renderFriendButton(suggestion)}
+                    <Button block style={{ marginTop: "5px" }} onClick={() => handleRemoveSuggestion(suggestion.id!)}>
+                      {localStrings.Suggested.Hide}
+                    </Button>
+                  </Card>
+                ))}
             </div>
           </Modal>
+
           <Modal
             title={localStrings.Suggested.Why}
-            visible={isWhyModalVisible}
-            onOk={handleWhyModalOk}
-            onCancel={handleWhyModalCancel}
+            open={isWhyModalVisible}
+            onOk={() => setIsWhyModalVisible(false)}
+            onCancel={() => setIsWhyModalVisible(false)}
           >
             <p>{localStrings.Suggested.WhyExplanation}</p>
             <ul>

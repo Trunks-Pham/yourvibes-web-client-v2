@@ -81,7 +81,6 @@ const Post: React.FC<IPost> = React.memo(
     const [shareForm] = Form.useForm();
     const { showModal, setShowModal } = ReportViewModel();
     const pathname = usePathname();
-    // const {fetchUserPosts} = ProfileViewModel();
     const {
       likePost,
       likedPost,
@@ -121,7 +120,6 @@ const Post: React.FC<IPost> = React.memo(
 
     const handleSubmitShare = useCallback(() => {
       if (likedPost) {
-        // Gọi hàm sharePost để chia sẻ bài viết
         sharePost(likedPost.id!, {
           privacy: sharePostPrivacy,
           content: shareContent,
@@ -129,7 +127,7 @@ const Post: React.FC<IPost> = React.memo(
           .then(() => {
             setIsShareModalVisible(false);
             setShareContent("");
-            +       likedPost && (likedPost.privacy = sharePostPrivacy);
+            likedPost && (likedPost.privacy = sharePostPrivacy);
           })
           .catch((error) => {
             // Xử lý lỗi nếu cần
@@ -178,8 +176,6 @@ const Post: React.FC<IPost> = React.memo(
                 onOk: async () => {
                   await onDeletePost(post?.id as string);
                 },
-
-
               });
             },
           },
@@ -280,22 +276,22 @@ const Post: React.FC<IPost> = React.memo(
       }
     }, [isVisible, likedPost]);
 
-    // Hàm kiểm tra độ dài nội dung hợp lệ
     const isContentLengthValid = () => {
       const contentLength = shareContent.trim().length;
       return contentLength >= 2 && contentLength <= 10000;
     };
 
-    // Tính số ký tự hiện tại
     const currentCharCount = shareContent.length;
 
     return (
       <Card
         style={{
-          marginTop: 10,
+          marginTop: 15,
           borderColor: isParentPost ? brandPrimary : "white",
           maxWidth: 600,
           width: "100%",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+          borderRadius: 8,
         }}
         title={
           <Row
@@ -359,7 +355,6 @@ const Post: React.FC<IPost> = React.memo(
                 xs={2}
                 md={1}
                 className="hover:cursor-pointer"
-              // onClick={showAction}
               >
                 <Dropdown trigger={["click"]} menu={{ items }}>
                   <HiDotsVertical size={16} />
@@ -428,7 +423,6 @@ const Post: React.FC<IPost> = React.memo(
         }
       >
         <Row gutter={[8, 8]} className="mx-2"
-          // vào post details
           onClick={() => {
             setIsCommentModalVisible(false);
             router.push(`/postDetails?postId=${likedPost?.id}`);
@@ -477,7 +471,6 @@ const Post: React.FC<IPost> = React.memo(
             </Col>
           )}
         </Row>
-        {/* Modal for edit post */}
         <Modal
           visible={isEditModalVisible}
           centered
@@ -492,154 +485,149 @@ const Post: React.FC<IPost> = React.memo(
             <div>No post ID available</div>
           )}
         </Modal>
-        {/* Modal for comments */}
         <Modal
           visible={isCommentModalVisible}
           centered
           footer={null}
           closable={true}
           onCancel={() => setIsCommentModalVisible(false)}
-          width="90vw" // Điều chỉnh chiều rộng modal bằng phần trăm của màn hình
+          width="90vw"
           style={{
-            maxWidth: '1200px', // Giới hạn chiều rộng tối đa
+            maxWidth: '1200px',
           }}
           bodyStyle={{
-            maxHeight: '80vh', // Giới hạn chiều cao
-            overflowY: 'auto', // Thêm thanh cuộn dọc nếu cần
+            maxHeight: '80vh',
+            overflowY: 'auto',
           }}
         >
           <PostDetailsScreen postId={likedPost?.id} isModal={true} />
         </Modal>
-
-
-        {/* Modal for share Post */}
         <Modal
-      visible={isShareModalVisible}
-      centered
-      onCancel={() => setIsShareModalVisible(false)}
-      footer={[
-        <Button key="back" onClick={() => setIsShareModalVisible(false)}>
-          {localStrings.Public.Cancel}
-        </Button>,
-        <Button
-          key="-submit"
-          type="primary"
-          loading={shareLoading}
-          onClick={handleSubmitShare}
-          disabled={!isContentLengthValid()} // Vô hiệu hóa nếu nội dung không hợp lệ
+          visible={isShareModalVisible}
+          centered
+          onCancel={() => setIsShareModalVisible(false)}
+          footer={[
+            <Button key="back" onClick={() => setIsShareModalVisible(false)}>
+              {localStrings.Public.Cancel}
+            </Button>,
+            <Button
+              key="-submit"
+              type="primary"
+              loading={shareLoading}
+              onClick={handleSubmitShare}
+              disabled={!isContentLengthValid()}
+            >
+              {shareLoading ? <Spin style={{ color: "white" }} /> : localStrings.Public.Conform}
+            </Button>,
+          ]}
         >
-          {shareLoading ? <Spin style={{ color: "white" }} /> : localStrings.Public.Conform}
-        </Button>,
-      ]}
-    >
-      <Form form={shareForm}>
-        <Card
-          style={{
-            width: "100%",
-            padding: 16,
-            border: "1px solid #ddd",
-            borderRadius: 4,
-          }}
-        >
-          <Row gutter={[8, 8]}>
-            <Col xs={5} md={4} className="hover:cursor-pointer">
-              <Avatar
-                src={likedPost?.user?.avatar_url}
-                shape="circle"
-                size={{ xs: 40, sm: 40, md: 50, lg: 50, xl: 50, xxl: 50 }}
-              />
-            </Col>
-            <Col xs={16} md={19}>
-              <Row>
-                <Col span={24} className="hover:cursor-pointer hover:underline">
-                  <span style={{ fontWeight: "bold", fontSize: 14 }}>
-                    {likedPost?.user?.family_name} {likedPost?.user?.name}
-                  </span>
+          <Form form={shareForm}>
+            <Card
+              style={{
+                width: "100%",
+                padding: 16,
+                border: "1px solid #ddd",
+                borderRadius: 4,
+              }}
+            >
+              <Row gutter={[8, 8]}>
+                <Col xs={5} md={4} className="hover:cursor-pointer">
+                  <Avatar
+                    src={likedPost?.user?.avatar_url}
+                    shape="circle"
+                    size={{ xs: 40, sm: 40, md: 50, lg: 50, xl: 50, xxl: 50 }}
+                  />
                 </Col>
-                <Col span={24}>
-                  {likedPost?.is_advertisement ? (
-                    <div className="flex flex-row items-center">
-                      <span
-                        style={{
-                          color: brandPrimaryTap,
-                          fontSize: 12,
-                          opacity: 0.5,
-                          marginRight: 10,
-                        }}
-                      >
-                        {localStrings.Post.Sponsor}
+                <Col xs={16} md={19}>
+                  <Row>
+                    <Col span={24} className="hover:cursor-pointer hover:underline">
+                      <span style={{ fontWeight: "bold", fontSize: 14 }}>
+                        {likedPost?.user?.family_name} {likedPost?.user?.name}
                       </span>
-                      <RiAdvertisementLine size={24} color={brandPrimaryTap} />
-                    </div>
-                  ) : (
-                    <div className="flex flex-row items-center">
-                      <span
-                        style={{
-                          color: brandPrimaryTap,
-                          fontSize: 12,
-                          opacity: 0.5,
-                          marginRight: 10,
-                        }}
-                      >
-                        {getTimeDiff(likedPost?.created_at, localStrings)}
-                      </span>
-                      {renderPrivacyIcon()}
-                    </div>
-                  )}
+                    </Col>
+                    <Col span={24}>
+                      {likedPost?.is_advertisement ? (
+                        <div className="flex flex-row items-center">
+                          <span
+                            style={{
+                              color: brandPrimaryTap,
+                              fontSize: 12,
+                              opacity: 0.5,
+                              marginRight: 10,
+                            }}
+                          >
+                            {localStrings.Post.Sponsor}
+                          </span>
+                          <RiAdvertisementLine size={24} color={brandPrimaryTap} />
+                        </div>
+                      ) : (
+                        <div className="flex flex-row items-center">
+                          <span
+                            style={{
+                              color: brandPrimaryTap,
+                              fontSize: 12,
+                              opacity: 0.5,
+                              marginRight: 10,
+                            }}
+                          >
+                            {getTimeDiff(likedPost?.created_at, localStrings)}
+                          </span>
+                          {renderPrivacyIcon()}
+                        </div>
+                      )}
+                    </Col>
+                  </Row>
                 </Col>
               </Row>
-            </Col>
-          </Row>
-          {likedPost?.content && (
-            <Form.Item>
-              <span>{likedPost?.content}</span>
-            </Form.Item>
-          )}
-          {likedPost?.media && likedPost?.media?.length > 0 && (
-            <Form.Item>
-              <MediaView mediaItems={likedPost?.media} />
-            </Form.Item>
-          )}
-          <Form.Item>
-            <TextArea
-              value={shareContent}
-              onChange={(e) => setShareContent(e.target.value)}
-              placeholder={localStrings.Post.ShareContent}
-              autoSize={{ minRows: 3, maxRows: 5 }}
-            />
-            <Text
-              type={currentCharCount > 10000 ? "danger" : "secondary"}
-              style={{ float: "right" }}
-            >
-              {currentCharCount}/{localStrings.Post.CharacterLimit}
-            </Text>
-          </Form.Item>
-        </Card>
+              {likedPost?.content && (
+                <Form.Item>
+                  <span>{likedPost?.content}</span>
+                </Form.Item>
+              )}
+              {likedPost?.media && likedPost?.media?.length > 0 && (
+                <Form.Item>
+                  <MediaView mediaItems={likedPost?.media} />
+                </Form.Item>
+              )}
+              <Form.Item>
+                <TextArea
+                  value={shareContent}
+                  onChange={(e) => setShareContent(e.target.value)}
+                  placeholder={localStrings.Post.ShareContent}
+                  autoSize={{ minRows: 3, maxRows: 5 }}
+                />
+                <Text
+                  type={currentCharCount > 10000 ? "danger" : "secondary"}
+                  style={{ float: "right" }}
+                >
+                  {currentCharCount}/{localStrings.Post.CharacterLimit}
+                </Text>
+              </Form.Item>
+            </Card>
 
-        <Form.Item
-          name="sharePostPrivacy"
-          label={localStrings.ObjectPostPrivacy.PostPrivacy}
-        >
-          <Select
-            value={sharePostPrivacy}
-            onChange={(value) => setSharePostPrivacy(value)}
-            style={{ width: 120 }}
-            defaultValue={Privacy.PUBLIC}
-          >
-            <Select.Option value={Privacy.PUBLIC}>
-              {localStrings.Public.Everyone}
-            </Select.Option>
-            <Select.Option value={Privacy.FRIEND_ONLY}>
-              {localStrings.Public.Friend}
-            </Select.Option>
-            <Select.Option value={Privacy.PRIVATE}>
-              {localStrings.Public.Private}
-            </Select.Option>
-          </Select>
-        </Form.Item>
-      </Form>
-    </Modal>
-        {/* Modal for User Like Post */}
+            <Form.Item
+              name="sharePostPrivacy"
+              label={localStrings.ObjectPostPrivacy.PostPrivacy}
+            >
+              <Select
+                value={sharePostPrivacy}
+                onChange={(value) => setSharePostPrivacy(value)}
+                style={{ width: 120 }}
+                defaultValue={Privacy.PUBLIC}
+              >
+                <Select.Option value={Privacy.PUBLIC}>
+                  {localStrings.Public.Everyone}
+                </Select.Option>
+                <Select.Option value={Privacy.FRIEND_ONLY}>
+                  {localStrings.Public.Friend}
+                </Select.Option>
+                <Select.Option value={Privacy.PRIVATE}>
+                  {localStrings.Public.Private}
+                </Select.Option>
+              </Select>
+            </Form.Item>
+          </Form>
+        </Modal>
         <Modal
           title={
             <div style={{ textAlign: "center" }}>

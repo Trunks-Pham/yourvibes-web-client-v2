@@ -74,6 +74,7 @@ export const ENGLocalizedStrings = {
     No: "No",
     Delete: "Delete",
     GenericError: "An error occurred, please try again later!",
+    Message: "Message",
   },
 
   Suggested: {
