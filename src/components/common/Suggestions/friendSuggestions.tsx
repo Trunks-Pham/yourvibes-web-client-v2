@@ -29,14 +29,13 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
   const [loading, setLoading] = useState(false);
   const [friendRequestLoading, setFriendRequestLoading] = useState<Record<string, boolean>>({});
 
-  // Lấy trạng thái từ localStorage khi component khởi tạo
+  // Lấy danh sách gợi ý khi component khởi tạo
   useEffect(() => {
-    const storedRequests: Record<string, string> = JSON.parse(localStorage.getItem("friendRequests") || "{}");
-    fetchSuggestions(storedRequests);
+    fetchSuggestions();
   }, []);
 
   // Memoized fetch function
-  const fetchSuggestions = useCallback(async (storedRequests: { [key: string]: string } = {}) => {
+  const fetchSuggestions = useCallback(async () => {
     setLoading(true);
     try {
       const requestData: NewFeedRequestModel = { limit: 10, page: 1 };
@@ -44,7 +43,7 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
       if (response.code === 20001) {
         const suggestionsWithStatus = response.data.map((suggestion: SuggestionUserModel) => ({
           ...suggestion,
-          friendStatus: storedRequests[suggestion.id!] === "sent"
+          friendStatus: suggestion.is_send_friend_request
             ? FriendStatus.SendFriendRequest
             : (suggestion as any).friend_status || FriendStatus.NotFriend,
           hidden: false,
@@ -60,20 +59,6 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
     }
   }, []);
 
-  // Lưu trạng thái vào localStorage
-  const updateLocalStorage = (userId: string, status: string) => {
-    const storedRequests = JSON.parse(localStorage.getItem("friendRequests") || "{}");
-    storedRequests[userId] = status;
-    localStorage.setItem("friendRequests", JSON.stringify(storedRequests));
-  };
-
-  // Xóa trạng thái khỏi localStorage
-  const removeFromLocalStorage = (userId: string) => {
-    const storedRequests = JSON.parse(localStorage.getItem("friendRequests") || "{}");
-    delete storedRequests[userId];
-    localStorage.setItem("friendRequests", JSON.stringify(storedRequests));
-  };
-
   // Memoized friend request handlers
   const handleFriendRequest = useCallback(
     async (userId: string, action: "send" | "cancel" | "accept" | "refuse") => {
@@ -87,10 +72,9 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
               message.success(localStrings.Profile.Friend.SendRequestSuccess);
               setFriendSuggestions((prev) =>
                 prev.map((s) =>
-                  s.id === userId ? { ...s, friendStatus: FriendStatus.SendFriendRequest } : s
+                  s.id === userId ? { ...s, friendStatus: FriendStatus.SendFriendRequest, is_send_friend_request: true } : s
                 )
               );
-              updateLocalStorage(userId, "sent"); 
             }
             break;
           case "cancel":
@@ -98,9 +82,10 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
             if (response.code === 20001) {
               message.success(`${localStrings.Public.CancelFriendRequest} success`);
               setFriendSuggestions((prev) =>
-                prev.map((s) => (s.id === userId ? { ...s, friendStatus: FriendStatus.NotFriend } : s))
+                prev.map((s) =>
+                  s.id === userId ? { ...s, friendStatus: FriendStatus.NotFriend, is_send_friend_request: false } : s
+                )
               );
-              removeFromLocalStorage(userId); 
             }
             break;
           case "accept":
@@ -110,7 +95,6 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
               setFriendSuggestions((prev) =>
                 prev.map((s) => (s.id === userId ? { ...s, friendStatus: FriendStatus.IsFriend } : s))
               );
-              removeFromLocalStorage(userId); 
             }
             break;
           case "refuse":
@@ -119,7 +103,6 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
               setFriendSuggestions((prev) =>
                 prev.map((s) => (s.id === userId ? { ...s, hidden: true } : s))
               );
-              removeFromLocalStorage(userId); 
             }
             break;
         }
@@ -148,10 +131,10 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        gap: "8px", // Tăng khoảng cách giữa icon và text
-        width: "100%", // Đảm bảo nút chiếm toàn bộ chiều rộng
-        padding: "0 10px", // Thêm padding để nút dài hơn
-        whiteSpace: "nowrap", // Giữ text trên một dòng
+        gap: "8px",
+        width: "100%",
+        padding: "0 10px",
+        whiteSpace: "nowrap",
       };
 
       switch (suggestion.friendStatus) {
@@ -162,7 +145,7 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
               block
               loading={isLoading}
               onClick={() => handleFriendRequest(userId, "send")}
-              style={{ height: "36px" }} // Tăng chiều cao nút cho hợp lý
+              style={{ height: "36px" }}
             >
               <div style={buttonStyles}>
                 <FaUserPlus size={16} />
@@ -273,7 +256,7 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
                 >
                   <div
                     onClick={() => router.push(`/user/${suggestion.id}`)}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: "pointer" }}
                   >
                     <Avatar
                       src={suggestion.avatar_url}
@@ -286,7 +269,7 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
                         margin: "5px 0",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
-                        textOverflow: "ellipsis"
+                        textOverflow: "ellipsis",
                       }}
                     >
                       {suggestion.family_name} {suggestion.name}
