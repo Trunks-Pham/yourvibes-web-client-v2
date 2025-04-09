@@ -6,6 +6,7 @@ export interface SuggestionUserModel {
     family_name?: string;
     name?: string;
     avatar_url?: string;
+    is_send_friend_request?: boolean;
 }
 
 export interface SuggestionResponseModel {
