@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { message } from "antd";
 
 import { useAuth } from "@/context/auth/useAuth";
@@ -12,7 +12,6 @@ interface ExtendedMessageResponseModel extends MessageResponseModel {
   isDateSeparator?: boolean;
 }
 
-
 type MessageWithDate = ExtendedMessageResponseModel;
 
 export const useMessagesViewModel = () => {
@@ -20,7 +19,6 @@ export const useMessagesViewModel = () => {
   const {
     isConnected: isWebSocketConnected,
     sendMessage: wsSendMessage,
-    currentConversationId,
     setCurrentConversationId,
     getMessagesForConversation,
     updateMessagesForConversation,
@@ -45,7 +43,6 @@ export const useMessagesViewModel = () => {
   const pageSize = 20;
   
   const messageListRef = useRef<HTMLDivElement>(null);
-  const lastMessageRef = useRef<string | null>(null);
   const isFirstLoad = useRef<boolean>(true);
   const scrollPositionRef = useRef<number>(0);
 

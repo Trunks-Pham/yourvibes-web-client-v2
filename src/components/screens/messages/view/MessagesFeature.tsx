@@ -15,6 +15,7 @@ import DateSeparator from "./DateSeparator";
 import EditConversationModal from "./EditConversationModal";
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { defaultMessagesRepo } from "@/api/features/messages/MessagesRepo";
+import { useSearchParams } from "next/navigation"; // Thêm để đọc query params
 
 const { Header, Content, Sider } = Layout;
 const { Search } = Input;
@@ -23,6 +24,7 @@ const { SubMenu, Item } = Menu;
 
 const MessagesFeature: React.FC = () => {
   const { user, localStrings } = useAuth();
+  const searchParams = useSearchParams(); // Thêm để lấy query params
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const {
     deleteMessage,
@@ -61,14 +63,17 @@ const MessagesFeature: React.FC = () => {
   const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
   const [existingMemberIds, setExistingMemberIds] = useState<string[]>([]);
 
+  // Lấy conversation_id từ query params
+  const conversationIdFromUrl = searchParams.get("conversation_id");
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener("resize", checkMobile);
-    
+
     return () => {
       window.removeEventListener("resize", checkMobile);
     };
@@ -79,6 +84,30 @@ const MessagesFeature: React.FC = () => {
       setShowConversation(false);
     }
   }, [currentConversation, isMobile]);
+  
+  const handleSelectConversation = useCallback((conversation: ConversationResponseModel) => {
+    if (currentConversation?.id === conversation.id) {
+      return;
+    }
+
+    setCurrentConversation(conversation);
+
+    setTimeout(() => {
+      if (conversation.id) {
+        fetchMessages(conversation.id);
+        markConversationAsRead(conversation.id);
+      }
+    }, 200);
+  }, [currentConversation?.id, fetchMessages, setCurrentConversation, markConversationAsRead]);
+  // Xử lý khi có conversation_id từ URL
+  useEffect(() => {
+    if (conversationIdFromUrl && conversations.length > 0) {
+      const selectedConversation = conversations.find(conv => conv.id === conversationIdFromUrl);
+      if (selectedConversation && selectedConversation.id !== currentConversation?.id) {
+        handleSelectConversation(selectedConversation);
+      }
+    }
+  }, [conversationIdFromUrl, conversations, currentConversation?.id, handleSelectConversation]);
 
   const onEmojiClick = (emojiData: EmojiClickData) => {
     setMessageText(prev => prev + emojiData.emoji);
@@ -98,20 +127,7 @@ const MessagesFeature: React.FC = () => {
     }
   };
 
-  const handleSelectConversation = useCallback((conversation: ConversationResponseModel) => {
-    if (currentConversation?.id === conversation.id) {
-      return;
-    }
-    
-    setCurrentConversation(conversation);
-    
-    setTimeout(() => {
-      if (conversation.id) {
-        fetchMessages(conversation.id);
-        markConversationAsRead(conversation.id);
-      }
-    }, 200);
-  }, [currentConversation?.id, fetchMessages, setCurrentConversation, markConversationAsRead]);
+
 
   const handleBackToConversations = () => {
     setShowConversation(true);
@@ -123,7 +139,7 @@ const MessagesFeature: React.FC = () => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const filteredConversations = conversations.filter(conv => 
+  const filteredConversations = conversations.filter(conv =>
     conv.name?.toLowerCase().includes(searchText.toLowerCase())
   );
 
@@ -163,7 +179,7 @@ const MessagesFeature: React.FC = () => {
       const response = await defaultMessagesRepo.getConversationDetailByUserID({
         conversation_id: conversationId
       });
-      
+
       if (response.data) {
         const members = Array.isArray(response.data) ? response.data : [response.data];
         const memberIds = members.map(member => member.user_id).filter(Boolean) as string[];
@@ -181,7 +197,7 @@ const MessagesFeature: React.FC = () => {
       setAddMemberModalVisible(true);
     }
   };
-  
+
   const handleAddMembers = async (userIds: string[]) => {
     if (currentConversation?.id) {
       await addConversationMembers(currentConversation.id, userIds);
@@ -190,7 +206,7 @@ const MessagesFeature: React.FC = () => {
 
   const handleLeaveConversation = () => {
     if (!currentConversation?.id) return;
-    
+
     Modal.confirm({
       title: localStrings.Messages.LeaveConversation,
       content: localStrings.Messages.ConfirmLeaveConversation,
@@ -198,7 +214,7 @@ const MessagesFeature: React.FC = () => {
       cancelText: localStrings.Public.No,
       onOk: async () => {
         try {
-          if (currentConversation.id) { 
+          if (currentConversation.id) {
             await leaveConversation(currentConversation.id);
             message.success(localStrings.Messages.LeftConversation);
           }
@@ -213,9 +229,9 @@ const MessagesFeature: React.FC = () => {
     <Layout style={{ height: "calc(100vh - 64px)", background: backgroundColor }}>
       {/* Conversations Sidebar */}
       {(showConversation || !isMobile) && (
-        <Sider 
-          width={isMobile ? "100%" : 300} 
-          style={{ 
+        <Sider
+          width={isMobile ? "100%" : 300}
+          style={{
             background: backgroundColor,
             overflow: "auto",
             borderRight: `1px solid ${lightGray}`,
@@ -228,10 +244,10 @@ const MessagesFeature: React.FC = () => {
                 {localStrings.Public.Messages}
               </Title>
               <div>
-                <Button 
-                  type="primary" 
-                  shape="circle" 
-                  icon={<PlusOutlined />} 
+                <Button
+                  type="primary"
+                  shape="circle"
+                  icon={<PlusOutlined />}
                   onClick={() => setNewConversationModalVisible(true)}
                 />
               </div>
@@ -245,70 +261,70 @@ const MessagesFeature: React.FC = () => {
             />
           </div>
           <div style={{ height: "calc(100% - 130px)", overflow: "auto" }}>
-          {conversationsLoading ? (
-            <div style={{ padding: "0 16px" }}>
-              {/* Header skeleton */}
-              <div style={{ 
-                display: "flex", 
-                justifyContent: "space-between", 
-                alignItems: "center", 
-                marginBottom: 16,
-                paddingTop: 16 
-              }}>
-                <Skeleton.Button active style={{ width: 100, height: 24 }} />
-                <Skeleton.Avatar active shape="circle" size="small" />
-              </div>
-              
-              {/* Search box skeleton */}
-              <div style={{ marginBottom: 16 }}>
-                <Skeleton.Input active style={{ width: '100%', height: 32 }} size="small" />
-              </div>
-              
-              {/* Conversations list skeleton */}
-              {Array(6).fill(null).map((_, index) => (
-                <div 
-                  key={index} 
-                  style={{ 
-                    display: "flex", 
-                    padding: "12px 0", 
-                    borderBottom: "1px solid #f0f0f0",
-                    alignItems: "center" 
-                  }}
-                >
-                  <Skeleton.Avatar active size="large" style={{ flexShrink: 0 }} />
-                  <div style={{ marginLeft: 12, flex: 1 }}>
-                    <Skeleton.Input active style={{ width: '70%', height: 16 }} size="small" />
-                    <div style={{ marginTop: 6 }}>
-                      <Skeleton.Input active style={{ width: '90%', height: 14 }} size="small" />
+            {conversationsLoading ? (
+              <div style={{ padding: "0 16px" }}>
+                {/* Header skeleton */}
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 16,
+                  paddingTop: 16
+                }}>
+                  <Skeleton.Button active style={{ width: 100, height: 24 }} />
+                  <Skeleton.Avatar active shape="circle" size="small" />
+                </div>
+
+                {/* Search box skeleton */}
+                <div style={{ marginBottom: 16 }}>
+                  <Skeleton.Input active style={{ width: '100%', height: 32 }} size="small" />
+                </div>
+
+                {/* Conversations list skeleton */}
+                {Array(6).fill(null).map((_, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: "flex",
+                      padding: "12px 0",
+                      borderBottom: "1px solid #f0f0f0",
+                      alignItems: "center"
+                    }}
+                  >
+                    <Skeleton.Avatar active size="large" style={{ flexShrink: 0 }} />
+                    <div style={{ marginLeft: 12, flex: 1 }}>
+                      <Skeleton.Input active style={{ width: '70%', height: 16 }} size="small" />
+                      <div style={{ marginTop: 6 }}>
+                        <Skeleton.Input active style={{ width: '90%', height: 14 }} size="small" />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                      <Skeleton.Input active style={{ width: 35, height: 12 }} size="small" />
+                      <div style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: '50%',
+                        background: '#f0f0f0',
+                        marginTop: 8
+                      }} />
                     </div>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                    <Skeleton.Input active style={{ width: 35, height: 12 }} size="small" />
-                    <div style={{ 
-                      width: 18, 
-                      height: 18, 
-                      borderRadius: '50%', 
-                      background: '#f0f0f0', 
-                      marginTop: 8 
-                    }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
             ) : (
               <>
                 {filteredConversations.length === 0 ? (
-                  <Empty 
+                  <Empty
                     description={
-                      searchText 
-                        ? (localStrings.Messages.NoConversations) 
+                      searchText
+                        ? (localStrings.Messages.NoConversations)
                         : (localStrings.Messages.NoConversations)
                     }
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                     style={{ margin: "40px 0" }}
                   >
-                    <Button 
-                      type="primary" 
+                    <Button
+                      type="primary"
                       icon={<PlusOutlined />}
                       onClick={() => setNewConversationModalVisible(true)}
                     >
@@ -320,16 +336,16 @@ const MessagesFeature: React.FC = () => {
                     dataSource={filteredConversations}
                     renderItem={(item) => {
                       const conversationMessages = getMessagesForConversation(item.id || '');
-                      
+
                       const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
-                      
-                      const lastMessage = actualMessages.length > 0 
-                        ? actualMessages.sort((a, b) => 
-                            new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime()
-                          )[0]
+
+                      const lastMessage = actualMessages.length > 0
+                        ? actualMessages.sort((a, b) =>
+                          new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime()
+                        )[0]
                         : null;
-                      
-                      const messagePreview = lastMessage?.content 
+
+                      const messagePreview = lastMessage?.content
                         ? (lastMessage.content.length > 50 ? lastMessage.content.substring(0, 47) + '...' : lastMessage.content)
                         : (localStrings.Messages.StartConversation);
                       
@@ -338,41 +354,41 @@ const MessagesFeature: React.FC = () => {
                         : lastMessage?.user 
                           ? `${lastMessage.user.family_name || ''} ${lastMessage.user.name || ''}`.trim()
                           : '';
-                      
-                      const messageDisplay = lastMessage 
+
+                      const messageDisplay = lastMessage
                         ? (senderName ? `${senderName}: ${messagePreview}` : messagePreview)
                         : messagePreview;
-                      
+
                       const lastMessageTime = lastMessage?.created_at
                         ? formatMessageTime(lastMessage.created_at)
                         : '';
-                        
-                      const hasUnreadMessages = currentConversation?.id !== item.id && 
+
+                      const hasUnreadMessages = currentConversation?.id !== item.id &&
                         unreadMessages[item.id || ''] > 0;
-                        
-                      const isOneOnOneChat = item.name?.includes(" & ") || 
-                        (actualMessages.some(msg => msg.user_id !== user?.id) && 
-                        new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
-                      
+
+                      const isOneOnOneChat = item.name?.includes(" & ") ||
+                        (actualMessages.some(msg => msg.user_id !== user?.id) &&
+                          new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
+
                       const otherUser = isOneOnOneChat && actualMessages.length > 0
-                        ? actualMessages.find(msg => msg.user_id !== user?.id)?.user 
+                        ? actualMessages.find(msg => msg.user_id !== user?.id)?.user
                         : null;
-                      
-                      let avatarUrl = item.image; 
+
+                      let avatarUrl = item.image;
 
                       if (isOneOnOneChat && !item.image && otherUser?.avatar_url) {
                         avatarUrl = otherUser.avatar_url;
                       }
-                      
-                      const avatarInitial = isOneOnOneChat && otherUser?.name 
-                        ? otherUser.name.charAt(0).toUpperCase() 
+
+                      const avatarInitial = isOneOnOneChat && otherUser?.name
+                        ? otherUser.name.charAt(0).toUpperCase()
                         : item.name?.charAt(0).toUpperCase();
-                        
+
                       return (
-                        <List.Item 
+                        <List.Item
                           onClick={() => handleSelectConversation(item)}
-                          style={{ 
-                            cursor: "pointer", 
+                          style={{
+                            cursor: "pointer",
                             padding: "12px 16px",
                             background: currentConversation?.id === item.id ? lightGray : "transparent",
                             transition: "background 0.3s",
@@ -382,11 +398,11 @@ const MessagesFeature: React.FC = () => {
                         >
                           <List.Item.Meta
                             avatar={
-                              <Avatar 
-                                src={avatarUrl} 
+                              <Avatar
+                                src={avatarUrl}
                                 size={48}
-                                style={{ 
-                                  backgroundColor: !avatarUrl ? brandPrimary : undefined 
+                                style={{
+                                  backgroundColor: !avatarUrl ? brandPrimary : undefined
                                 }}
                               >
                                 {!avatarUrl && avatarInitial}
@@ -394,10 +410,10 @@ const MessagesFeature: React.FC = () => {
                             }
                             title={<Text strong>{item.name}</Text>}
                             description={
-                              <Text 
-                                type="secondary" 
-                                ellipsis 
-                                style={{ 
+                              <Text
+                                type="secondary"
+                                ellipsis
+                                style={{
                                   maxWidth: '100%',
                                   fontWeight: hasUnreadMessages ? 'bold' : 'normal'
                                 }}
@@ -412,9 +428,9 @@ const MessagesFeature: React.FC = () => {
                                 {lastMessageTime}
                               </Text>
                               {hasUnreadMessages && (
-                                <Badge 
-                                  count={unreadMessages[item.id || '']} 
-                                  size="small" 
+                                <Badge
+                                  count={unreadMessages[item.id || '']}
+                                  size="small"
                                   style={{ marginTop: 4 }}
                                 />
                               )}
@@ -433,25 +449,25 @@ const MessagesFeature: React.FC = () => {
 
       {/* Chat Area */}
       {(!showConversation || !isMobile) && (
-        <Layout style={{ 
-          height: "100%", 
+        <Layout style={{
+          height: "100%",
           background: backgroundColor,
           display: isMobile ? (showConversation ? "none" : "flex") : "flex"
         }}>
           {/* Chat Header */}
-          <Header style={{ 
-            background: backgroundColor, 
-            padding: "0 16px", 
-            height: "64px", 
+          <Header style={{
+            background: backgroundColor,
+            padding: "0 16px",
+            height: "64px",
             lineHeight: "64px",
             borderBottom: `1px solid ${lightGray}`,
             display: "flex",
             alignItems: "center"
           }}>
             {isMobile && (
-              <Button 
-                icon={<ArrowLeftOutlined />} 
-                type="text" 
+              <Button
+                icon={<ArrowLeftOutlined />}
+                type="text"
                 onClick={handleBackToConversations}
                 style={{ marginRight: 8 }}
               />
@@ -462,31 +478,31 @@ const MessagesFeature: React.FC = () => {
                 {(() => {
                   const conversationMessages = getMessagesForConversation(currentConversation.id || '');
                   const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
-                  
-                  const isOneOnOneChat = currentConversation.name?.includes(" & ") || 
-                    (actualMessages.some(msg => msg.user_id !== user?.id) && 
-                    new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
-                  
+
+                  const isOneOnOneChat = currentConversation.name?.includes(" & ") ||
+                    (actualMessages.some(msg => msg.user_id !== user?.id) &&
+                      new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
+
                   const otherUser = isOneOnOneChat && actualMessages.length > 0
-                    ? actualMessages.find(msg => msg.user_id !== user?.id)?.user 
+                    ? actualMessages.find(msg => msg.user_id !== user?.id)?.user
                     : null;
-                  
-                  let avatarUrl = currentConversation.image; 
-                  
+
+                  let avatarUrl = currentConversation.image;
+
                   if (isOneOnOneChat && !currentConversation.image && otherUser?.avatar_url) {
                     avatarUrl = otherUser.avatar_url;
                   }
-                  
-                  const avatarInitial = isOneOnOneChat && otherUser?.name 
-                    ? otherUser.name.charAt(0).toUpperCase() 
+
+                  const avatarInitial = isOneOnOneChat && otherUser?.name
+                    ? otherUser.name.charAt(0).toUpperCase()
                     : currentConversation.name?.charAt(0).toUpperCase();
-                  
+
                   return (
-                    <Avatar 
-                      src={avatarUrl} 
+                    <Avatar
+                      src={avatarUrl}
                       size={40}
-                      style={{ 
-                        backgroundColor: !avatarUrl ? brandPrimary : undefined 
+                      style={{
+                        backgroundColor: !avatarUrl ? brandPrimary : undefined
                       }}
                     >
                       {!avatarUrl && avatarInitial}
@@ -553,9 +569,9 @@ const MessagesFeature: React.FC = () => {
           </Header>
 
           {/* Messages Container */}
-          <Content 
-            style={{ 
-              padding: "16px", 
+          <Content
+            style={{
+              padding: "16px",
               overflowY: "auto",
               display: "flex",
               flexDirection: "column",
@@ -571,9 +587,9 @@ const MessagesFeature: React.FC = () => {
                 {messagesLoading && messages.length === 0 ? (
                   <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                     {/* Header skeleton */}
-                    <div style={{ 
-                      height: 64, 
-                      borderBottom: '1px solid #f0f0f0', 
+                    <div style={{
+                      height: 64,
+                      borderBottom: '1px solid #f0f0f0',
                       padding: '0 16px',
                       display: 'flex',
                       alignItems: 'center'
@@ -584,31 +600,31 @@ const MessagesFeature: React.FC = () => {
                         <Skeleton.Button active style={{ width: 32, height: 32 }} shape="circle" />
                       </div>
                     </div>
-                    
+
                     {/* Message area skeleton */}
-                    <div style={{ 
-                      flex: 1, 
-                      padding: '16px', 
-                      display: 'flex', 
+                    <div style={{
+                      flex: 1,
+                      padding: '16px',
+                      display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'flex-end'
                     }}>
                       {/* Skeleton for a date separator */}
-                      <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        margin: '10px 0' 
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        margin: '10px 0'
                       }}>
                         <Skeleton.Input active style={{ width: 80, height: 20 }} size="small" />
                       </div>
-                      
+
                       {/* Skeletons for messages */}
                       {/* Received message */}
                       <div style={{ display: 'flex', marginBottom: 16, alignItems: 'flex-end' }}>
                         <Skeleton.Avatar active size="small" style={{ marginRight: 8 }} />
                         <div style={{ maxWidth: '60%' }}>
-                          <div style={{ 
-                            background: '#f5f5f5', 
+                          <div style={{
+                            background: '#f5f5f5',
                             borderRadius: '12px',
                             padding: '10px'
                           }}>
@@ -619,26 +635,26 @@ const MessagesFeature: React.FC = () => {
                             <div style={{ marginTop: 4 }}>
                               <Skeleton.Input active style={{ width: 180, height: 14 }} size="small" />
                             </div>
-                            <div style={{ 
-                              display: 'flex', 
-                              justifyContent: 'flex-end', 
-                              marginTop: 4 
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'flex-end',
+                              marginTop: 4
                             }}>
                               <Skeleton.Input active style={{ width: 40, height: 10 }} size="small" />
                             </div>
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Sent message */}
-                      <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'flex-end', 
-                        marginBottom: 16 
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        marginBottom: 16
                       }}>
                         <div style={{ maxWidth: '60%' }}>
-                          <div style={{ 
-                            background: '#e6f7ff', 
+                          <div style={{
+                            background: '#e6f7ff',
                             borderRadius: '12px',
                             padding: '10px'
                           }}>
@@ -646,31 +662,31 @@ const MessagesFeature: React.FC = () => {
                             <div style={{ marginTop: 4 }}>
                               <Skeleton.Input active style={{ width: 120, height: 14 }} size="small" />
                             </div>
-                            <div style={{ 
-                              display: 'flex', 
-                              justifyContent: 'flex-end', 
-                              marginTop: 4 
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'flex-end',
+                              marginTop: 4
                             }}>
                               <Skeleton.Input active style={{ width: 40, height: 10 }} size="small" />
                             </div>
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Another received message */}
                       <div style={{ display: 'flex', marginBottom: 16, alignItems: 'flex-end' }}>
                         <Skeleton.Avatar active size="small" style={{ marginRight: 8 }} />
                         <div style={{ maxWidth: '60%' }}>
-                          <div style={{ 
-                            background: '#f5f5f5', 
+                          <div style={{
+                            background: '#f5f5f5',
                             borderRadius: '12px',
                             padding: '10px'
                           }}>
                             <Skeleton.Input active style={{ width: 200, height: 14 }} size="small" />
-                            <div style={{ 
-                              display: 'flex', 
-                              justifyContent: 'flex-end', 
-                              marginTop: 4 
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'flex-end',
+                              marginTop: 4
                             }}>
                               <Skeleton.Input active style={{ width: 40, height: 10 }} size="small" />
                             </div>
@@ -678,10 +694,10 @@ const MessagesFeature: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Message input skeleton */}
-                    <div style={{ 
-                      borderTop: '1px solid #f0f0f0', 
+                    <div style={{
+                      borderTop: '1px solid #f0f0f0',
                       padding: '12px 16px',
                       display: 'flex',
                       alignItems: 'center'
@@ -696,8 +712,8 @@ const MessagesFeature: React.FC = () => {
                     {/* Load More Button - only show when we have messages and not at the end */}
                     {messages.length > 0 && !isMessagesEnd && (
                       <div style={{ textAlign: "center", padding: "10px 0" }}>
-                        <Button 
-                          onClick={loadMoreMessages} 
+                        <Button
+                          onClick={loadMoreMessages}
                           loading={messagesLoading}
                           disabled={messagesLoading}
                         >
@@ -705,11 +721,11 @@ const MessagesFeature: React.FC = () => {
                         </Button>
                       </div>
                     )}
-                    
+
                     {/* Loading indicator when fetching more messages */}
                     {messagesLoading && messages.length > 0 && (
-                      <div style={{ 
-                        textAlign: "center", 
+                      <div style={{
+                        textAlign: "center",
                         padding: "10px 0",
                         display: "flex",
                         justifyContent: "center"
@@ -721,18 +737,18 @@ const MessagesFeature: React.FC = () => {
                     {/* Message content area */}
                     <div style={{ flex: 1 }}>
                       {messages.length > 0 ? (
-                        <>                    
+                        <>
                           {/* Message list */}
                           {messages.map((msg: MessageResponseModel) => (
                             msg.isDateSeparator ? (
-                              <DateSeparator 
-                                key={msg.id} 
+                              <DateSeparator
+                                key={msg.id}
                                 date={msg.content || ""}
                               />
                             ) : (
-                              <MessageItem 
-                                key={msg.id || `temp-${msg.created_at}`} 
-                                message={msg} 
+                              <MessageItem
+                                key={msg.id || `temp-${msg.created_at}`}
+                                message={msg}
                                 onDelete={deleteMessage}
                               />
                             )
@@ -762,19 +778,19 @@ const MessagesFeature: React.FC = () => {
           </Content>
 
           {/* Message Input */}
-          <div style={{ 
-            padding: "12px 16px", 
+          <div style={{
+            padding: "12px 16px",
             borderTop: `1px solid ${lightGray}`,
             background: backgroundColor,
             display: "flex",
-            flexDirection: "column", 
+            flexDirection: "column",
           }}>
             {currentConversation && (
               <>
                 <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
                   <Popover
                     content={
-                      <EmojiPicker 
+                      <EmojiPicker
                         onEmojiClick={onEmojiClick}
                         searchPlaceholder="Tìm emoji..."
                         width={300}
@@ -794,7 +810,7 @@ const MessagesFeature: React.FC = () => {
                       style={{ marginRight: 8 }}
                     />
                   </Popover>
-                  
+
                   <Input
                     placeholder={localStrings.Messages.TypeMessage}
                     value={messageText}
@@ -808,14 +824,14 @@ const MessagesFeature: React.FC = () => {
                     }}
                     onKeyPress={handleKeyPress}
                     status={messageText.length > 500 ? "error" : ""}
-                    style={{ 
+                    style={{
                       borderRadius: 20,
                       padding: "8px 12px",
                       flex: 1
                     }}
                     disabled={!isWebSocketConnected}
                   />
-                  
+
                   <Button
                     type="primary"
                     shape="circle"
@@ -825,14 +841,14 @@ const MessagesFeature: React.FC = () => {
                     disabled={!messageText.trim() || !isWebSocketConnected || messageText.length > 500}
                   />
                 </div>
-                
+
                 {/* Character counter */}
-                <div style={{ 
-                  display: "flex", 
-                  justifyContent: "flex-end", 
-                  fontSize: "12px", 
+                <div style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  fontSize: "12px",
                   marginTop: "4px",
-                  color: messageText.length > 500 ? "#ff4d4f" : "rgba(0, 0, 0, 0.45)" 
+                  color: messageText.length > 500 ? "#ff4d4f" : "rgba(0, 0, 0, 0.45)"
                 }}>
                   {messageText.length}/500
                 </div>
@@ -843,21 +859,21 @@ const MessagesFeature: React.FC = () => {
       )}
 
       {/* New Conversation Modal */}
-      <NewConversationModal 
+      <NewConversationModal
         visible={newConversationModalVisible}
         onCancel={() => setNewConversationModalVisible(false)}
         onCreateConversation={createConversation}
       />
 
       {/* Edit Conversation Modal */}
-      <EditConversationModal 
+      <EditConversationModal
         visible={editConversationModalVisible}
         onCancel={() => setEditConversationModalVisible(false)}
         onUpdateConversation={handleUpdateConversation}
         currentConversation={currentConversation}
       />
 
-      <AddMemberModal 
+      <AddMemberModal
         visible={addMemberModalVisible}
         onCancel={() => setAddMemberModalVisible(false)}
         onAddMembers={handleAddMembers}
