@@ -439,5 +439,12 @@ Messages: {
   ConversationNameRequired: "Tên cuộc trò chuyện là bắt buộc",  
   GroupName: "Tên nhóm",  
   ConversationUpdated: "Cuộc trò chuyện đã được cập nhật",  
+  MembersAdded: "Đã thêm thành viên",
+  AddMembers: "Thêm thành viên",
+  Add: "Thêm",
+  SelectFriendsToAdd: "Chọn bạn bè để thêm",
+  NoFriendsToAdd: "Không có bạn bè để thêm",
+  ConfirmLeaveConversation: "Xá nhận rời khỏi cuộc trò chuyện",
+  LeftConversation: "Rời Cuộc Trò Chuyện",
 }
 };
