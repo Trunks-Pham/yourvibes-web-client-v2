@@ -128,6 +128,12 @@ const ProfileHeader = ({
  
         router.push(`/messages?conversation_id=${createResponse.data.id}`);
       }
+      else{
+        if(createResponse?.error?.message === 'Conversation has already exist'){
+          const existingConversationId = createResponse?.error?.message_detail;
+          router.push(`/messages?conversation_id=${existingConversationId}`);
+        }
+      }
     } catch (error: any) {
       if (error.response?.data?.error?.code === 50028) { 
         const existingConversationId = error.response.data.error.message_detail;
