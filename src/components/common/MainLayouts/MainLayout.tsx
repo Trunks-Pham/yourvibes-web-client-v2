@@ -10,19 +10,17 @@ import {
   FaUser,
   FaFacebookMessenger,
   FaAd,
-  FaBuysellads,
 } from "react-icons/fa";
+import { HiTrendingUp } from "react-icons/hi";
 import { useAuth } from "@/context/auth/useAuth";
 import { usePathname, useRouter, useSearchParams } from "next/navigation"; 
 import SearchScreen from "@/components/screens/search/views/SearchScreen";
 import { Content, Footer, Header } from "antd/es/layout/layout";
 import Sider from "antd/es/layout/Sider";
 import useColor from "@/hooks/useColor";
-import { IoMenu } from "react-icons/io5";
 import SettingsTab from "@/components/screens/profile/components/SettingTabs";
-import NotificationScreen from "@/components/screens/notification/views/Notification";
-import { icons } from "antd/es/image/PreviewGroup";
-
+import NotificationScreen from "@/components/screens/notification/views/Notification"; 
+import { FaPeopleGroup  } from "react-icons/fa6";
 const { useBreakpoint } = Grid;
 const siderStyle: React.CSSProperties = {
   overflow: "auto",
@@ -60,6 +58,16 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         icon: FaFacebookMessenger,
       },
       {
+        link: "/trending",
+        content: localStrings.Public.Trending,
+        icon: HiTrendingUp,
+      }, 
+      {
+        link: "people",
+        content: localStrings.Public.People,
+        icon: FaPeopleGroup,
+      },
+      {
         link: "/profile",
         content: localStrings.Public.Profile,
         icon: FaUser,
@@ -78,8 +86,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         link: "/settings",
         content: localStrings.Public.Settings,
         icon: FaCog,
-      }, 
-      
+      },  
     ],
   };
 
@@ -185,7 +192,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                     lineWidth: 0,
                     itemBorderRadius: 5,
                     itemMarginBlock: 0,
-                    // itemPaddingInline: 0,
                     itemHeight: 55,
                   }
 
@@ -228,7 +234,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                         backgroundColor: lightGray,
                         color: "white",
                       },
-                      // border: "1px solid #000000",
                     },
                   };
                 })}
@@ -241,7 +246,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               marginLeft: screens.lg ? 250 : 0,
             }}
           >
-            <div>{children}</div>
+            <div style={{ paddingLeft: 50, paddingRight: 50 }}>{children}</div>
           </Content>
         </Layout>
       </ConfigProvider>
@@ -272,7 +277,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 padding: "12px 20px",
                 fontSize: "16px",
               }}
-              onClick={() => handleItemClick(item.link)} // Gọi handleItemClick
+              onClick={() => handleItemClick(item.link)} 
             >
               <div
                 style={{

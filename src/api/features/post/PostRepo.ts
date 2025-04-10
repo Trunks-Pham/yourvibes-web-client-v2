@@ -21,13 +21,17 @@ interface IPostRepo {
   createPost: (
     data: CreatePostRequestModel
   ) => Promise<BaseApiResponseModel<PostResponseModel>>;
+
   getPosts: (
     data: GetUsersPostsRequestModel
   ) => Promise<BaseApiResponseModel<PostResponseModel[]>>;
+
   getPostById: (id: string) => Promise<BaseApiResponseModel<PostResponseModel>>;
+
   updatePost: (
     data: UpdatePostRequestModel
   ) => Promise<BaseApiResponseModel<PostResponseModel>>;
+
   deletePost: (id: string) => Promise<BaseApiResponseModel<any>>;
   likePost: (id: string) => Promise<BaseApiResponseModel<any>>;
   sharePost: (
@@ -37,6 +41,11 @@ interface IPostRepo {
   getPostLikes: (
     params: LikeUsersResponseModel
   ) => Promise<BaseApiResponseModel<LikeUsersModel[]>>;
+
+  //getPost TRENDING
+  getPostsTrending: (
+    data: GetUsersPostsRequestModel
+  ) => Promise<BaseApiResponseModel<PostResponseModel[]>>;
 
   //advertise
   advertisePost: (
@@ -67,6 +76,12 @@ export class PostRepo implements IPostRepo {
     data: GetUsersPostsRequestModel
   ): Promise<BaseApiResponseModel<PostResponseModel[]>> {
     return client.get(ApiPath.GET_POSTS, data);
+  }
+  // get post trending
+  async getPostsTrending(
+    data: GetUsersPostsRequestModel
+  ): Promise<BaseApiResponseModel<PostResponseModel[]>> {
+    return client.get(ApiPath.TRENDING_POST, data);
   }
 
   async getPostById(

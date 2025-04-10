@@ -42,12 +42,9 @@ import HomeViewModel from "@/components/screens/home/viewModel/HomeViewModel";
 import { defaultNewFeedRepo } from "@/api/features/newFeed/NewFeedRepo";
 import EditPostScreen from "@/components/features/editpost/view/EditPostScreen";
 import PostDetailsScreen from "@/components/screens/postDetails/view/postDetailsScreen";
-import PostDetailsViewModel from "@/components/screens/postDetails/viewModel/postDetailsViewModel";
 import { LikeUsersModel } from "@/api/features/post/models/LikeUsersModel";
 import ReportViewModel from "@/components/screens/report/ViewModel/reportViewModel";
 import ReportScreen from "@/components/screens/report/views/Report";
-import ProfileViewModel from "@/components/screens/profile/viewModel/ProfileViewModel";
-import { t } from "i18next"; 
 
 interface IPost {
   post?: PostResponseModel;
