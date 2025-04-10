@@ -6,6 +6,7 @@ import "./globals.css";
 import { ConfigProvider } from "antd";
 import useColor from "@/hooks/useColor";
 import { WebSocketNotiProvider } from "@/context/notiSocket/useNotiSocket";
+import { WebSocketMessageProvider } from "@/context/websocket/useWebSocket";
 
 export const metadata: Metadata = {
   title: "YourVibes",
@@ -33,9 +34,11 @@ export default function RootLayout({
         >
           <AuthProvider>
             <WebSocketNotiProvider>
-            <PostProvider>
-              <body>{children}</body>
-            </PostProvider>
+              <WebSocketMessageProvider>
+                <PostProvider>
+                  <body>{children}</body>
+                </PostProvider>
+              </WebSocketMessageProvider>
             </WebSocketNotiProvider>
           </AuthProvider>
         </ConfigProvider>

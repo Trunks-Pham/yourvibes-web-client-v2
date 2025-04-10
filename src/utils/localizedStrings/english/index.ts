@@ -456,5 +456,8 @@ export const ENGLocalizedStrings = {
     SelectFriendsToAdd: "Select Friends To Add",
     Add: "Add",
     MembersAdded: "Members Added",
+    CurrentMembers: "Current Members",
+    NoMembersInConversation: "No Members In Conversation",
+    ManageMembers: "Manage Members",
   }
 };

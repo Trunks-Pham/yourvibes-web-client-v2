@@ -455,6 +455,9 @@ export const VnLocalizedStrings = {
     SelectFriendsToAdd: "Chọn bạn bè để thêm",
     Add: "Thêm",
     MembersAdded: "Thêm thành viên thành công",
+    CurrentMembers: "Thành viên hiện tại",
+    NoMembersInConversation: "Không có thành viên nào trong cuộc trò chuyện",
+    ManageMembers: "Quản lý thành viên",
   }
 
 };
