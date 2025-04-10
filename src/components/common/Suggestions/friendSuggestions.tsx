@@ -10,7 +10,7 @@ import { useAuth } from "@/context/auth/useAuth";
 import { FriendStatus } from "@/api/baseApiResponseModel/baseApiResponseModel";
 import { FaUserPlus, FaUserCheck } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
-
+import { HiDotsHorizontal } from "react-icons/hi";
 interface FriendSuggestionsProps {
   postIndex: number;
 }
@@ -281,12 +281,6 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
                   </Button>
                 </Card>
               ))}
-          </div>
-
-          <div style={{ textAlign: "center", marginTop: "10px" }}>
-            <Button type="link" onClick={() => setIsModalVisible(true)}>
-              {localStrings.Suggested.SeeMore}
-            </Button>
           </div>
 
           <Modal
