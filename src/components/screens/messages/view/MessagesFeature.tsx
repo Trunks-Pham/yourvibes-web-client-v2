@@ -1,21 +1,911 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
-import { useAuth } from "@/context/auth/useAuth";
-import { useMessagesViewModel } from "../viewModel/MessagesViewModel";
-import { Avatar, Button, Empty, Input, Layout, List, Skeleton, Spin, Typography, Popover, Badge, Dropdown, Menu, Modal, message } from "antd";
-import { SendOutlined, EllipsisOutlined, SearchOutlined, ArrowLeftOutlined, PlusOutlined, SmileOutlined } from "@ant-design/icons";
-import useColor from "@/hooks/useColor";
-import { ConversationResponseModel } from "@/api/features/messages/models/ConversationModel";
-import { MessageResponseModel } from "@/api/features/messages/models/MessageModel";
-import NewConversationModal from "./NewConversationModal";
-import AddMemberModal from "./AddMemberModal";
-import MessageItem from "./MessageItem";
-import DateSeparator from "./DateSeparator";
-import EditConversationModal from "./EditConversationModal";
+import { useMessagesViewModel } from '../viewModel/MessagesViewModel';
+import { defaultMessagesRepo } from '@/api/features/messages/MessagesRepo';
+import { ConversationResponseModel } from '@/api/features/messages/models/ConversationModel';
+import { MessageResponseModel } from '@/api/features/messages/models/MessageModel';
+import { defaultProfileRepo } from '@/api/features/profile/ProfileRepository';
+import { FriendResponseModel } from '@/api/features/profile/model/FriendReponseModel';
+import { useAuth } from '@/context/auth/useAuth';
+import useColor from '@/hooks/useColor';
+import { EllipsisOutlined, DeleteOutlined, InboxOutlined, SendOutlined, SearchOutlined, ArrowLeftOutlined, PlusOutlined, SmileOutlined } from '@ant-design/icons';
+import { Empty, Layout, Skeleton, Typography, Popover, Badge, Menu, Dropdown, Popconfirm, Input, Button, Upload, Modal, Form, List, Avatar, Spin, message, Checkbox, Tabs } from 'antd';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
-import { defaultMessagesRepo } from "@/api/features/messages/MessagesRepo";
-import { useSearchParams } from "next/navigation"; // Thêm để đọc query params
+import { useSearchParams } from 'next/navigation';
+import React, { useCallback, useEffect, useState } from 'react';
+
+interface AddMemberModalProps {
+  visible: boolean;
+  onCancel: () => void;
+  onAddMembers: (userIds: string[]) => Promise<any>;
+  conversationId: string | undefined;
+  existingMemberIds: string[];
+  existingMembers: FriendResponseModel[];
+}
+
+const AddMemberModal: React.FC<AddMemberModalProps> = ({ 
+  visible, 
+  onCancel, 
+  onAddMembers,
+  conversationId,
+  existingMemberIds,
+  existingMembers,
+}) => {
+  const { user, localStrings } = useAuth();
+  const { brandPrimary } = useColor();
+  const [friends, setFriends] = useState<FriendResponseModel[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("addMembers");
+
+  useEffect(() => {
+    if (visible && user?.id) {
+      fetchFriends();
+    }
+  }, [visible, user?.id]);
+
+  useEffect(() => {
+    if (visible) {
+      setSelectedFriends([]);
+    }
+  }, [visible]);
+
+  const fetchFriends = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    try {
+      const response = await defaultProfileRepo.getListFriends({
+        user_id: user.id,
+        limit: 50,
+        page: 1
+      });
+      
+      if (response.data) {
+        const availableFriends = (response.data as FriendResponseModel[])
+          .filter(friend => !existingMemberIds.includes(friend.id || ''));
+        setFriends(availableFriends);
+      }
+    } catch (error) {
+      console.error("Error fetching friends:", error);
+      message.error(localStrings.Messages.ErrorFetchingFriends);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleFriendSelection = (friendId: string) => {
+    if (selectedFriends.includes(friendId)) {
+      setSelectedFriends(prev => prev.filter(id => id !== friendId));
+    } else {
+      setSelectedFriends(prev => [...prev, friendId]);
+    }
+  };
+
+  const handleAddMembers = async () => {
+    if (!conversationId) {
+      message.error(localStrings.Public.Error);
+      return;
+    }
+    
+    if (selectedFriends.length === 0) {
+      message.warning(localStrings.Messages?.SelectAtLeastOneFriend);
+      return;
+    }
+    
+    setAdding(true);
+    
+    try {
+      await onAddMembers(selectedFriends);
+      message.success(localStrings.Messages.MembersAdded);
+      onCancel();
+    } catch (error) {
+      console.error("Error adding members:", error);
+      message.error(localStrings.Public.Error);
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const tabItems = [
+    {
+      key: 'addMembers',
+      label: localStrings.Messages.AddMembers,
+      children: (
+        <div>
+          {loading ? (
+            <div style={{ textAlign: "center", padding: 24 }}>
+              <Spin />
+            </div>
+          ) : (
+            <List
+              style={{ 
+                maxHeight: 300, 
+                overflow: "auto", 
+                border: "1px solid #d9d9d9", 
+                borderRadius: 4,
+                padding: "8px 0"
+              }}
+              dataSource={friends}
+              renderItem={friend => (
+                <List.Item 
+                  key={friend.id}
+                  onClick={() => toggleFriendSelection(friend.id!)}
+                  style={{ 
+                    cursor: "pointer", 
+                    padding: "8px 16px",
+                    background: selectedFriends.includes(friend.id!) ? "rgba(0, 0, 0, 0.05)" : "transparent"
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                    <Checkbox 
+                      checked={selectedFriends.includes(friend.id!)}
+                      onChange={() => toggleFriendSelection(friend.id!)}
+                    />
+                    <Avatar 
+                      src={friend.avatar_url} 
+                      style={{ 
+                        marginLeft: 8,
+                        backgroundColor: !friend.avatar_url ? brandPrimary : undefined 
+                      }}
+                    >
+                      {!friend.avatar_url && (friend.name?.charAt(0) || "").toUpperCase()}
+                    </Avatar>
+                    <span style={{ marginLeft: 12 }}>
+                      {`${friend.family_name || ''} ${friend.name || ''}`}
+                    </span>
+                  </div>
+                </List.Item>
+              )}
+              locale={{ emptyText: localStrings.Messages.NoFriendsToAdd }}
+            />
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'currentMembers',
+      label: localStrings.Messages.CurrentMembers,
+      children: (
+        <List
+          style={{ 
+            maxHeight: 300, 
+            overflow: "auto", 
+            border: "1px solid #d9d9d9", 
+            borderRadius: 4,
+            padding: "8px 0"
+          }}
+          dataSource={existingMembers}
+          renderItem={member => (
+            <List.Item 
+              key={member.id}
+              style={{ 
+                padding: "8px 16px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                <Avatar 
+                  src={member.avatar_url} 
+                  style={{ 
+                    marginLeft: 8,
+                    backgroundColor: !member.avatar_url ? brandPrimary : undefined 
+                  }}
+                >
+                  {!member.avatar_url && (member.name?.charAt(0) || "").toUpperCase()}
+                </Avatar>
+                <span style={{ marginLeft: 12 }}>
+                  {`${member.family_name || ''} ${member.name || ''}`}
+                  {member.id === user?.id ? ` (${localStrings.Messages.You})` : ''}
+                </span>
+              </div>
+            </List.Item>
+          )}
+          locale={{ emptyText: localStrings.Messages.NoMembersInConversation }}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <Modal
+      open={visible}
+      title={localStrings.Messages.ManageMembers}
+      onCancel={onCancel}
+      okText={localStrings.Messages.Add}
+      cancelText={localStrings.Public.Cancel}
+      onOk={handleAddMembers}
+      confirmLoading={adding}
+      okButtonProps={{ 
+        disabled: selectedFriends.length === 0 || activeTab === "currentMembers"
+      }}
+    >
+      <Tabs 
+        activeKey={activeTab} 
+        onChange={setActiveTab}
+        items={tabItems}
+      />
+    </Modal>
+  );
+};
+
+interface DateSeparatorProps {
+  date: string;
+}
+
+const DateSeparator: React.FC<DateSeparatorProps> = ({ date }) => {
+    return (
+      <div 
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          margin: "16px 0",
+          position: "relative",
+          width: "100%"
+        }}
+      >
+        <div 
+          style={{
+            width: "100%",
+            height: "1px",
+            backgroundColor: "rgba(0, 0, 0, 0.1)",
+            position: "absolute",
+            zIndex: 1
+          }}
+        />
+        <div 
+          style={{
+            backgroundColor: "#f0f2f5",
+            padding: "4px 12px",
+            borderRadius: "16px",
+            fontSize: "12px",
+            color: "#65676B",
+            position: "relative",
+            zIndex: 2
+          }}
+        >
+          {date}
+        </div>
+      </div>
+    );
+};
+
+const { Dragger } = Upload;
+
+interface EditConversationModalProps {
+  visible: boolean;
+  onCancel: () => void;
+  onUpdateConversation: (name: string, image?: File | string) => Promise<any>;
+  currentConversation: ConversationResponseModel | null;
+}
+
+const EditConversationModal: React.FC<EditConversationModalProps> = ({ 
+  visible, 
+  onCancel, 
+  onUpdateConversation,
+  currentConversation
+}) => {
+  const { localStrings } = useAuth();
+  const { brandPrimary } = useColor();
+  const [form] = Form.useForm();
+  const [updating, setUpdating] = useState(false);
+  const [conversationImage, setConversationImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (visible && currentConversation) {
+      form.setFieldsValue({
+        name: currentConversation.name
+      });
+      
+      if (currentConversation.image) {
+        setImagePreview(currentConversation.image);
+      } else {
+        setImagePreview(null);
+      }
+    }
+  }, [visible, currentConversation, form]);
+
+  const handleImageUpload = (info: any) => {
+    const file = info.file;
+    
+    if (!file) {
+      console.error("Không tìm thấy file:", info);
+      return false;
+    }
+    
+    const isImage = file.type.startsWith('image/');
+    const isLt5M = file.size / 1024 / 1024 < 5;
+    
+    if (!isImage) {
+      message.error(localStrings.Messages.OnlyImageFiles);
+      return false;
+    }
+    
+    if (!isLt5M) {
+      message.error(localStrings.Messages.ImageMustSmallerThan5M);
+      return false;
+    }
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const previewUrl = reader.result as string;
+      setImagePreview(previewUrl);
+    };
+    reader.readAsDataURL(file);
+    
+    setConversationImage(file);
+    return false; 
+  };
+
+  const removeImage = () => {
+    setConversationImage(null);
+    setImagePreview(null);
+  };
+
+  const handleUpdateConversation = async () => {
+    try {
+      await form.validateFields();
+      const values = form.getFieldsValue();
+      
+      setUpdating(true);
+      
+      let imageToSend: File | string | undefined = undefined;
+      
+      if (conversationImage) {
+        imageToSend = conversationImage;
+      } else if (imagePreview && (!currentConversation?.image || imagePreview !== currentConversation.image)) {
+        imageToSend = imagePreview;
+      }
+      
+      await onUpdateConversation(values.name, imageToSend);
+      
+      form.resetFields();
+      setConversationImage(null);
+      setImagePreview(null);
+      
+      onCancel();
+    } catch (error) {
+      console.error("Error updating conversation:", error);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  return (
+    <Modal
+      open={visible}
+      title={localStrings.Messages.EditConversation}
+      onCancel={onCancel}
+      footer={[
+        <Button key="cancel" onClick={onCancel}>
+          {localStrings.Public.Cancel}
+        </Button>,
+        <Button 
+          key="update" 
+          type="primary" 
+          onClick={handleUpdateConversation} 
+          loading={updating}
+        >
+          {localStrings.Messages.Update}
+        </Button>
+      ]}
+    >
+      <Form form={form} layout="vertical">
+        <Form.Item 
+          name="name" 
+          label={localStrings.Messages.ConversationName}
+          rules={[{ required: true, message: localStrings.Messages.ConversationNameRequired}]}
+        >
+          <Input placeholder={localStrings.Messages.GroupName} />
+        </Form.Item>
+        
+        {/* Image Upload Section */}
+        <Form.Item 
+          name="image" 
+          label={localStrings.Messages?.ConversationImage}
+        >
+          <Dragger
+            name="avatar"
+            multiple={false}
+            showUploadList={false}
+            beforeUpload={() => false}
+            onChange={(info) => {
+              handleImageUpload(info);
+            }}
+            accept="image/*"
+          >
+            {imagePreview ? (
+              <div style={{ 
+                position: 'relative',
+                width: '100%',
+                height: '200px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                overflow: 'hidden'
+              }}>
+                <img 
+                  src={imagePreview} 
+                  alt="Conversation" 
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '200px', 
+                    objectFit: 'contain' 
+                  }} 
+                />
+                <Button 
+                  type="text" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeImage();
+                  }}
+                  style={{ 
+                    position: 'absolute', 
+                    top: 5, 
+                    right: 5, 
+                    zIndex: 10,
+                    background: 'rgba(255, 255, 255, 0.7)'
+                  }}
+                >
+                  {localStrings.Messages.Remove}
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">
+                  {localStrings.Messages?.ClickOrDragImageToUpload}
+                </p>
+                <p className="ant-upload-hint">
+                  {localStrings.Messages?.SupportSingleImageUpload}
+                </p>
+              </div>
+            )}
+          </Dragger>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};
+
+interface MessageItemProps {
+  message: MessageResponseModel;
+  onDelete: (messageId: string) => void;
+}
+
+const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
+  const { user, localStrings } = useAuth();
+  const { brandPrimary, lightGray } = useColor();
+  const [hovering, setHovering] = useState(false);
+  
+  const isMyMessage = message.user_id === user?.id;
+  
+  const formatMessageTime = (timestamp: string) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+  
+  const handleDelete = () => {
+    if (message.id) {
+      onDelete(message.id);
+    }
+  };
+  
+  const menuItems = [
+    {
+      key: "delete",
+      label: (
+        <Popconfirm
+          title={localStrings.Messages.ConfirmDeleteMessage}
+          onConfirm={handleDelete}
+          okText={localStrings.Public.Yes}
+          cancelText={localStrings.Public.No}
+        >
+          <span>
+            <DeleteOutlined style={{ marginRight: 8 }} />
+            {localStrings.Public.Delete}
+          </span>
+        </Popconfirm>
+      ),
+      style: { padding: "8px 16px" }
+    }
+  ];
+  
+  return (
+    <div 
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+      style={{
+        display: "flex",
+        justifyContent: isMyMessage ? "flex-end" : "flex-start",
+        marginBottom: 16,
+        position: "relative"
+      }}
+    >
+      {!isMyMessage && (
+        <Avatar 
+          src={message.user?.avatar_url} 
+          size={32}
+          style={{ marginRight: 8, alignSelf: "flex-end" }}
+        >
+          {!message.user?.avatar_url && message.user?.name?.charAt(0)}
+        </Avatar>
+      )}
+      <div 
+        style={{
+          maxWidth: "70%",
+          padding: "8px 12px",
+          borderRadius: 12,
+          background: isMyMessage ? brandPrimary : lightGray,
+          color: isMyMessage ? "#fff" : "inherit",
+          position: "relative",
+          border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
+        }}
+      >
+        {!isMyMessage && (
+          <div style={{ fontSize: 12, marginBottom: 2, fontWeight: "bold", color: isMyMessage ? "#fff" : "inherit" }}>
+            {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
+          </div>
+        )}
+        
+        <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", color: isMyMessage ? "#fff" : "inherit" }}>
+          {message.content}
+        </div>
+        
+        <div style={{ fontSize: 10, textAlign: "right", marginTop: 4, opacity: 0.7 }}>
+          {message.isTemporary ? (
+            <span style={{ color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit" }}>
+            </span>
+          ) : (
+            <span style={{ 
+              color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end"
+            }}>
+              {formatMessageTime(message.created_at || '')}
+            </span>
+          )}
+        </div>
+      </div>
+      
+      {/* Message Options Dropdown (only for the user's own messages) */}
+      {isMyMessage && hovering && !message.isTemporary && (
+        <Dropdown 
+          menu={{ items: menuItems }} 
+          trigger={["click"]}
+          placement="bottomRight"
+        >
+          <div
+            style={{
+              position: "absolute",
+              right: "calc(100% - 8px)",
+              top: 0,
+              cursor: "pointer",
+              padding: 4,
+              borderRadius: "50%",
+              background: "#f0f0f0",
+              zIndex: 1
+            }}
+          >
+            <EllipsisOutlined style={{ fontSize: 16 }} />
+          </div>
+        </Dropdown>
+      )}
+    </div>
+  );
+};
+
+interface NewConversationModalProps {
+  visible: boolean;
+  onCancel: () => void;
+  onCreateConversation: (name: string, image?: File | string, userIds?: string[]) => Promise<any>;
+}
+
+const NewConversationModal: React.FC<NewConversationModalProps> = ({ 
+  visible, 
+  onCancel, 
+  onCreateConversation 
+}) => {
+  const { user, localStrings } = useAuth();
+  const { brandPrimary } = useColor();
+  const [form] = Form.useForm();
+  const [friends, setFriends] = useState<FriendResponseModel[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [conversationImage, setConversationImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (visible && user?.id) {
+      fetchFriends();
+    }
+  }, [visible, user?.id]);
+
+  useEffect(() => {
+    if (visible) {
+      form.resetFields();
+      setSelectedFriends([]);
+      setConversationImage(null);
+      setImagePreview(null);
+    }
+  }, [visible]);
+
+  const fetchFriends = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    try {
+      const response = await defaultProfileRepo.getListFriends({
+        user_id: user.id,
+        limit: 50,
+        page: 1
+      });
+      
+      if (response.data) {
+        setFriends(response.data as FriendResponseModel[]);
+      }
+    } catch (error) {
+      console.error("Error fetching friends:", error);
+      message.error(localStrings.Messages.ErrorFetchingFriends);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageUpload = (info: any) => {
+    const file = info.file;
+    
+    if (!file) {
+      console.error("Không tìm thấy file:", info);
+      return false;
+    }
+    
+    const isImage = file.type.startsWith('image/');
+    const isLt5M = file.size / 1024 / 1024 < 5;
+    
+    if (!isImage) {
+      message.error(localStrings.Messages.OnlyImageFiles);
+      return false;
+    }
+    
+    if (!isLt5M) {
+      message.error(localStrings.Messages.ImageMustSmallerThan5M);
+      return false;
+    }
+    
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const previewUrl = reader.result as string;
+      setImagePreview(previewUrl);
+    };
+    reader.readAsDataURL(file);
+    
+    setConversationImage(file);
+    return false; 
+  };
+
+  const removeImage = () => {
+    setConversationImage(null);
+    setImagePreview(null);
+  };
+
+  const handleCreateConversation = async () => {
+    try {
+      await form.validateFields();
+      const values = form.getFieldsValue();
+      
+      if (selectedFriends.length === 0) {
+        message.warning(localStrings.Messages.SelectAtLeastOneFriend);
+        return;
+      }
+      
+      setCreating(true);
+      
+      const selectedUsers = selectedFriends.map(id => 
+        friends.find(friend => friend.id === id)
+      ).filter(Boolean) as FriendResponseModel[];
+      
+      let conversationName = values.name;
+      if (!conversationName && selectedUsers.length > 0) {
+        conversationName = selectedUsers
+          .map(user => `${user.family_name || ''} ${user.name || ''}`.trim())
+          .join(", ");
+      }
+      
+      const userIdsToAdd = [
+        ...(user?.id ? [user.id] : []), 
+        ...selectedFriends
+      ];
+      
+      const newConversation = await onCreateConversation(
+        conversationName, 
+        conversationImage || undefined, 
+        userIdsToAdd
+      );
+      
+      if (newConversation && newConversation.id) {
+        form.resetFields();
+        setSelectedFriends([]);
+        setConversationImage(null);
+        setImagePreview(null);
+        
+        onCancel();
+      }
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const toggleFriendSelection = (friendId: string) => {
+    if (selectedFriends.includes(friendId)) {
+      setSelectedFriends(prev => prev.filter(id => id !== friendId));
+    } else {
+      setSelectedFriends(prev => [...prev, friendId]);
+    }
+  };
+
+  return (
+    <Modal
+      open={visible}
+      title={localStrings.Messages.NewConversation}
+      onCancel={onCancel}
+      footer={[
+        <Button key="cancel" onClick={onCancel}>
+          {localStrings.Public.Cancel}
+        </Button>,
+        <Button 
+          key="create" 
+          type="primary" 
+          onClick={handleCreateConversation} 
+          loading={creating}
+          disabled={selectedFriends.length === 0}
+        >
+          {localStrings.Messages.Create}
+        </Button>
+      ]}
+    >
+      <Form form={form} layout="vertical">
+        <Form.Item 
+          name="name" 
+          label={localStrings.Messages.ConversationName}
+        >
+          <Input placeholder={localStrings.Messages.OptionalGroupName} />
+        </Form.Item>
+        
+        {/* Image Upload Section */}
+        <Form.Item 
+          name="image" 
+          label={localStrings.Messages.ConversationImage}
+        >
+          <Dragger
+            name="avatar"
+            multiple={false}
+            showUploadList={false}
+            beforeUpload={() => false} 
+            onChange={(info) => {
+              handleImageUpload(info);
+            }}
+            accept="image/*"
+          >
+            {imagePreview ? (
+              <div style={{ 
+                position: 'relative',
+                width: '100%',
+                height: '200px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                overflow: 'hidden'
+              }}>
+                <img 
+                  src={imagePreview} 
+                  alt="Conversation" 
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '200px', 
+                    objectFit: 'contain' 
+                  }} 
+                />
+                <Button 
+                  type="text" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeImage();
+                  }}
+                  style={{ 
+                    position: 'absolute', 
+                    top: 5, 
+                    right: 5, 
+                    zIndex: 10,
+                    background: 'rgba(255, 255, 255, 0.7)'
+                  }}
+                >
+                  {localStrings.Messages.Remove}
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">
+                  {localStrings.Messages.ClickOrDragImageToUpload}
+                </p>
+                <p className="ant-upload-hint">
+                  {localStrings.Messages.SupportSingleImageUpload}
+                </p>
+              </div>
+            )}
+          </Dragger>
+        </Form.Item>
+        
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: "block", marginBottom: 8 }}>
+            {localStrings.Public.Messages}
+          </label>
+          
+          {loading ? (
+            <div style={{ textAlign: "center", padding: 24 }}>
+              <Spin />
+            </div>
+          ) : (
+            <List
+              style={{ 
+                maxHeight: 300, 
+                overflow: "auto", 
+                border: "1px solid #d9d9d9", 
+                borderRadius: 4,
+                padding: "8px 0"
+              }}
+              dataSource={friends}
+              renderItem={friend => (
+                <List.Item 
+                  key={friend.id}
+                  onClick={() => toggleFriendSelection(friend.id!)}
+                  style={{ 
+                    cursor: "pointer", 
+                    padding: "8px 16px",
+                    background: selectedFriends.includes(friend.id!) ? "rgba(0, 0, 0, 0.05)" : "transparent"
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                    <Checkbox 
+                      checked={selectedFriends.includes(friend.id!)}
+                      onChange={() => toggleFriendSelection(friend.id!)}
+                    />
+                    <Avatar 
+                      src={friend.avatar_url} 
+                      style={{ 
+                        marginLeft: 8,
+                        backgroundColor: !friend.avatar_url ? brandPrimary : undefined 
+                      }}
+                    >
+                      {!friend.avatar_url && (friend.name?.charAt(0) || "").toUpperCase()}
+                    </Avatar>
+                    <span style={{ marginLeft: 12 }}>
+                      {`${friend.family_name || ''} ${friend.name || ''}`}
+                    </span>
+                  </div>
+                </List.Item>
+              )}
+              locale={{ emptyText: localStrings.Messages.NoFriendsFound}}
+            />
+          )}
+        </div>
+      </Form>
+    </Modal>
+  );
+};
 
 const { Header, Content, Sider } = Layout;
 const { Search } = Input;
@@ -26,6 +916,7 @@ const MessagesFeature: React.FC = () => {
   const { user, localStrings } = useAuth();
   const searchParams = useSearchParams(); // Thêm để lấy query params
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
+  const [existingMembers, setExistingMembers] = useState<FriendResponseModel[]>([]);
   const {
     deleteMessage,
     createConversation,
@@ -179,15 +1070,52 @@ const MessagesFeature: React.FC = () => {
       const response = await defaultMessagesRepo.getConversationDetailByUserID({
         conversation_id: conversationId
       });
-
+  
       if (response.data) {
         const members = Array.isArray(response.data) ? response.data : [response.data];
+        
         const memberIds = members.map(member => member.user_id).filter(Boolean) as string[];
         setExistingMemberIds(memberIds);
+        
+        const membersWithDetails = members.filter(member => member.user && member.user.id);
+        
+        if (membersWithDetails.length > 0) {
+          const memberProfiles = membersWithDetails.map(member => ({
+            id: member.user?.id,
+            name: member.user?.name,
+            family_name: member.user?.family_name,
+            avatar_url: member.user?.avatar_url
+          }));
+          
+          setExistingMembers(memberProfiles as FriendResponseModel[]);
+        } else {
+          const membersPromises = memberIds.map(async (userId) => {
+            try {
+              if (userId === user?.id) {
+                return {
+                  id: user.id,
+                  name: user.name,
+                  family_name: user.family_name,
+                  avatar_url: user.avatar_url
+                };
+              }
+              
+              return null;
+            } catch (error) {
+              console.error("Error fetching user details:", error);
+              return null;
+            }
+          });
+          
+          const membersDetails = await Promise.all(membersPromises);
+          const validMembers = membersDetails.filter(Boolean) as FriendResponseModel[];
+          setExistingMembers(validMembers);
+        }
       }
     } catch (error) {
       console.error("Error fetching conversation members:", error);
       setExistingMemberIds([]);
+      setExistingMembers([]);
     }
   };
 
@@ -879,9 +1807,10 @@ const MessagesFeature: React.FC = () => {
         onAddMembers={handleAddMembers}
         conversationId={currentConversation?.id}
         existingMemberIds={existingMemberIds}
+        existingMembers={existingMembers}
       />
     </Layout>
   );
 };
 
-export default MessagesFeature;
+export default MessagesFeature
