@@ -70,7 +70,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
   const chartData = statsData || ad;
   const data = {
     labels:
-      chartData?.statistics?.map((stat) => dayjs(stat.aggregation_date).format("DD/MM")) ||
+      chartData?.statistics?.map((stat) => dayjs(stat.aggregation_date).format("HH:mm:ss DD/MM")) ||
       ad.labels ||
       [],
     datasets: [

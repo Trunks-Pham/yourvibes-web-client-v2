@@ -130,7 +130,7 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
             const reachData = statistics.map((stat: StatisticEntry) => stat.reach || 0);
             const impressionsData = statistics.map((stat: StatisticEntry) => stat.impression || 0);
             const labels = statistics.map((stat: StatisticEntry) =>
-              dayjs(stat.aggregation_date).format("DD/MM")
+              dayjs(stat.aggregation_date).format("HH:mm:ss DD/MM")
             );
 
             let adStatus = ad.status?.toString() || "N/A";
