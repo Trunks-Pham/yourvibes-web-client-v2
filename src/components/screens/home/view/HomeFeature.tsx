@@ -55,7 +55,7 @@ const Homepage = ({ }: any) => {
             cursor: "pointer",
             width: "100%",
             maxWidth: "600px",
-            position: "relative",  
+            position: "relative",
           }}
         >
           <Avatar
@@ -68,15 +68,15 @@ const Homepage = ({ }: any) => {
               <b>{user?.family_name + " " + user?.name || localStrings.Public.Username}</b>
             </p>
             <p style={{ color: "gray" }}>{localStrings.Public.Today}</p>
-          </div> 
+          </div>
           <span
             style={{
               position: "absolute",
               right: "10px",
               fontSize: "24px",
               fontWeight: "bold",
-              color: brandPrimary || "#1890ff",  
-              backgroundColor: "rgba(255, 255, 255, 0.9)", 
+              color: brandPrimary || "#1890ff",
+              backgroundColor: "rgba(255, 255, 255, 0.9)",
               padding: "5px",
               borderRadius: "50%",
               display: "flex",
@@ -84,7 +84,7 @@ const Homepage = ({ }: any) => {
               justifyContent: "center",
               width: "30px",
               height: "30px",
-              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",  
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
             }}
           >
             +
@@ -187,7 +187,10 @@ const Homepage = ({ }: any) => {
       ) : (
         <>
           <div className="flex-auto w-auto flex flex-col items-center justify-center">
-            {renderAddPost()}
+            {renderAddPost()}    
+            <div style={{ width: "100%", maxWidth: "600px" }}>
+              <FriendSuggestions postIndex={0} />
+            </div>
             <div style={{ width: "100%" }}>
               {newFeeds?.length > 0 ? (
                 <InfiniteScroll
@@ -203,8 +206,7 @@ const Homepage = ({ }: any) => {
                         {item?.parent_post &&
                           <Post post={item?.parent_post} isParentPost />
                         }
-                      </Post>
-                      {index === 4 && <FriendSuggestions postIndex={index} />}
+                      </Post> 
                     </div>
                   ))}
                 </InfiniteScroll>
