@@ -1,8 +1,3 @@
-import { Select, Upload } from "antd";
-import Search from "antd/es/transfer/search";
-import { Chart } from "chart.js";
-import { changeLanguage } from "i18next";
-
 export const ENGLocalizedStrings = {
   Public: {
     All: "All",
@@ -75,6 +70,14 @@ export const ENGLocalizedStrings = {
     Delete: "Delete",
     GenericError: "An error occurred, please try again later!",
     Message: "Message",
+    Trending: "Trending",
+    People: "People",
+    Discover: "Discover People",
+    Connect: "Connect with new friends and expand your network",
+    UserNotFound: "User not found",
+    ShowOnlyUnrequested: "Show only unrequested friends",
+    SearchUsers: "Search users...",
+    ErrorLoading: "Error loading data!",
   },
 
   Suggested: {
@@ -204,7 +207,8 @@ export const ENGLocalizedStrings = {
     ShareContent:
       "Enter the content you want to share...",
     CharacterLimit: "10000 characters",
-    CharacterLimitR:"255 characters"
+    CharacterLimitR:"255 characters",
+    NoTrendingPosts: "No trending posts found",
   },
   PostDetails: {
     ViewReplies: "View replies",

@@ -1,4 +1,4 @@
-import { Carousel } from "antd";
+import { NotFoundBoundary } from "next/dist/client/components/not-found-boundary";
 
 export const VnLocalizedStrings = {
   Public: {
@@ -72,6 +72,14 @@ export const VnLocalizedStrings = {
     Delete: "Xóa",
     GenericError: "Đã xảy ra lỗi, vui lòng thử lại sau",
     Message: "Nhắn tin",
+    Trending: "Xu hướng",
+    People: "Mọi người",
+    Discover:"Khám phá mọi người",
+    Connect: "Kết nối với những người bạn mới và mở rộng mạng lưới của bạn",
+    UserNotFound: "Không tìm thấy người dùng",
+    ShowOnlyUnrequested: "Chỉ hiển thị những người chưa gửi lời mời",
+    SearchUsers: "Tìm người dùng", 
+    ErrorLoading: "Lỗi tải dữ liệu",
   },
   Suggested: {
     SuggestedFriends: "Những người bạn có thể biết",
@@ -200,6 +208,7 @@ export const VnLocalizedStrings = {
     ShareContent: "Nhập nội dung chia sẻ của bạn...",
     CharacterLimit: "10000 ký tự",
     CharacterLimitR: "255 ký tự",
+    NoTrendingPosts: "No trending posts found",
   },
   PostDetails: {
     ViewReplies: "Xem phản hồi",
