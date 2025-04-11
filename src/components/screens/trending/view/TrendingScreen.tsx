@@ -32,7 +32,7 @@ const TrendingScreen = () => {
     if (user) {
       fetchMyFriends(page); // Fetch friends when user is available
     }
-  }, [fetchTrendingPosts, user, page, fetchMyFriends]);
+  }, []);
 
   const handleDeletePost = (postId: string) => {
     setTrendingPosts((prevPosts) =>
