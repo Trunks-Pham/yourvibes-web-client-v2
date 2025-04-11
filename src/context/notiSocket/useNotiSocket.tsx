@@ -32,6 +32,8 @@ export const WebSocketNotiProvider: React.FC<{ children: React.ReactNode }> = ({
         if (!user?.id || wsNotificationRef.current) return;
 
         const ws = new WebSocket(`${ApiPath.GET_WS_PATH_NOTIFICATION}${user.id}`);
+        console.log(ApiPath.GET_WS_PATH_NOTIFICATION, user.id);
+        
         wsNotificationRef.current = ws;
 
         ws.onopen = () => console.log("🔗 WebSocket Notification connected");

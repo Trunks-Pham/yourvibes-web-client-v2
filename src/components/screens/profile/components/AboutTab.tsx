@@ -21,6 +21,7 @@ import ModalObjectProfile from "./ModalObjectProfile";
 import PostList from "./PostList";
 import { PostResponseModel } from "@/api/features/post/models/PostResponseModel";
 import ListFriends from "./ListFriends";
+import { CustomStatusCode } from "@/utils/helper/CustomStatus";
 
 const AboutTab = ({
   user,
@@ -124,7 +125,7 @@ const AboutTab = ({
                         </div>
                       )}
                     </div>
-                    {resultCode === 20001 ? (
+                    {resultCode === CustomStatusCode.ServerFailed ? (
                       <div>
                         {/* // email */}
                         <div className="flex flex-row mb-2">
@@ -165,13 +166,13 @@ const AboutTab = ({
                           </span>
                         </div>
                       </div>
-                    ) : resultCode === 50016 ? (
+                    ) : resultCode === CustomStatusCode.UserPrivateAccess ? (
                       <span className="text-center">
                         {" "}
                         {`${user?.family_name || ""} ${user?.name || ""} ${localStrings.Public.HideInfo
                           }`}
                       </span>
-                    ) : resultCode === 50015 ? (
+                    ) : resultCode === CustomStatusCode.UserFriendAccess ? (
                       <span className="text-center">{`${user?.family_name || ""
                         } ${user?.name || ""} ${localStrings.Public.HideInfo} ${localStrings.Public.FriendOnly
                         }`}</span>
