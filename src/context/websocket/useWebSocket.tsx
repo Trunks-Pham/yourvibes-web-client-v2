@@ -27,33 +27,20 @@ export const WebSocketMessageProvider = ({ children }: { children: ReactNode }) 
     if (!user?.id) {
       return;
     }
-  
-    let isComponentMounted = true;
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 5;
-  
-    const getReconnectDelay = () => {
-      const delay = Math.min(5000 * Math.pow(2, reconnectAttempts), 60000);
-      reconnectAttempts++;
-      return delay;
-    };
-  
+
     const connectWebSocket = () => {
-      if (!isComponentMounted) return;
-      
       try {
-        if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
+        if (wsRef.current) {
           wsRef.current.close();
         }
-  
+
         const wsUrl = `${ApiPath.CONNECT_TO_WEBSOCKET}${user.id}`;
         
         const ws = new WebSocket(wsUrl);
         
         ws.onopen = () => {
           setIsConnected(true);
-          reconnectAttempts = 0; 
-          
+          console.log("🔗 WebSocket Message connected");
           if (pingIntervalRef.current) {
             clearInterval(pingIntervalRef.current);
           }
@@ -63,10 +50,9 @@ export const WebSocketMessageProvider = ({ children }: { children: ReactNode }) 
               try {
                 ws.send(JSON.stringify({ type: "ping" }));
               } catch (err) {
-                console.error("Error sending ping:", err);
               }
             }
-          }, 15000);
+          }, 30000);
         };
         
         ws.onmessage = (event) => {
@@ -116,27 +102,19 @@ export const WebSocketMessageProvider = ({ children }: { children: ReactNode }) 
             pingIntervalRef.current = null;
           }
           
-          if (event.code !== 1000 && isComponentMounted) {
-            
+          if (event.code !== 1000) {
             if (reconnectTimeoutRef.current) {
               clearTimeout(reconnectTimeoutRef.current);
             }
             
-            if (reconnectAttempts < maxReconnectAttempts) {
-              const delay = getReconnectDelay();
-              
-              reconnectTimeoutRef.current = setTimeout(() => {
-                if (isComponentMounted) {
-                  connectWebSocket();
-                }
-              }, delay);
-            }
+            reconnectTimeoutRef.current = setTimeout(() => {
+              connectWebSocket();
+            }, 5000);
           }
         };
         
         wsRef.current = ws;
       } catch (error) {
-        console.error("Error establishing WebSocket connection:", error);
         setIsConnected(false);
       }
     };
@@ -145,8 +123,7 @@ export const WebSocketMessageProvider = ({ children }: { children: ReactNode }) 
     
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-          reconnectAttempts = 0;
+        if (wsRef.current?.readyState !== WebSocket.OPEN) {
           connectWebSocket();
         }
       }
@@ -158,21 +135,16 @@ export const WebSocketMessageProvider = ({ children }: { children: ReactNode }) 
     }
     
     return () => {
-      isComponentMounted = false;
-      
       if (wsRef.current) {
         wsRef.current.close(1000, "Component unmounting");
-        wsRef.current = null;
       }
       
       if (pingIntervalRef.current) {
         clearInterval(pingIntervalRef.current);
-        pingIntervalRef.current = null;
       }
       
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
-        reconnectTimeoutRef.current = null;
       }
       
       if (visibilityChangeHandled.current) {
