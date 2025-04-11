@@ -80,6 +80,11 @@ export const VnLocalizedStrings = {
     ShowOnlyUnrequested: "Chỉ hiển thị những người chưa gửi lời mời",
     SearchUsers: "Tìm người dùng", 
     ErrorLoading: "Lỗi tải dữ liệu",
+    FriendRequests: "Lời mời kết bạn", 
+    NoFriendRequests: "Không có lời mời kết bạn",
+    Accept: "Chấp nhận",
+    Decline: "Từ chối",
+    AllUsers: "Tất cả người dùng",
   },
   Suggested: {
     SuggestedFriends: "Những người bạn có thể biết",
