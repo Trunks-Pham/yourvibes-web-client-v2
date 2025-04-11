@@ -40,7 +40,7 @@ export const WebSocketMessageProvider = ({ children }: { children: ReactNode }) 
         
         ws.onopen = () => {
           setIsConnected(true);
-          
+          console.log("🔗 WebSocket Message connected");
           if (pingIntervalRef.current) {
             clearInterval(pingIntervalRef.current);
           }

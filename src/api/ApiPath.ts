@@ -78,6 +78,7 @@ export const ApiPath = {
   GET_MESSAGE_BY_ID: getApiPath('messages/message/'),
   DELETE_MESSAGE: getApiPath('messages/message/'),
   CONNECT_TO_WEBSOCKET: getApiPath('messages/ws/'),
+  GET_WS_PATH_MESSAGE: getWSPath("messages/ws/"),
 
   //Suggestion
   GET_SUGGESTION: getApiPath('users/friends/suggestion'),
