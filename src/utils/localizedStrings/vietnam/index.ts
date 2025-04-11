@@ -316,7 +316,7 @@ export const VnLocalizedStrings = {
   Ads: {
     Ads: "Quảng cáo bài viết",
     TimeAndBudget: "Khoảng thời gian và Ngân sách",
-    Minimum: "Tối thiểu: {{price}}/1 ngày (Tối đa: 30 ngày)",
+    Minimum: "- Tối thiểu: {{price}}/1 ngày (Tối đa: 30 ngày)",
     DaysAds: "Số ngày quảng cáo:",
     TimeAds: "Thời gian quảng cáo: ",
     BudgetAds: "Ngân sách: ",
@@ -362,6 +362,7 @@ export const VnLocalizedStrings = {
     HistoryforPost: "Lịch sử quảng cáo cho bài viết",
     NoAdsHistory: "Không có lịch sử quảng cáo",
     Discount: "Giảm giá",
+    LimitDay: "- Giới hạn 30 ngày vì phương thức thanh toán MOMO không hỗ trợ thanh toán vượt hơn 30 ngày!",
   },
 
 
