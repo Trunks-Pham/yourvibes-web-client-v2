@@ -22,6 +22,10 @@
       "@/*": ["./src/*"]
     }
   },
+  "ts-node": {
+    "esm": true,
+    "moduleResolution": "Node" // Thêm để tương thích với ts-node
+  },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".ev"],
   "exclude": ["node_modules"]
 }
