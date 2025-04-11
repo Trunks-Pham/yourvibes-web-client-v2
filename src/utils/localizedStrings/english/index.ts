@@ -316,7 +316,7 @@ export const ENGLocalizedStrings = {
   Ads: {
     Ads: "Post Advertisement",
     TimeAndBudget: "Duration and Budget",
-    Minimum: "Minimum: {{price}}/day (Max date: 30 days)",
+    Minimum: "- Minimum: {{price}}/day (Max date: 30 days)",
     DaysAds: "Number of advertisement days:",
     TimeAds: "Advertisement duration: ",
     StartDate: "Start Date",
@@ -364,6 +364,7 @@ export const ENGLocalizedStrings = {
     NoAdsHistory: "No ads history",
     HistoryforPost: "History for post",
     Discount: "Discount",
+    LimitDay: "- 30-day limit because the MOMO payment method does not support payments beyond 30 days!",
   },
 
   Report: {
