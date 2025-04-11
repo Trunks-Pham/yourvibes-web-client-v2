@@ -1,7 +1,7 @@
 "use client";
 
-import React, { use, useState } from "react";
-import { Layout, Menu, Input, Grid, ConfigProvider, Modal, Avatar } from "antd";
+import React, { useState } from "react";
+import { Layout, Menu, Grid, ConfigProvider, Modal, Avatar } from "antd";
 import { createElement } from "react";
 import {
   FaHome,
@@ -13,15 +13,17 @@ import {
 } from "react-icons/fa";
 import { HiTrendingUp } from "react-icons/hi";
 import { useAuth } from "@/context/auth/useAuth";
-import { usePathname, useRouter, useSearchParams } from "next/navigation"; 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import SearchScreen from "@/components/screens/search/views/SearchScreen";
-import { Content, Footer, Header } from "antd/es/layout/layout";
+import { Content, Header } from "antd/es/layout/layout";
 import Sider from "antd/es/layout/Sider";
 import useColor from "@/hooks/useColor";
 import SettingsTab from "@/components/screens/profile/components/SettingTabs";
-import NotificationScreen from "@/components/screens/notification/views/Notification"; 
-import { FaPeopleGroup  } from "react-icons/fa6";
+import NotificationScreen from "@/components/screens/notification/views/Notification";
+import { FaPeopleGroup } from "react-icons/fa6";
+
 const { useBreakpoint } = Grid;
+
 const siderStyle: React.CSSProperties = {
   overflow: "auto",
   height: "100vh",
@@ -36,8 +38,7 @@ const siderStyle: React.CSSProperties = {
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [visible, setVisible] = useState(false);
   const { backgroundColor, lightGray } = useColor();
-  const [searchQuery, setSearchQuery] = useState("");
-  const {user, localStrings } = useAuth();
+  const { user, localStrings } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -61,9 +62,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         link: "/trending",
         content: localStrings.Public.Trending,
         icon: HiTrendingUp,
-      }, 
+      },
       {
-        link: "people",
+        link: "/people",
         content: localStrings.Public.People,
         icon: FaPeopleGroup,
       },
@@ -78,15 +79,15 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         icon: FaBell,
       },
       {
-        link:"/adsManagement",
+        link: "/adsManagement",
         content: localStrings.Ads.AdsManagement,
         icon: FaAd,
-      }, 
+      },
       {
         link: "/settings",
         content: localStrings.Public.Settings,
         icon: FaCog,
-      },  
+      },
     ],
   };
 
@@ -115,10 +116,17 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     } else if (link === "/notifications") {
       setNotificationModal(true);
     } else {
-      router.push(link); 
+      router.push(link);
     }
-    setVisible(false); 
+    setVisible(false);
   };
+
+  // Define the header navigation items
+  const headerNavItems = [
+    { label: "FEED", link: "/home" },
+    { label: "PEOPLE", link: "/people" },
+    { label: "TRENDING", link: "/trending" },
+  ];
 
   return (
     <Layout>
@@ -126,16 +134,17 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         style={{
           position: "sticky",
           top: 0,
-          backgroundColor: backgroundColor,
-          padding: "0 20px",
-          borderBottom: "1px solid #000000",
+          backgroundColor: "#F5F5F5",
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "space-between", // Logo trái, User/Avatar phải
           alignItems: "center",
           width: "100%",
           zIndex: 100,
+          padding: screens.lg ? "0 50px" : "0 10px", // Giảm padding khi responsive
+          borderBottom: "1px solid #e0e0e0",
         }}
       >
+        {/* Left Section: Logo */}
         <div
           style={{
             display: "flex",
@@ -146,27 +155,133 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           <img
             src="/image/yourvibes_black.png"
             alt="YourVibes"
-            style={{ height: "40px" }}
+            style={{ height: "40px", cursor: "pointer" }}
             onClick={() => router.push("/home")}
           />
-          <SearchScreen />
         </div>
+
+        {/* Center Section: Navigation Tabs (chỉ hiển thị ở giữa khi full-screen) */}
+        {screens.lg && (
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "600px",
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+              backgroundColor: "#ccc",
+              borderRadius: "20px",
+              padding: "5px 10px",
+              display: "inline-flex",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                gap: "20px",
+                alignItems: "center",
+              }}
+            >
+              {headerNavItems.map((item) => {
+                const isActive = isActived(item.link);
+                return (
+                  <div
+                    key={item.label}
+                    onClick={() => handleItemClick(item.link)}
+                    style={{
+                      padding: "10px 20px",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                      color: isActive ? "#1DA1F2" : "#000",
+                      borderBottom: isActive ? "2px solid #1DA1F2" : "none",
+                      transition: "color 0.3s, border-bottom 0.3s",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    {item.label}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Right Section: User Name and Avatar */}
         <div
-          className="flex flex-row items-center gap-4 pl-2"
-          onClick={handleMenuClick}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "15px",
+          }}
         >
-          <span className="font-bold md:block hidden">
-            {user?.family_name} {user?.name}
+          <div
+            className="flex flex-row items-center gap-4 pl-2"
+            onClick={handleMenuClick}
+            style={{ cursor: "pointer" }}
+          >
+            <span className="font-bold md:block hidden">
+              {user?.family_name} {user?.name}
             </span>
             <Avatar src={user?.avatar_url} alt={user?.name} size={40} />
+          </div>
         </div>
       </Header>
+
+      {/* Navigation Tabs khi responsive (dưới Header) */}
+      {!screens.lg && (
+        <div
+          style={{
+            width: "100%",
+            maxWidth: "600px",
+            backgroundColor: "#ccc",
+            borderRadius: "20px",
+            padding: "5px 10px",
+            display: "inline-flex",
+            justifyContent: "center",
+            margin: "10px auto", // Căn giữa và thêm khoảng cách
+            position: "relative",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: "20px",
+              alignItems: "center",
+            }}
+          >
+            {headerNavItems.map((item) => {
+              const isActive = isActived(item.link);
+              return (
+                <div
+                  key={item.label}
+                  onClick={() => handleItemClick(item.link)}
+                  style={{
+                    padding: "10px 20px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                    color: isActive ? "#1DA1F2" : "#000",
+                    borderBottom: isActive ? "2px solid #1DA1F2" : "none",
+                    transition: "color 0.3s, border-bottom 0.3s",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  {item.label}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <ConfigProvider
-        theme={{ components: {
-          Layout: {
-            siderBg: "rgb(244, 244, 244)"
-          }
-        }}}
+        theme={{
+          components: {
+            Layout: {
+              siderBg: "rgb(244, 244, 244)",
+            },
+          },
+        }}
       >
         <Layout>
           <Sider
@@ -193,8 +308,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                     itemBorderRadius: 5,
                     itemMarginBlock: 0,
                     itemHeight: 55,
-                  }
-
+                  },
                 },
               }}
             >
@@ -208,45 +322,47 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                     key: index.toString(),
                     label: (
                       <div>
-                         <div
-                        className={`h-4 flex items-center gap-4 w-full h-full px-4 pl-8`}
-                        style={{
-                          backgroundColor: actived ? "#C0C0C0" : "transparent",
-                          color: "black",
-                        }}
-                        onClick={() => handleItemClick(item.link)}
-                      >
-                        {createElement(item.icon, {
-                          size: 20,
-                        })}
-                        <span>{item.content}</span>
+                        <div
+                          className={`h-4 flex items-center gap-4 w-full h-full px-4 pl-8`}
+                          style={{
+                            backgroundColor: actived ? "#C0C0C0" : "transparent",
+                            color: "black",
+                          }}
+                          onClick={() => handleItemClick(item.link)}
+                        >
+                          {createElement(item.icon, {
+                            size: 20,
+                          })}
+                          <span>{item.content}</span>
+                        </div>
+                        <div>
+                          <hr className="border-t-2 border-gray-300" />
+                        </div>
                       </div>
-                      <div>
-                        <hr className="border-t-2 border-gray-300" />
-                      </div>
-                      </div>
-                     
                     ),
                     style: {
                       padding: 0,
                       cursor: "pointer",
-                      "&:hover": {
-                        backgroundColor: lightGray,
-                        color: "white",
-                      },
                     },
                   };
                 })}
               />
             </ConfigProvider>
           </Sider>
-          
+
           <Content
             style={{
               marginLeft: screens.lg ? 250 : 0,
             }}
           >
-            <div style={{ paddingLeft: 50, paddingRight: 50 }}>{children}</div>
+            <div
+              style={{
+                alignItems: "center",
+                marginLeft: screens.lg ? 70 : 0,
+              }}
+            >
+              {children}
+            </div>
           </Content>
         </Layout>
       </ConfigProvider>
@@ -277,7 +393,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 padding: "12px 20px",
                 fontSize: "16px",
               }}
-              onClick={() => handleItemClick(item.link)} 
+              onClick={() => handleItemClick(item.link)}
             >
               <div
                 style={{
@@ -293,6 +409,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           ))}
         </Menu>
       )}
+
       {settingModal && (
         <Modal
           open={settingModal}
@@ -300,13 +417,12 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           footer={null}
           width={500}
           centered
-          title={
-            <span className="font-bold">{localStrings.Public.Settings}</span>
-          }
+          title={<span className="font-bold">{localStrings.Public.Settings}</span>}
         >
           <SettingsTab setSettingModal={setSettingModal} />
         </Modal>
       )}
+
       {notificationModal && (
         <Modal
           open={notificationModal}

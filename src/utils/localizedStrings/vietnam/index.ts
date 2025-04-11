@@ -80,6 +80,11 @@ export const VnLocalizedStrings = {
     ShowOnlyUnrequested: "Chỉ hiển thị những người chưa gửi lời mời",
     SearchUsers: "Tìm người dùng", 
     ErrorLoading: "Lỗi tải dữ liệu",
+    FriendRequests: "Lời mời kết bạn", 
+    NoFriendRequests: "Không có lời mời kết bạn",
+    Accept: "Chấp nhận",
+    Decline: "Từ chối",
+    AllUsers: "Tất cả người dùng",
   },
   Suggested: {
     SuggestedFriends: "Những người bạn có thể biết",
@@ -458,6 +463,9 @@ export const VnLocalizedStrings = {
     SelectFriendsToAdd: "Chọn bạn bè để thêm",
     Add: "Thêm",
     MembersAdded: "Thêm thành viên thành công",
+    CurrentMembers: "Thành viên hiện tại",
+    NoMembersInConversation: "Không có thành viên nào trong cuộc trò chuyện",
+    ManageMembers: "Quản lý thành viên",
   }
 
 };

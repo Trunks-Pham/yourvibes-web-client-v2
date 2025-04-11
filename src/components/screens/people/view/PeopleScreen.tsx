@@ -1,147 +1,218 @@
 "use client";
-import React, { useEffect } from "react";
+
+import React from "react";
 import PeopleViewModel from "../viewModel/PeopleViewModel";
 import { useAuth } from "@/context/auth/useAuth";
+import { Spin, Empty, Button } from "antd";
+import SearchScreen from "@/components/screens/search/views/SearchScreen";
+
+const DEFAULT_AVATAR = "/assets/default-avatar.png";
 
 const PeopleScreens: React.FC = () => {
   const {
     users,
     loading,
+    loadingFriendRequests,
     hasMore,
     friendRequests,
-    fetchAllUsers,
+    incomingFriendRequests,
     handleAddFriend,
     handleCancelFriend,
+    handleAcceptFriendRequest,
+    handleDeclineFriendRequest,
     loadMoreUsers,
+    updateSearchResults,
   } = PeopleViewModel();
 
   const { localStrings } = useAuth();
 
-  useEffect(() => {
-    fetchAllUsers();
-  }, [fetchAllUsers]);
-
-  if (loading && users.length === 0) {
+  if (loading && users.length === 0 && loadingFriendRequests && incomingFriendRequests.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
-        <div className="relative">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-gray-400 border-solid"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-600 text-sm">
-            Loading
-          </div>
-        </div>
+        <Spin size="large" tip="Loading" style={{ color: "#4B5563" }} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-grey py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-
-        <div className="space-y-4">
-          {users.map((user) => (
-            <div
-              key={user.id}
-              className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300 border border-gray-100 flex items-center justify-between"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <img
-                    src={user.avatar_url || "/default-avatar.png"}
-                    alt={`${user.name}'s avatar`}
-                    className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/default-avatar.png";
-                    }}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-base font-medium text-gray-900 truncate">
-                    {user.name} {user.family_name}
-                  </h2>
-                  {user.email && (
-                    <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                  )}
-                </div>
+    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {incomingFriendRequests.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              {localStrings.Public.FriendRequests} ({incomingFriendRequests.length})
+            </h2>
+            {loadingFriendRequests ? (
+              <div className="flex justify-center items-center py-8">
+                <Spin size="large" />
               </div>
-              <div className="ml-4">
-                {friendRequests.has(user.id || "") ? (
-                  <button
-                    onClick={() => handleCancelFriend(user.id || "")}
-                    className="py-2 px-4 rounded-md bg-gray-100 text-gray-700 font-medium text-sm hover:bg-gray-200 border border-gray-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            ) : (
+              <div className="space-y-4">
+                {incomingFriendRequests.map((request) => (
+                  <div
+                    key={request.id}
+                    className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300 border border-gray-100 flex items-center justify-between"
                   >
-                    <span className="flex items-center">
-                      <svg
-                        className="w-4 h-4 mr-1"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M6 18L18 6M6 6l12 12"
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        <img
+                          src={request.from_user.avatar_url || DEFAULT_AVATAR}
+                          alt={`${request.from_user.name}'s avatar`}
+                          className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200"
                         />
-                      </svg>
-                      {localStrings.Public.CancelFriendRequest}
-                    </span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleAddFriend(user.id || "")}
-                    className="py-2 px-4 rounded-md bg-white text-gray-900 font-medium text-sm hover:bg-gray-50 border border-gray-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                  >
-                    {localStrings.Public.AddFriend}
-                  </button>
-                )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base font-medium text-gray-900 truncate">
+                          {request.from_user.name} {request.from_user.family_name}
+                        </h3> 
+                      </div>
+                    </div>
+                    <div className="ml-4 flex space-x-2">
+                      <Button
+                        type="primary"
+                        onClick={() => handleAcceptFriendRequest(request.from_user.id || "")}
+                        className="bg-green-500 hover:bg-green-600 border-none"
+                      >
+                        <span className="flex items-center">
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                          {localStrings.Public.Accept}
+                        </span>
+                      </Button>
+                      <Button
+                        danger
+                        onClick={() => handleDeclineFriendRequest(request.from_user.id || "")}
+                      >
+                        <span className="flex items-center">
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                          {localStrings.Public.Decline}
+                        </span>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
+            )}
+          </div>
+        )}
+
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            {localStrings.Public.AllUsers} ({users.length})
+          </h2>
+          <div className="mb-6">
+            <SearchScreen onSearchResults={updateSearchResults} />
+          </div>
+          {loading && users.length === 0 ? (
+            <div className="flex justify-center items-center py-8">
+              <Spin size="large" />
             </div>
-          ))}
+          ) : users.length === 0 ? (
+            <Empty
+              description={
+                <span className="text-gray-600 text-lg">
+                  {localStrings.Public.UserNotFound}
+                </span>
+              }
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+          ) : (
+            <>
+              <div className="space-y-4">
+                {users.map((user) => (
+                  <div
+                    key={user.id}
+                    className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300 border border-gray-100 flex items-center justify-between"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        <img
+                          src={user.avatar_url || DEFAULT_AVATAR}
+                          alt={`${user.name}'s avatar`}
+                          className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base font-medium text-gray-900 truncate">
+                          {user.name} {user.family_name}
+                        </h3>
+                        {user.email && (
+                          <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      {friendRequests.has(user.id || "") ? (
+                        <Button
+                          onClick={() => handleCancelFriend(user.id || "")}
+                          className="border-gray-300 text-gray-700 hover:text-gray-900"
+                        >
+                          <span className="flex items-center">
+                            <svg
+                              className="w-4 h-4 mr-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                            {localStrings.Public.CancelFriendRequest}
+                          </span>
+                        </Button>
+                      ) : (
+                        <Button
+                          type="primary"
+                          onClick={() => handleAddFriend(user.id || "")}
+                        >
+                          {localStrings.Public.AddFriend}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {hasMore && (
+                <div className="text-center mt-8">
+                  <Button
+                    onClick={loadMoreUsers}
+                    loading={loading}
+                    className="px-6 py-2 text-gray-900 border-gray-300 hover:bg-gray-50"
+                  >
+                    {localStrings.Public.LoadMore}
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
         </div>
-
-        {users.length === 0 && !loading && (
-          <div className="text-center py-16">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-              />
-            </svg>
-            <p className="mt-2 text-gray-600 text-lg">{localStrings.Public.UserNotFound}</p>
-          </div>
-        )}
-
-        {hasMore && (
-          <div className="text-center mt-10">
-            <button
-              onClick={loadMoreUsers}
-              className="inline-flex items-center px-6 py-2 bg-white text-gray-900 rounded-md hover:bg-gray-50 border border-gray-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-            >
-              <span>{localStrings.Public.LoadMore}</span>
-              <svg
-                className="ml-2 w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

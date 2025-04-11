@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { message } from "antd";
 
 import { useAuth } from "@/context/auth/useAuth";
@@ -12,7 +12,6 @@ interface ExtendedMessageResponseModel extends MessageResponseModel {
   isDateSeparator?: boolean;
 }
 
-
 type MessageWithDate = ExtendedMessageResponseModel;
 
 export const useMessagesViewModel = () => {
@@ -20,7 +19,6 @@ export const useMessagesViewModel = () => {
   const {
     isConnected: isWebSocketConnected,
     sendMessage: wsSendMessage,
-    currentConversationId,
     setCurrentConversationId,
     getMessagesForConversation,
     updateMessagesForConversation,
@@ -45,7 +43,6 @@ export const useMessagesViewModel = () => {
   const pageSize = 20;
   
   const messageListRef = useRef<HTMLDivElement>(null);
-  const lastMessageRef = useRef<string | null>(null);
   const isFirstLoad = useRef<boolean>(true);
   const scrollPositionRef = useRef<number>(0);
 
@@ -244,7 +241,7 @@ export const useMessagesViewModel = () => {
         updateConversations(sortedConversations);
       }
     } catch (error) {
-      message.error(localStrings.Messages?.ErrorFetchingConversations || "Error fetching conversations");
+      message.error(localStrings.Messages.ErrorFetchingConversations);
     } finally {
       setConversationsLoading(false);
     }
@@ -370,7 +367,7 @@ export const useMessagesViewModel = () => {
       const createResponse = await defaultMessagesRepo.createConversation({
         name: name,
         image: image, 
-        user_ids: userIds && userIds.length > 0 ? userIds : [user.id]
+        user_ids: userIds || []
       });
       
       if (createResponse.data) {
@@ -389,7 +386,7 @@ export const useMessagesViewModel = () => {
       }
       return null;
     } catch (error) {
-      message.error(localStrings.Messages?.GroupCreationFailed || "Failed to create conversation");
+      message.error(localStrings.Messages.GroupCreationFailed);
       return null;
     }
   };
@@ -400,7 +397,7 @@ export const useMessagesViewModel = () => {
     }
     
     if (messageText.length > 500) {
-      message.error(localStrings.Messages?.MessageTooLong || "Message too long");
+      message.error(localStrings.Messages.MessageTooLong);
       return;
     }
     
@@ -461,7 +458,7 @@ export const useMessagesViewModel = () => {
         )
       );
       
-      message.error(localStrings.Public.Error || "Failed to send message");
+      message.error(localStrings.Public.Error);
     }
   };
   const deleteMessage = async (messageId: string) => {
@@ -472,7 +469,7 @@ export const useMessagesViewModel = () => {
       
       await defaultMessagesRepo.deleteMessage({ message_id: messageId });
     } catch (error) {
-      message.error(localStrings.Public.Error || "Error deleting message");
+      message.error(localStrings.Public.Error);
       
       if (currentConversation.id) {
         fetchMessages(currentConversation.id);
@@ -511,7 +508,7 @@ export const useMessagesViewModel = () => {
       return null;
     } catch (error) {
       console.error("Error updating conversation:", error);
-      message.error(localStrings.Public.Error || "Error updating conversation");
+      message.error(localStrings.Public.Error);
       return null;
     }
   };
@@ -528,7 +525,7 @@ export const useMessagesViewModel = () => {
         setCurrentConversation(null);
       }
     } catch (error) {
-      message.error(localStrings.Public.Error || "Error deleting conversation");
+      message.error(localStrings.Public.Error);
     }
   };
 

@@ -8,7 +8,7 @@ export const ENGLocalizedStrings = {
     Close: "Close",
     Language: "Language: English",
     Post: "Post",
-    Friend: "Friend",
+    Friend: "Friends",
     Username: "Username",
     About: "About",
     Today: "Today, what do you want to do?",
@@ -78,6 +78,11 @@ export const ENGLocalizedStrings = {
     ShowOnlyUnrequested: "Show only unrequested friends",
     SearchUsers: "Search users...",
     ErrorLoading: "Error loading data!",
+    FriendRequests: "Friend Requests",
+    NoFriendRequests: "No friend requests",
+    Accept: "Accept",
+    Decline: "Decline",
+    AllUsers: "All Users",
   },
 
   Suggested: {
@@ -459,5 +464,8 @@ export const ENGLocalizedStrings = {
     SelectFriendsToAdd: "Select Friends To Add",
     Add: "Add",
     MembersAdded: "Members Added",
+    CurrentMembers: "Current Members",
+    NoMembersInConversation: "No Members In Conversation",
+    ManageMembers: "Manage Members",
   }
 };

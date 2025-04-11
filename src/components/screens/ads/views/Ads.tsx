@@ -95,7 +95,7 @@ const Ads = ({ postId }: { postId: string }) => {
   };
 
   const chartData = {
-    labels: ads?.statistics?.map((stat) => dayjs(stat.aggregation_date).format("DD/MM")) || [],
+    labels: ads?.statistics?.map((stat) => dayjs(stat.aggregation_date).format("HH:mm:ss DD/MM")) || [],
     datasets: [
       {
         label: `${localStrings.Ads.Click}`,
