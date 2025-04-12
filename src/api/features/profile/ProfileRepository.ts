@@ -51,7 +51,7 @@ export class ProfileRepo implements IProfileRepo {
     return client.patch(ApiPath.CHANGE_PASSWORD, data);
   } 
   async getListFriendsRequest(data: GetFriendRequestModel): Promise<BaseApiResponseModel<FriendResponseModel>> {
-    return client.get(ApiPath.FRIEND_REQUEST, { params: data });
+    return client.get(ApiPath.LIST_FRIEND_REQUEST, data);
   }
 }
 

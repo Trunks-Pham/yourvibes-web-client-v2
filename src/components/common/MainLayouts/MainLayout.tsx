@@ -69,16 +69,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         icon: FaFacebookMessenger,
       },
       {
-        link: "/trending",
-        content: localStrings.Public.Trending,
-        icon: HiTrendingUp,
-      },
-      {
-        link: "/people",
-        content: localStrings.Public.People,
-        icon: FaPeopleGroup,
-      },
-      {
         link: "/profile",
         content: localStrings.Public.Profile,
         icon: FaUser,
@@ -135,9 +125,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
 
   // Define the header navigation items
   const headerNavItems = [
-    { label: "FEED", link: "/home" },
-    { label: "PEOPLE", link: "/people" },
-    { label: "TRENDING", link: "/trending" },
+    { label: `${localStrings.Public.Feed}`, link: "/home" },
+    { label: `${localStrings.Public.People}`, link: "/people" },
+    { label: `${localStrings.Public.Trending}`, link: "/trending" },
   ];
 
   return (
@@ -378,6 +368,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           <Content
             style={{
               marginLeft: screens.lg ? 250 : 0,
+              marginTop: !screens.lg ? "60px" : 0, // Thêm margin-top để tránh đè lên navigation cố định
             }}
           >
             <div

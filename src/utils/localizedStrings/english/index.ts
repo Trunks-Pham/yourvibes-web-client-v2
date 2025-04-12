@@ -83,6 +83,7 @@ export const ENGLocalizedStrings = {
     Accept: "Accept",
     Decline: "Decline",
     AllUsers: "All Users",
+    Feed: "Feed",
   },
 
   Suggested: {
@@ -468,5 +469,11 @@ export const ENGLocalizedStrings = {
     CurrentMembers: "Current Members",
     NoMembersInConversation: "No Members In Conversation",
     ManageMembers: "Manage Members",
-  }
+  },
+    People: {
+      FetchUsersFailed: "Failed to fetch users!",
+      ErrorFetchingUsers: "Error fetching users!",
+      NoFriendRequests: "No friend requests",
+      ErrorFriendRequests: "Error fetching friend requests!",
+    },
 };
