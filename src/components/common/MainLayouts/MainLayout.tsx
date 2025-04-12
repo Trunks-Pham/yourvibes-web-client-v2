@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Layout, Menu, Grid, ConfigProvider, Modal, Avatar } from "antd";
+import {
+  Layout,
+  Menu,
+  Grid,
+  ConfigProvider,
+  Modal,
+  Avatar,
+  Button,
+} from "antd";
 import { createElement } from "react";
 import {
   FaHome,
@@ -21,6 +29,7 @@ import useColor from "@/hooks/useColor";
 import SettingsTab from "@/components/screens/profile/components/SettingTabs";
 import NotificationScreen from "@/components/screens/notification/views/Notification";
 import { FaPeopleGroup } from "react-icons/fa6";
+import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 
 const { useBreakpoint } = Grid;
 
@@ -45,6 +54,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const screens = useBreakpoint();
   const [settingModal, setSettingModal] = useState(false);
   const [notificationModal, setNotificationModal] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   const content = {
     nav: [
@@ -107,7 +117,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   const handleMenuClick = () => {
-    setVisible(!visible);
+    // setVisible(!visible);
+    setCollapsed(!collapsed);
   };
 
   const handleItemClick = (link: string) => {
@@ -119,6 +130,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       router.push(link);
     }
     setVisible(false);
+    setCollapsed(false);
   };
 
   // Define the header navigation items
@@ -130,149 +142,80 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <Layout>
-      <Header
+      <Sider
+        trigger={null}
+        collapsedWidth={0}
+        width={250}
+        collapsed={collapsed}
+        breakpoint="lg"
+        onCollapse={(collapsed) => setCollapsed(collapsed)}
         style={{
-          position: "sticky",
-          top: 0,
-          backgroundColor: "#F5F5F5",
-          display: "flex",
-          justifyContent: "space-between", // Logo trái, User/Avatar phải
-          alignItems: "center",
-          width: "100%",
+          overflow: 'auto',
+          height: '100vh',
+          position:"fixed",
           zIndex: 100,
-          padding: screens.lg ? "0 50px" : "0 10px", // Giảm padding khi responsive
-          borderBottom: "1px solid #e0e0e0",
+          insetInlineStart: 0,
+          top: 0,
+          bottom: 0,
         }}
       >
-        {/* Left Section: Logo */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
+        <div className="demo-logo-vertical" />
+        <ConfigProvider
+          theme={{
+            components: {
+              Menu: {
+                itemActiveBg: lightGray,
+                itemSelectedBg: lightGray,
+                colorBgContainer: "rgb(244, 244, 244)",
+                itemBorderRadius: 5,
+                itemMarginBlock: 0,
+                itemHeight: 55,
+                itemPaddingInline: 0,
+                padding: 0,         
+              },
+
+            },
           }}
         >
-          <img
-            src="/image/yourvibes_black.png"
-            alt="YourVibes"
-            style={{ height: "40px", cursor: "pointer" }}
-            onClick={() => router.push("/home")}
-          />
-        </div>
+          <Menu
+            mode="inline"
+            style={{ borderRight: 0 }}
+            className="flex flex-col justify-center h-full"
+            items={nav.map((item, index) => {
+              const actived = isActived(item.link);
+              return {
+                key: index.toString(),
+                label: (
+                  <div>
+                    <div
+                     className="h-4 flex items-center gap-4 w-full h-full px-4 pl-8"
 
-        {/* Center Section: Navigation Tabs (chỉ hiển thị ở giữa khi full-screen) */}
-        {screens.lg && (
-          <div
-            style={{
-              width: "100%",
-              maxWidth: "600px",
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)",
-              backgroundColor: "#ccc",
-              borderRadius: "20px",
-              padding: "5px 10px",
-              display: "inline-flex",
-              justifyContent: "center",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                gap: "20px",
-                alignItems: "center",
-              }}
-            >
-              {headerNavItems.map((item) => {
-                const isActive = isActived(item.link);
-                return (
-                  <div
-                    key={item.label}
-                    onClick={() => handleItemClick(item.link)}
-                    style={{
-                      padding: "10px 20px",
-                      cursor: "pointer",
-                      fontWeight: "bold",
-                      color: isActive ? "#1DA1F2" : "#000",
-                      borderBottom: isActive ? "2px solid #1DA1F2" : "none",
-                      transition: "color 0.3s, border-bottom 0.3s",
-                      lineHeight: "1.5",
-                    }}
-                  >
-                    {item.label}
+                      style={{
+                        backgroundColor: actived ? "#C0C0C0" : "transparent",
+                        color: "black",
+                      }}
+                      onClick={() => {handleItemClick(item.link)
+                      }}
+                    >
+                      {createElement(item.icon, {
+                        size: 20,
+                      })}
+                      <span>{item.content}</span>
+                    </div>
+                    <div>
+                      <hr className="border-t-2 border-gray-300" />
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Right Section: User Name and Avatar */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "15px",
-          }}
-        >
-          <div
-            className="flex flex-row items-center gap-4 pl-2"
-            onClick={handleMenuClick}
-            style={{ cursor: "pointer" }}
-          >
-            <span className="font-bold md:block hidden">
-              {user?.family_name} {user?.name}
-            </span>
-            <Avatar src={user?.avatar_url} alt={user?.name} size={40} />
-          </div>
-        </div>
-      </Header>
-
-      {/* Navigation Tabs khi responsive (dưới Header) */}
-      {!screens.lg && (
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "600px",
-            backgroundColor: "#ccc",
-            borderRadius: "20px",
-            padding: "5px 10px",
-            display: "inline-flex",
-            justifyContent: "center",
-            margin: "10px auto", // Căn giữa và thêm khoảng cách
-            position: "relative",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              gap: "20px",
-              alignItems: "center",
-            }}
-          >
-            {headerNavItems.map((item) => {
-              const isActive = isActived(item.link);
-              return (
-                <div
-                  key={item.label}
-                  onClick={() => handleItemClick(item.link)}
-                  style={{
-                    padding: "10px 20px",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                    color: isActive ? "#1DA1F2" : "#000",
-                    borderBottom: isActive ? "2px solid #1DA1F2" : "none",
-                    transition: "color 0.3s, border-bottom 0.3s",
-                    lineHeight: "1.5",
-                  }}
-                >
-                  {item.label}
-                </div>
-              );
+                ),
+                style: {
+                  padding: 0,
+                  cursor: "pointer",
+                },
+              };
             })}
-          </div>
-        </div>
-      )}
+          />
+        </ConfigProvider>
+      </Sider>
 
       <ConfigProvider
         theme={{
@@ -284,72 +227,154 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         }}
       >
         <Layout>
-          <Sider
-            width={250}
+          <Header
             style={{
-              display: screens.lg ? "block" : "none",
-              overflow: "auto",
-              height: "100vh",
-              position: "fixed",
-              insetInlineStart: 0,
+              position: "sticky",
               top: 0,
-              bottom: 0,
+              backgroundColor: "#F5F5F5",
+              display: "flex",
+              justifyContent: "space-between", // Logo trái, User/Avatar phải
+              alignItems: "center",
+              width: "100%",
+              zIndex: 100,
+              padding: screens.lg ? "0 50px" : "0 10px", // Giảm padding khi responsive
+              borderBottom: "1px solid #e0e0e0",
             }}
           >
-            <div className="demo-logo-vertical" />
-            <ConfigProvider
-              theme={{
-                components: {
-                  Menu: {
-                    itemActiveBg: lightGray,
-                    itemSelectedBg: lightGray,
-                    colorBgContainer: "rgb(244, 244, 244)",
-                    lineWidth: 0,
-                    itemBorderRadius: 5,
-                    itemMarginBlock: 0,
-                    itemHeight: 55,
-                  },
-                },
+            {/* Left Section: Logo */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
               }}
             >
-              <Menu
-                mode="inline"
-                style={{ borderRight: 0 }}
-                className="flex flex-col justify-center h-full"
-                items={nav.map((item, index) => {
-                  const actived = isActived(item.link);
-                  return {
-                    key: index.toString(),
-                    label: (
-                      <div>
-                        <div
-                          className={`h-4 flex items-center gap-4 w-full h-full px-4 pl-8`}
-                          style={{
-                            backgroundColor: actived ? "#C0C0C0" : "transparent",
-                            color: "black",
-                          }}
-                          onClick={() => handleItemClick(item.link)}
-                        >
-                          {createElement(item.icon, {
-                            size: 20,
-                          })}
-                          <span>{item.content}</span>
-                        </div>
-                        <div>
-                          <hr className="border-t-2 border-gray-300" />
-                        </div>
-                      </div>
-                    ),
-                    style: {
-                      padding: 0,
-                      cursor: "pointer",
-                    },
-                  };
-                })}
+              <img
+                src="/image/yourvibes_black.png"
+                alt="YourVibes"
+                style={{ height: "40px", cursor: "pointer" }}
+                onClick={() => router.push("/home")}
               />
-            </ConfigProvider>
-          </Sider>
+            </div>
 
+            {/* Center Section: Navigation Tabs (chỉ hiển thị ở giữa khi full-screen) */}
+            {screens.lg && (
+              <div
+                style={{
+                  width: "100%",
+                  maxWidth: "600px",
+                  position: "absolute",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  backgroundColor: "#ccc",
+                  borderRadius: "20px",
+                  padding: "5px 10px",
+                  display: "inline-flex",
+                  justifyContent: "center",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "20px",
+                    alignItems: "center",
+                  }}
+                >
+                  {headerNavItems.map((item) => {
+                    const isActive = isActived(item.link);
+                    return (
+                      <div
+                        key={item.label}
+                        onClick={() => handleItemClick(item.link)}
+                        style={{
+                          padding: "10px 20px",
+                          cursor: "pointer",
+                          fontWeight: "bold",
+                          color: isActive ? "#1DA1F2" : "#000",
+                          borderBottom: isActive ? "2px solid #1DA1F2" : "none",
+                          transition: "color 0.3s, border-bottom 0.3s",
+                          lineHeight: "1.5",
+                        }}
+                      >
+                        {item.label}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Right Section: User Name and Avatar */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "15px",
+              }}
+            >
+              <div
+                className="flex flex-row items-center gap-4 pl-2"
+                onClick={handleMenuClick}
+                style={{ cursor: "pointer" }}
+              >
+                <span className="font-bold md:block hidden">
+                  {user?.family_name} {user?.name}
+                </span>
+                <Avatar src={user?.avatar_url} alt={user?.name} size={40} />
+              </div>
+              {/* <Button
+                type="text"
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+                style={{ fontSize: "20px", marginRight: "16px" }}
+              /> */}
+            </div>
+          </Header>
+          {/* Navigation Tabs khi responsive (dưới Header) */}
+          {!screens.lg && (
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "600px",
+                backgroundColor: "#ccc",
+                borderRadius: "20px",
+                padding: "5px 10px",
+                display: "inline-flex",
+                justifyContent: "center",
+                margin: "10px auto", // Căn giữa và thêm khoảng cách
+                position: "relative",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  gap: "20px",
+                  alignItems: "center",
+                }}
+              >
+                {headerNavItems.map((item) => {
+                  const isActive = isActived(item.link);
+                  return (
+                    <div
+                      key={item.label}
+                      onClick={() => handleItemClick(item.link)}
+                      style={{
+                        padding: "10px 20px",
+                        cursor: "pointer",
+                        fontWeight: "bold",
+                        color: isActive ? "#1DA1F2" : "#000",
+                        borderBottom: isActive ? "2px solid #1DA1F2" : "none",
+                        transition: "color 0.3s, border-bottom 0.3s",
+                        lineHeight: "1.5",
+                      }}
+                    >
+                      {item.label}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <Content
             style={{
               marginLeft: screens.lg ? 250 : 0,
@@ -367,49 +392,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         </Layout>
       </ConfigProvider>
 
-      {visible && (
-        <Menu
-          mode="inline"
-          style={{
-            position: "fixed",
-            top: "64px",
-            right: "15px",
-            backgroundColor: "white",
-            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-            width: "200px",
-            borderRadius: "8px",
-            zIndex: 100,
-            border: "1px solid #dcdcdc",
-            fontFamily: "Arial, sans-serif",
-          }}
-          onClick={handleMenuClick}
-        >
-          {nav.map((item, index) => (
-            <Menu.Item
-              key={index}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "12px 20px",
-                fontSize: "16px",
-              }}
-              onClick={() => handleItemClick(item.link)}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  marginRight: "10px",
-                  fontSize: "20px",
-                  color: "#black",
-                }}
-              >
-                {item.content}
-              </div>
-            </Menu.Item>
-          ))}
-        </Menu>
-      )}
-
       {settingModal && (
         <Modal
           open={settingModal}
@@ -417,7 +399,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           footer={null}
           width={500}
           centered
-          title={<span className="font-bold">{localStrings.Public.Settings}</span>}
+          title={
+            <span className="font-bold">{localStrings.Public.Settings}</span>
+          }
         >
           <SettingsTab setSettingModal={setSettingModal} />
         </Modal>

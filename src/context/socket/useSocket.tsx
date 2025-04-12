@@ -55,7 +55,13 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
         };
 
         ws.onclose = (e) => {
-            console.log("❌ WebSocket Message disconnected:", e.reason);
+            console.log("❌ WebSocket Message disconnected:", e.reason, e.code);
+            if (e.code === 1006) {
+                console.log("🔄 Attempting to reconnect WebSocket Message...");
+                setTimeout(() => {
+                    connectSocketMessage();
+                }, 5000); // Thử lại sau 5 giây
+            }
             wsMessageRef.current = null; // Reset ref khi bị ngắt kết nối
         };
 
