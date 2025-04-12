@@ -85,7 +85,7 @@ export const VnLocalizedStrings = {
     NoFriendRequests: "Không có lời mời kết bạn",
     Accept: "Chấp nhận",
     Decline: "Từ chối",
-    AllUsers: "Tất cả người dùng",
+    AllUsers: "Hãy mở rộng mạng lưới của bạn",
     Feed: "Bảng tin",
   },
   Suggested: {
@@ -475,6 +475,12 @@ export const VnLocalizedStrings = {
     ErrorFetchingUsers: "Lỗi khi tải danh sách người dùng", 
     NoFriendRequests: "Không có lời mời kết bạn nào",
     ErrorFriendRequests: "Lỗi khi tải danh sách lời mời kết bạn",
+    AcceptScuccess: "Chấp nhận lời mời thành công",
+    AcceptFailed: "Chấp nhận lời mời thất bại",
+    AcceptError: "Lỗi khi chấp nhận lời mời",
+    DeclineSuccess: "Từ chối lời mời thành công",
+    DeclineFailed: "Từ chối lời mời thất bại",  
+    DeclineError: "Lỗi khi từ chối lời mời",
   },
   
 };

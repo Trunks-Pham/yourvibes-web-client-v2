@@ -82,7 +82,7 @@ export const ENGLocalizedStrings = {
     NoFriendRequests: "No friend requests",
     Accept: "Accept",
     Decline: "Decline",
-    AllUsers: "All Users",
+    AllUsers: "Expand your network",
     Feed: "Feed",
   },
 
@@ -475,5 +475,11 @@ export const ENGLocalizedStrings = {
       ErrorFetchingUsers: "Error fetching users!",
       NoFriendRequests: "No friend requests",
       ErrorFriendRequests: "Error fetching friend requests!",
+      AcceptScuccess: "Accept friend request successfully!",
+      AcceptFailed: "Accept friend request failed!",
+      AcceptError: "Error accepting friend request!",
+      DeclineSuccess: "Decline friend request successfully!",
+      DeclineFailed: "Decline friend request failed!",
+      DeclineError: "Error declining friend request!",
     },
 };

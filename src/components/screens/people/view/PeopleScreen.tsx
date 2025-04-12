@@ -5,6 +5,7 @@ import PeopleViewModel from "../viewModel/PeopleViewModel";
 import { useAuth } from "@/context/auth/useAuth";
 import { Spin, Empty, Button } from "antd";
 import SearchScreen from "@/components/screens/search/views/SearchScreen";
+import { GetUserNonFriendsModel } from "@/api/features/friends/models/GetUserNonFriends";
 
 const DEFAULT_AVATAR = "/assets/default-avatar.png";
 
@@ -39,9 +40,9 @@ const PeopleScreens: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         {incomingFriendRequests.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <span className="text font-bold text-gray-900 mb-4">
               {localStrings.Public.FriendRequests} ({incomingFriendRequests.length})
-            </h2>
+            </span>
             {loadingFriendRequests ? (
               <div className="flex justify-center items-center py-8">
                 <Spin size="large" />
@@ -64,7 +65,7 @@ const PeopleScreens: React.FC = () => {
                       <div className="flex-1 min-w-0">
                         <h3 className="text-base font-medium text-gray-900 truncate">
                           {request.from_user.name} {request.from_user.family_name}
-                        </h3> 
+                        </h3>
                       </div>
                     </div>
                     <div className="ml-4 flex space-x-2">
@@ -120,9 +121,9 @@ const PeopleScreens: React.FC = () => {
         )}
 
         <div>
-          {/* <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {localStrings.Public.AllUsers} ({users.length})
-          </h2> */}
+          <span className="text font-bold text-gray-900 mb-4">
+            {localStrings.Public.AllUsers}
+          </span>
           <div className="mb-6">
             <SearchScreen onSearchResults={updateSearchResults} />
           </div>
@@ -165,7 +166,7 @@ const PeopleScreens: React.FC = () => {
                       </div>
                     </div>
                     <div className="ml-4">
-                      {friendRequests.has(user.id || "") ? (
+                    {friendRequests.has(user.id || "") || (user as GetUserNonFriendsModel).is_send_friend_request ? (
                         <Button
                           onClick={() => handleCancelFriend(user.id || "")}
                           className="border-gray-300 text-gray-700 hover:text-gray-900"
