@@ -120,9 +120,9 @@ const PeopleScreens: React.FC = () => {
         )}
 
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          {/* <h2 className="text-2xl font-bold text-gray-900 mb-4">
             {localStrings.Public.AllUsers} ({users.length})
-          </h2>
+          </h2> */}
           <div className="mb-6">
             <SearchScreen onSearchResults={updateSearchResults} />
           </div>
