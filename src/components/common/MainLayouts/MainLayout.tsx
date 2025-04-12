@@ -59,16 +59,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         icon: FaFacebookMessenger,
       },
       {
-        link: "/trending",
-        content: localStrings.Public.Trending,
-        icon: HiTrendingUp,
-      },
-      {
-        link: "/people",
-        content: localStrings.Public.People,
-        icon: FaPeopleGroup,
-      },
-      {
         link: "/profile",
         content: localStrings.Public.Profile,
         icon: FaUser,
@@ -123,9 +113,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
 
   // Define the header navigation items
   const headerNavItems = [
-    { label: "FEED", link: "/home" },
-    { label: "PEOPLE", link: "/people" },
-    { label: "TRENDING", link: "/trending" },
+    { label: `${localStrings.Public.Feed}`, link: "/home" },
+    { label: `${localStrings.Public.People}`, link: "/people" },
+    { label: `${localStrings.Public.Trending}`, link: "/trending" },
   ];
 
   return (
@@ -136,12 +126,11 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           top: 0,
           backgroundColor: "#F5F5F5",
           display: "flex",
-          justifyContent: "space-between", // Logo trái, User/Avatar phải
+          justifyContent: "space-between",
           alignItems: "center",
           width: "100%",
           zIndex: 100,
-          padding: screens.lg ? "0 50px" : "0 10px", // Giảm padding khi responsive
-          borderBottom: "1px solid #e0e0e0",
+          padding: screens.lg ? "0 50px" : "0 10px",
         }}
       >
         {/* Left Section: Logo */}
@@ -169,8 +158,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               position: "absolute",
               left: "50%",
               transform: "translateX(-50%)",
-              backgroundColor: "#ccc",
-              borderRadius: "20px",
+              backgroundColor: "white",  
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+              borderRadius: 10,
               padding: "5px 10px",
               display: "inline-flex",
               justifyContent: "center",
@@ -193,8 +183,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                       padding: "10px 20px",
                       cursor: "pointer",
                       fontWeight: "bold",
-                      color: isActive ? "#1DA1F2" : "#000",
-                      borderBottom: isActive ? "2px solid #1DA1F2" : "none",
+                      color: isActive ? "#808080" : "#000", 
+                      borderBottom: isActive ? "2px solid #808080" : "none",
                       transition: "color 0.3s, border-bottom 0.3s",
                       lineHeight: "1.5",
                     }}
@@ -234,13 +224,18 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           style={{
             width: "100%",
             maxWidth: "600px",
-            backgroundColor: "#ccc",
-            borderRadius: "20px",
+            backgroundColor: "white",  
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+            borderRadius: 10,
             padding: "5px 10px",
             display: "inline-flex",
             justifyContent: "center",
-            margin: "10px auto", // Căn giữa và thêm khoảng cách
-            position: "relative",
+            margin: "10px auto",
+            position: "fixed", 
+            top: "65px", 
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 99,  
           }}
         >
           <div
@@ -260,8 +255,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                     padding: "10px 20px",
                     cursor: "pointer",
                     fontWeight: "bold",
-                    color: isActive ? "#1DA1F2" : "#000",
-                    borderBottom: isActive ? "2px solid #1DA1F2" : "none",
+                    color: isActive ? "#808080" : "#000", 
+                    borderBottom: isActive ? "2px solid #808080" : "none",
                     transition: "color 0.3s, border-bottom 0.3s",
                     lineHeight: "1.5",
                   }}
@@ -353,6 +348,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           <Content
             style={{
               marginLeft: screens.lg ? 250 : 0,
+              marginTop: !screens.lg ? "60px" : 0, // Thêm margin-top để tránh đè lên navigation cố định
             }}
           >
             <div

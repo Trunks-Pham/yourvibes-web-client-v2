@@ -1,11 +1,10 @@
-"use client";
-
 import { useState, useEffect, useCallback } from "react";
 import { defaultProfileRepo } from "@/api/features/profile/ProfileRepository";
 import { defaultSearchRepo } from "@/api/features/search/SearchRepository";
 import { UserModel } from "@/api/features/authenticate/model/LoginModel";
 import { message } from "antd";
 import { FriendModel } from "@/api/features/profile/model/GetListFriendsRequsetModel";
+import { useAuth } from "@/context/auth/useAuth";
 
 interface FriendRequest {
   id: string;
@@ -27,8 +26,9 @@ const PeopleViewModel = () => {
   const [incomingFriendRequests, setIncomingFriendRequests] = useState<FriendRequest[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const limit = 20;
+  const { localStrings } = useAuth();
 
-  // Callback để đồng bộ users từ SearchScreen
+  // Callback to sync users from SearchScreen
   const updateSearchResults = useCallback(
     (newUsers: UserModel[], total: number) => {
       setLoading(false);
@@ -62,49 +62,43 @@ const PeopleViewModel = () => {
         setPage(currentPage || newPage);
         setHasMore(currentPage * currentLimit < total);
       } else {
-        console.error("Failed to fetch users:", response?.message);
-        message.error("Failed to fetch users");
+        message.error(`${localStrings.People.FetchUsersFailed}`);
       }
     } catch (error) {
-      console.error("Error fetching users:", error);
-      message.error("Error fetching users");
+      message.error(`${localStrings.People.FetchUsersFailed}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch incoming friend requests
-  const fetchIncomingFriendRequests = async () => {
-    try {
-      setLoadingFriendRequests(true);
-      const response = await defaultProfileRepo.getListFriendsRequest({
-        limit,
-        page: 1,
-      });
+// Fetch incoming friend requests without pagination
+const fetchIncomingFriendRequests = async () => {
+  try {
+    setLoadingFriendRequests(true);
+    const response = await defaultProfileRepo.getListFriendsRequest({});
 
-      if (response?.data?.data) {
-        setIncomingFriendRequests(
-          response.data.data.map((friend: FriendModel) => ({
+    if (response?.data?.data && (response.data.data as unknown as FriendModel[]).length > 0) {
+      setIncomingFriendRequests(
+        (response.data.data as unknown as FriendModel[]).map((friend: FriendModel)=> ({
+          id: friend.id,
+          from_user: {
             id: friend.id,
-            from_user: {
-              id: friend.id,
-              name: friend.name,
-              family_name: friend.family_name,
-              avatar_url: friend.avatar_url,
-            },
-          }))
-        );
-      } else {
-        console.error("Failed to fetch friend requests:", response?.message);
-        message.error("Failed to fetch friend requests");
-      }
-    } catch (error) {
-      console.error("Error fetching friend requests:", error);
-      message.error("Error fetching friend requests");
-    } finally {
-      setLoadingFriendRequests(false);
+            name: friend.name,
+            family_name: friend.family_name,
+            avatar_url: friend.avatar_url,
+          },
+        }))
+      );
+    } else {
+      setIncomingFriendRequests([]); 
+      message.info(`${localStrings.People.NoFriendRequests}`); 
     }
-  };
+  } catch (error) {
+    message.error(`${localStrings.People.NoFriendRequests}`);
+  } finally {
+    setLoadingFriendRequests(false);
+  }
+};
 
   // Handle sending a friend request
   const handleAddFriend = async (userId: string) => {
@@ -117,7 +111,6 @@ const PeopleViewModel = () => {
         message.error("Failed to send friend request");
       }
     } catch (error) {
-      console.error("Error sending friend request:", error);
       message.error("Error sending friend request");
     }
   };
@@ -137,7 +130,6 @@ const PeopleViewModel = () => {
         message.error("Failed to cancel friend request");
       }
     } catch (error) {
-      console.error("Error canceling friend request:", error);
       message.error("Error canceling friend request");
     }
   };
@@ -155,7 +147,6 @@ const PeopleViewModel = () => {
         message.error("Failed to accept friend request");
       }
     } catch (error) {
-      console.error("Error accepting friend request:", error);
       message.error("Error accepting friend request");
     }
   };
@@ -173,7 +164,6 @@ const PeopleViewModel = () => {
         message.error("Failed to decline friend request");
       }
     } catch (error) {
-      console.error("Error declining friend request:", error);
       message.error("Error declining friend request");
     }
   };
@@ -184,7 +174,7 @@ const PeopleViewModel = () => {
       setLoading(true);
       setPage((prevPage) => {
         const nextPage = prevPage + 1;
-        fetchAllUsers(nextPage); // Gọi fetchAllUsers với trang tiếp theo
+        fetchAllUsers(nextPage);
         return nextPage;
       });
     }
@@ -192,7 +182,7 @@ const PeopleViewModel = () => {
 
   // Fetch initial data on mount
   useEffect(() => {
-    fetchAllUsers(); // Tải tất cả người dùng mặc định
+    fetchAllUsers();
     fetchIncomingFriendRequests();
   }, []);
 

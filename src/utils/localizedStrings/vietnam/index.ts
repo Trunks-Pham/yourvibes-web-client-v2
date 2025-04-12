@@ -1,3 +1,4 @@
+import People from "@/app/(webRouter)/people/page";
 import { NotFoundBoundary } from "next/dist/client/components/not-found-boundary";
 
 export const VnLocalizedStrings = {
@@ -85,6 +86,7 @@ export const VnLocalizedStrings = {
     Accept: "Chấp nhận",
     Decline: "Từ chối",
     AllUsers: "Tất cả người dùng",
+    Feed: "Bảng tin",
   },
   Suggested: {
     SuggestedFriends: "Những người bạn có thể biết",
@@ -467,6 +469,12 @@ export const VnLocalizedStrings = {
     CurrentMembers: "Thành viên hiện tại",
     NoMembersInConversation: "Không có thành viên nào trong cuộc trò chuyện",
     ManageMembers: "Quản lý thành viên",
-  }
-
+  },
+  People: {
+    FetchUsersFailed: "Tải danh sách người dùng thất bại", 
+    ErrorFetchingUsers: "Lỗi khi tải danh sách người dùng", 
+    NoFriendRequests: "Không có lời mời kết bạn nào",
+    ErrorFriendRequests: "Lỗi khi tải danh sách lời mời kết bạn",
+  },
+  
 };
