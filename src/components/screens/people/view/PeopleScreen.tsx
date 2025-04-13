@@ -5,6 +5,7 @@ import PeopleViewModel from "../viewModel/PeopleViewModel";
 import { useAuth } from "@/context/auth/useAuth";
 import { Spin, Empty, Button } from "antd";
 import SearchScreen from "../../search/views/SearchScreen";
+import { useRouter } from "next/navigation"; // Update import to next/navigation
 
 const PeopleScreens: React.FC = () => {
   const {
@@ -22,7 +23,9 @@ const PeopleScreens: React.FC = () => {
   } = PeopleViewModel();
 
   const { localStrings } = useAuth();
+  const router = useRouter(); 
   const friendRequestsSent = new Set<string>();
+
   if (loading && users.length === 0 && loadingFriendRequests && incomingFriendRequests.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
@@ -51,7 +54,7 @@ const PeopleScreens: React.FC = () => {
                 {incomingFriendRequests.map((request) => (
                   <div
                     key={request.id}
-                    className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300 border border-gray-100 flex items-center justify-between w-full" // Thêm w-full
+                    className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300 border border-gray-100 flex items-center justify-between w-full"
                     style={{ width: "65%" }}
                   >
                     <div className="flex items-center space-x-4">
@@ -63,7 +66,10 @@ const PeopleScreens: React.FC = () => {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-medium text-gray-900 truncate">
+                        <h3
+                          className="text-base font-medium text-gray-900 truncate cursor-pointer"
+                          onClick={() => router.push(`/user/${request.from_user.id}`)} 
+                        >
                           {request.from_user.name} {request.from_user.family_name}
                         </h3>
                       </div>
@@ -121,11 +127,15 @@ const PeopleScreens: React.FC = () => {
                         <img
                           src={user.avatar_url}
                           alt={`${user.name}'s avatar`}
-                          className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200"
+                          className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200 cursor-pointer"
+                          onClick={() => router.push(`/user/${user.id}`)} 
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-medium text-gray-900 truncate">
+                        <h3
+                          className="text-base font-medium text-gray-900 truncate cursor-pointer"
+                          onClick={() => router.push(`/user/${user.id}`)}
+                        >
                           {user.name} {user.family_name}
                         </h3>
                         {user.email && (
