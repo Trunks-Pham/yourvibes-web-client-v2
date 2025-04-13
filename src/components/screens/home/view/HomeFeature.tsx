@@ -43,6 +43,7 @@ const Homepage = ({ }: any) => {
   const renderAddPost = useCallback(() => {
     return (
       <>
+      
         <div
           onClick={() => setIsModalVisible(true)}
           style={{
