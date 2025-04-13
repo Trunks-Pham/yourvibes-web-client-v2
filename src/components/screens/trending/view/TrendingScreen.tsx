@@ -6,15 +6,18 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import Post from "@/components/common/post/views/Post";
 import TrendingViewModel from "@/components/screens/trending/viewModel/TrendingViewModel";
 import { defaultPostRepo } from "@/api/features/post/PostRepo";
+import { defaultFriendRepo } from "@/api/features/friends/FriendRepo";
 import { useAuth } from "@/context/auth/useAuth";
 import useColor from "@/hooks/useColor";
-import ProfileViewModel from "@/components/screens/profile/viewModel/ProfileViewModel"; // Import ProfileViewModel
-import { useRouter } from "next/navigation"; // Import useRouter for navigation
+import ProfileViewModel from "@/components/screens/profile/viewModel/ProfileViewModel";
+import { useRouter } from "next/navigation";
+import { LoadingOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 
 const TrendingScreen = () => {
   const { brandPrimary } = useColor();
-  const { localStrings, user } = useAuth(); // Get user from useAuth
-  const router = useRouter(); // For navigating to user profiles
+  const { localStrings, user } = useAuth();
+  const router = useRouter();
   const {
     trendingPosts,
     loading,
@@ -22,15 +25,17 @@ const TrendingScreen = () => {
     loadMoreTrendingPosts,
     hasMore,
     setTrendingPosts,
-  } = TrendingViewModel(defaultPostRepo);
-
-  // Use ProfileViewModel to fetch friends
+    birthdayFriends,
+    loadingBirthday,
+    fetchBirthdayFriends,
+  } = TrendingViewModel(defaultPostRepo, defaultFriendRepo);
   const { friends, fetchMyFriends, page } = ProfileViewModel();
 
   useEffect(() => {
-    fetchTrendingPosts(); // Fetch trending posts
+    fetchTrendingPosts();
     if (user) {
-      fetchMyFriends(page); // Fetch friends when user is available
+      fetchMyFriends(page);
+      fetchBirthdayFriends();
     }
   }, []);
 
@@ -40,7 +45,33 @@ const TrendingScreen = () => {
     );
   };
 
-  // Render the friends list (same as in Homepage)
+  // Hàm formatBirthday
+  const formatBirthday = (birthday: string) => {
+    if (!birthday) return { formatted: "", age: null };
+
+    let parsedDate: dayjs.Dayjs | null = null;
+
+    if (birthday.includes("T") && birthday.includes("/")) {
+      const datePart = birthday.split("/")[1];
+      const [month, year] = datePart.split("/").map(Number);
+      const day = parseInt(birthday.split("T")[0], 10);
+      parsedDate = dayjs(`${year}-${month}-${day}`);
+    } else {
+      parsedDate = dayjs(birthday, ["YYYY-MM-DD", "DD/MM/YYYY"], true);
+    }
+
+    if (!parsedDate.isValid()) {
+      console.warn("Invalid birthday:", birthday);
+      return { formatted: "Invalid date", age: null };
+    }
+
+    const formatted = parsedDate.format("DD/MM/YYYY");
+    const currentYear = 2025;
+    const age = currentYear - parsedDate.year();
+
+    return { formatted, age };
+  };
+
   const renderFriends = () => {
     return (
       <div
@@ -50,48 +81,224 @@ const TrendingScreen = () => {
           width: "300px",
           maxHeight: "600px",
           overflowY: "auto",
-          backgroundColor: "rgb(244, 244, 244)",
-          borderRadius: "8px",
+          backgroundColor: "#f9fafb",
+          borderRadius: "12px",
+          padding: "16px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
         }}
       >
-        <span className="font-bold text-lg">{localStrings.Public.Friend}</span>
-        <hr className="border-t-1 border-gray-400" />
-        {friends.map((user) => (
-          <div key={user.id}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: 10,
-                borderBottom: "1px solid #f0f0f0",
-                cursor: "pointer",
-              }}
-              onClick={() => router.push(`/user/${user?.id}`)} // Navigate to user profile
-            >
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <Avatar src={user.avatar_url} alt={user.name} size={40} />
-                <span style={{ marginLeft: 10, fontWeight: "bold", fontSize: 16 }}>
+        <span className="font-bold text-lg text-gray-800">
+          {localStrings.Public.Friend}
+        </span>
+        <hr className="border-t-1 border-gray-300 my-3" />
+
+        {/* Phần hiển thị bạn bè có sinh nhật */}
+        {loadingBirthday ? (
+          <div style={{ textAlign: "center", padding: "12px" }}>
+            <Spin indicator={<LoadingOutlined spin />} size="small" />
+          </div>
+        ) : birthdayFriends.length > 0 ? (
+          <div
+            style={{
+              background: "linear-gradient(135deg, #fff1f5 0%, #e6f0ff 100%)",
+              borderRadius: "12px",
+              padding: "16px",
+              marginBottom: "16px",
+              boxShadow: "0 6px 16px rgba(0, 0, 0, 0.1)",
+              animation: "fadeIn 0.5s ease-in-out",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
+              <span style={{ fontSize: "18px", marginRight: "8px" }}></span>
+              <span
+                style={{
+                  fontWeight: "700",
+                  fontSize: 16,
+                  color: brandPrimary,
+                  letterSpacing: "0.5px",
+                }}
+              >
+                {localStrings.Public.Birtday}
+              </span>
+            </div>
+            {birthdayFriends.map((friend) => {
+              const { formatted, age } = formatBirthday(friend.birthday);
+              return (
+                <div
+                  key={friend.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "12px",
+                    margin: "6px 0",
+                    cursor: "pointer",
+                    borderRadius: "10px",
+                    backgroundColor: "#ffffff",
+                    transition: "all 0.3s ease",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+                  }}
+                  onClick={() => router.push(`/user/${friend.id}`)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.06)";
+                  }}
+                >
+                  <Avatar
+                    src={friend.avatar_url}
+                    alt={friend.name}
+                    size={44}
+                    style={{
+                      border: `2px solid ${brandPrimary || "#1890ff"}`,
+                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                    }}
+                  />
+                  <div style={{ marginLeft: 12, flex: 1 }}>
+                    <span
+                      style={{
+                        fontWeight: "600",
+                        fontSize: 15,
+                        color: "#1f2937",
+                        display: "block",
+                      }}
+                    >
+                      {friend.family_name + " " + friend.name}
+                    </span>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        color: "#4b5563",
+                        fontSize: 13,
+                        fontWeight: "500",
+                        marginTop: 4,
+                      }}
+                    >
+                      <span
+                        role="img"
+                        aria-label="birthday"
+                        style={{ marginRight: 6, fontSize: 16 }}
+                      >
+                      </span>
+                      <span>
+                        {formatted}
+                        {age !== null &&
+                          ` (${age} ${localStrings.Public.YearsOld })`}
+                      </span>
+                    </div>
+                  </div>
+                  <span
+                    style={{
+                      fontSize: "20px",
+                      opacity: 0.7,
+                      transition: "opacity 0.3s",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.7")}
+                  >
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div
+            style={{
+              fontSize: 13,
+              color: "#6b7280",
+              padding: "12px",
+              textAlign: "center",
+              backgroundColor: "#ffffff",
+              borderRadius: "8px",
+            }}
+          >
+            {localStrings.Public.NoBirthdays}
+          </div>
+        )}
+
+        {/* Danh sách bạn bè thông thường */}
+        <hr className="border-t-1 border-gray-300 my-3" />
+        {friends.length > 0 ? (
+          friends.map((user) => (
+            <div key={user.id}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "10px 0",
+                  cursor: "pointer",
+                  borderRadius: "8px",
+                  transition: "background-color 0.3s ease",
+                }}
+                onClick={() => router.push(`/user/${user?.id}`)}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.03)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+              >
+                <Avatar src={user.avatar_url} alt={user.name} size={36} />
+                <span
+                  style={{
+                    marginLeft: 12,
+                    fontWeight: "600",
+                    fontSize: 14,
+                    color: "#1f2937",
+                  }}
+                >
                   {user.family_name + " " + user.name}
                 </span>
               </div>
+              <hr className="border-t-1 border-gray-200 my-1" />
             </div>
-            <hr className="border-t-1 border-gray-300" />
+          ))
+        ) : (
+          <div
+            style={{
+              textAlign: "center",
+              color: "#6b7280",
+              fontSize: 12,
+              padding: "12px",
+            }}
+          >
+            {localStrings.Public.AllUsers}
           </div>
-        ))}
+        )}
       </div>
     );
   };
 
+  // Thêm keyframes cho animation
+  useEffect(() => {
+    const styleSheet = document.createElement("style");
+    styleSheet.type = "text/css";
+    styleSheet.innerText = `
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    `;
+    document.head.appendChild(styleSheet);
+    return () => {
+      document.head.removeChild(styleSheet);
+    };
+  }, []);
+
   return (
     <div className="lg:flex mt-4">
-      {/* Main Content */}
       {loading && trendingPosts.length === 0 ? (
-        <div className="flex justify-center items-center h-screen bg-white">
-          <Spin
-            size="large"
-            tip="Loading"
-            style={{ color: "#4B5563" }}
-          />
+        <div className="flex justify-center items-center fixed inset-0 bg-gray">
+          <Spin size="large" tip="Loading" style={{ color: "#4B5563" }} />
         </div>
       ) : (
         <>
@@ -132,7 +339,6 @@ const TrendingScreen = () => {
               )}
             </div>
           </div>
-          {/* Friends List Sidebar */}
           <div className="flex-initial w-[320px] hidden xl:block">
             {renderFriends()}
           </div>

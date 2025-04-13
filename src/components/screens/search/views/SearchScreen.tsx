@@ -1,9 +1,9 @@
 import { useAuth } from "@/context/auth/useAuth";
 import useColor from "@/hooks/useColor";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import SearchViewModel from "../viewModel/SearchViewModel";
 import { defaultSearchRepo } from "@/api/features/search/SearchRepository";
-import { AutoComplete, Input, Spin, AutoCompleteProps, Typography } from "antd";
+import { AutoComplete, AutoCompleteProps, Input, Spin, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { UserModel } from "@/api/features/authenticate/model/LoginModel";
 
@@ -20,15 +20,16 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
   const { brandPrimary, backgroundColor } = useColor();
   const { localStrings } = useAuth();
   const router = useRouter();
+  const inputRef = useRef<HTMLDivElement>(null); 
 
-  // Gọi callback khi users thay đổi
+  // Callback when users change
   useEffect(() => {
     if (onSearchResults && users) {
       onSearchResults(users, total);
     }
   }, [users, total, onSearchResults]);
 
-  // Debounce tìm kiếm
+  // Debounce search
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (keyword) {
@@ -36,7 +37,7 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
       } else {
         setOptions([]);
         if (onSearchResults) {
-          onSearchResults([], 0, 1); // Reset kết quả khi keyword rỗng
+          onSearchResults([], 0, 1);
         }
       }
     }, 500);
@@ -44,18 +45,18 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
     return () => clearTimeout(timer);
   }, [keyword, searchUsers, onSearchResults]);
 
-  // Cập nhật options cho AutoComplete
+  // Update options for AutoComplete
   useEffect(() => {
     if (Array.isArray(users)) {
       setOptions(users.map((user) => ({ value: user.name })));
     }
   }, [users]);
 
-  // Xử lý sự kiện khi click vào kết quả
+  // Handle select
   const handleSelect = (userId: string) => {
-    router.push(`/user/${userId}`); // Chuyển hướng đến trang user
-    setKeyword(""); // Reset keyword
-    setOptions([]); // Đặt lại options để đóng dropdown
+    router.push(`/user/${userId}`);
+    setKeyword("");
+    setOptions([]);
   };
 
   const renderFooter = useCallback(() => {
@@ -67,21 +68,24 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
   }, [loading]);
 
   const renderDropdown = () => {
+    // Get input bounding box for dynamic positioning
+    const inputRect = inputRef.current?.getBoundingClientRect();
+    const dropdownStyle: React.CSSProperties = {
+      position: "fixed",
+      top: inputRect ? inputRect.bottom + window.scrollY + 4 : "auto", // 4px gap
+      left: inputRect ? inputRect.left + window.scrollX : "auto",
+      width: inputRect ? inputRect.width : "280px",
+      maxHeight: "400px",
+      overflowY: "auto",
+      backgroundColor,
+      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+      borderRadius: "8px",
+      zIndex: 1000,
+    };
+
     if (users?.length > 0) {
       return (
-        <div
-          style={{
-            position: "fixed",
-            top: "60px",
-            width: "280px",
-            maxHeight: "400px",
-            overflowY: "auto",
-            backgroundColor,
-            boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-            borderRadius: "8px",
-            zIndex: 1000,
-          }}
-        >
+        <div style={dropdownStyle}>
           {users.map((user) => (
             <div
               key={user.id}
@@ -106,36 +110,42 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
               </div>
             </div>
           ))}
+          {renderFooter()}
         </div>
       );
     } else {
       return (
-        <div style={{ textAlign: "center", padding: 20 }}>
-          <img
-            src="https://res.cloudinary.com/dkf51e57t/image/upload/v1729847545/Search-rafiki_uuq8tx.png"
-            alt="No results"
-            style={{ width: "100%", maxWidth: 280, marginBottom: 20 }}
-          />
-          <Text style={{ color: "gray", fontSize: 16 }}>
-            {keyword ? localStrings.Search.NoUsers : localStrings.Search.TrySearch}
-          </Text>
+        <div style={dropdownStyle}>
+          <div style={{ textAlign: "center", padding: 20 }}>
+            <img
+              src="https://res.cloudinary.com/dkf51e57t/image/upload/v1729847545/Search-rafiki_uuq8tx.png"
+              alt="No results"
+              style={{ width: "100%", maxWidth: 280, marginBottom: 20 }}
+            />
+            <Text style={{ color: "gray", fontSize: 16 }}>
+              {keyword ? localStrings.Search.NoUsers : localStrings.Search.TrySearch}
+            </Text>
+          </div>
         </div>
       );
     }
   };
 
   return (
-    <AutoComplete
-      popupMatchSelectWidth={252}
-      options={options}
-      onSearch={(value) => setKeyword(value)}
-      value={keyword}
-      size="large"
-      dropdownRender={renderDropdown}
-      className="md:w-80"
-    >
-      <Input placeholder={localStrings.Search.Search} />
-    </AutoComplete>
+    <div ref={inputRef} style={{ width: "65%", position: "relative" }}>
+      <AutoComplete
+        options={options}
+        onSearch={(value) => setKeyword(value)}
+        value={keyword}
+        size="large"
+        dropdownRender={renderDropdown}
+        className="w-full"
+        style={{ width: "100%" }}
+        popupMatchSelectWidth={false}  
+      >
+        <Input placeholder={localStrings.Search.Search} />
+      </AutoComplete>
+    </div>
   );
 });
 

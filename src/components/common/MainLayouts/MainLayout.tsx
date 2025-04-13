@@ -20,7 +20,6 @@ import Sider from "antd/es/layout/Sider";
 import useColor from "@/hooks/useColor";
 import SettingsTab from "@/components/screens/profile/components/SettingTabs";
 import NotificationScreen from "@/components/screens/notification/views/Notification";
-import { FaPeopleGroup } from "react-icons/fa6";
 
 const { useBreakpoint } = Grid;
 
@@ -153,38 +152,40 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         {screens.lg && (
           <div
             style={{
-              width: "100%",
-              maxWidth: "600px",
+              width: "100%", 
+              maxWidth: "600px", 
               position: "absolute",
               left: "50%",
               transform: "translateX(-50%)",
-              backgroundColor: "white",  
+              backgroundColor: "white",
               boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
               borderRadius: 10,
-              padding: "5px 10px",
-              display: "inline-flex",
-              justifyContent: "center",
+              padding: "5px 0",
+              display: "flex", 
+              justifyContent: "center", 
             }}
           >
             <div
               style={{
-                display: "flex",
-                gap: "20px",
-                alignItems: "center",
+                display: "flex", 
+                width: "100%", 
+                alignItems: "center", 
               }}
             >
               {headerNavItems.map((item) => {
                 const isActive = isActived(item.link);
                 return (
                   <div
-                    key={item.label}
+                    key={item.link} 
                     onClick={() => handleItemClick(item.link)}
                     style={{
+                      flex: 1, 
+                      textAlign: "center", 
                       padding: "10px 20px",
                       cursor: "pointer",
                       fontWeight: "bold",
-                      color: isActive ? "#808080" : "#000", 
-                      borderBottom: isActive ? "2px solid #808080" : "none",
+                      color: isActive ? "#808080" : "#000",
+                      borderBottom: isActive ? "2px solid #808080" : "none", 
                       transition: "color 0.3s, border-bottom 0.3s",
                       lineHeight: "1.5",
                     }}
@@ -224,18 +225,18 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           style={{
             width: "100%",
             maxWidth: "600px",
-            backgroundColor: "white",  
+            backgroundColor: "white",
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
             borderRadius: 10,
             padding: "5px 10px",
             display: "inline-flex",
             justifyContent: "center",
             margin: "10px auto",
-            position: "fixed", 
-            top: "65px", 
+            position: "fixed",
+            top: "65px",
             left: "50%",
             transform: "translateX(-50%)",
-            zIndex: 99,  
+            zIndex: 99,
           }}
         >
           <div
@@ -255,7 +256,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                     padding: "10px 20px",
                     cursor: "pointer",
                     fontWeight: "bold",
-                    color: isActive ? "#808080" : "#000", 
+                    color: isActive ? "#808080" : "#000",
                     borderBottom: isActive ? "2px solid #808080" : "none",
                     transition: "color 0.3s, border-bottom 0.3s",
                     lineHeight: "1.5",
