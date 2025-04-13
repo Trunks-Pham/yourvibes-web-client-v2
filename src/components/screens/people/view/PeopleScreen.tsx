@@ -4,9 +4,8 @@ import React from "react";
 import PeopleViewModel from "../viewModel/PeopleViewModel";
 import { useAuth } from "@/context/auth/useAuth";
 import { Spin, Empty, Button } from "antd";
-import SearchScreen from "@/components/screens/search/views/SearchScreen";
-
-const DEFAULT_AVATAR = "/assets/default-avatar.png";
+import SearchScreen from "../../search/views/SearchScreen";
+import { useRouter } from "next/navigation"; // Update import to next/navigation
 
 const PeopleScreens: React.FC = () => {
   const {
@@ -21,10 +20,11 @@ const PeopleScreens: React.FC = () => {
     handleAcceptFriendRequest,
     handleDeclineFriendRequest,
     loadMoreUsers,
-    updateSearchResults,
   } = PeopleViewModel();
 
   const { localStrings } = useAuth();
+  const router = useRouter(); 
+  const friendRequestsSent = new Set<string>();
 
   if (loading && users.length === 0 && loadingFriendRequests && incomingFriendRequests.length === 0) {
     return (
@@ -37,11 +37,14 @@ const PeopleScreens: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <SearchScreen />
+        </div>
         {incomingFriendRequests.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <span className="text font-bold text-gray-900 mb-4">
               {localStrings.Public.FriendRequests} ({incomingFriendRequests.length})
-            </h2>
+            </span>
             {loadingFriendRequests ? (
               <div className="flex justify-center items-center py-8">
                 <Spin size="large" />
@@ -51,20 +54,24 @@ const PeopleScreens: React.FC = () => {
                 {incomingFriendRequests.map((request) => (
                   <div
                     key={request.id}
-                    className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300 border border-gray-100 flex items-center justify-between"
+                    className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300 border border-gray-100 flex items-center justify-between w-full"
+                    style={{ width: "65%" }}
                   >
                     <div className="flex items-center space-x-4">
                       <div className="relative">
                         <img
-                          src={request.from_user.avatar_url || DEFAULT_AVATAR}
+                          src={request.from_user.avatar_url}
                           alt={`${request.from_user.name}'s avatar`}
                           className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-medium text-gray-900 truncate">
+                        <h3
+                          className="text-base font-medium text-gray-900 truncate cursor-pointer"
+                          onClick={() => router.push(`/user/${request.from_user.id}`)} 
+                        >
                           {request.from_user.name} {request.from_user.family_name}
-                        </h3> 
+                        </h3>
                       </div>
                     </div>
                     <div className="ml-4 flex space-x-2">
@@ -73,43 +80,13 @@ const PeopleScreens: React.FC = () => {
                         onClick={() => handleAcceptFriendRequest(request.from_user.id || "")}
                         className="bg-green-500 hover:bg-green-600 border-none"
                       >
-                        <span className="flex items-center">
-                          <svg
-                            className="w-4 h-4 mr-1"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                          {localStrings.Public.Accept}
-                        </span>
+                        {localStrings.Public.Accept}
                       </Button>
                       <Button
                         danger
                         onClick={() => handleDeclineFriendRequest(request.from_user.id || "")}
                       >
-                        <span className="flex items-center">
-                          <svg
-                            className="w-4 h-4 mr-1"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                          {localStrings.Public.Decline}
-                        </span>
+                        {localStrings.Public.Decline}
                       </Button>
                     </div>
                   </div>
@@ -120,12 +97,9 @@ const PeopleScreens: React.FC = () => {
         )}
 
         <div>
-          {/* <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {localStrings.Public.AllUsers} ({users.length})
-          </h2> */}
-          <div className="mb-6">
-            <SearchScreen onSearchResults={updateSearchResults} />
-          </div>
+          <span className="text font-bold text-gray-900 mb-4">
+            {localStrings.Public.AllUsers}
+          </span>
           {loading && users.length === 0 ? (
             <div className="flex justify-center items-center py-8">
               <Spin size="large" />
@@ -146,17 +120,22 @@ const PeopleScreens: React.FC = () => {
                   <div
                     key={user.id}
                     className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300 border border-gray-100 flex items-center justify-between"
+                    style={{ width: "65%" }}
                   >
                     <div className="flex items-center space-x-4">
                       <div className="relative">
                         <img
-                          src={user.avatar_url || DEFAULT_AVATAR}
+                          src={user.avatar_url}
                           alt={`${user.name}'s avatar`}
-                          className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200"
+                          className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200 cursor-pointer"
+                          onClick={() => router.push(`/user/${user.id}`)} 
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-medium text-gray-900 truncate">
+                        <h3
+                          className="text-base font-medium text-gray-900 truncate cursor-pointer"
+                          onClick={() => router.push(`/user/${user.id}`)}
+                        >
                           {user.name} {user.family_name}
                         </h3>
                         {user.email && (
@@ -165,27 +144,12 @@ const PeopleScreens: React.FC = () => {
                       </div>
                     </div>
                     <div className="ml-4">
-                      {friendRequests.has(user.id || "") ? (
+                      {friendRequests.has(user.id || "") || friendRequestsSent.has(user.id || "") ? (
                         <Button
                           onClick={() => handleCancelFriend(user.id || "")}
                           className="border-gray-300 text-gray-700 hover:text-gray-900"
                         >
-                          <span className="flex items-center">
-                            <svg
-                              className="w-4 h-4 mr-1"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                            {localStrings.Public.CancelFriendRequest}
-                          </span>
+                          {localStrings.Public.CancelFriendRequest}
                         </Button>
                       ) : (
                         <Button

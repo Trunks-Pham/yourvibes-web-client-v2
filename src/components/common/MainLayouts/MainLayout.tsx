@@ -193,7 +193,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           style={{
             position: "sticky",
             top: 0,
-            backgroundColor: "#F5F5F5",
+            backgroundColor: screens.lg ? "#F5F5F5" : backgroundColor,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -250,13 +250,15 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                       key={item.label}
                       onClick={() => handleItemClick(item.link)}
                       style={{
-                        padding: "10px 20px",
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                        color: isActive ? "#808080" : "#000",
-                        borderBottom: isActive ? "2px solid #808080" : "none",
-                        transition: "color 0.3s, border-bottom 0.3s",
-                        lineHeight: "1.5",
+                        flex: 1, 
+                      textAlign: "center", 
+                      padding: "10px 20px",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                      color: isActive ? "#808080" : "#000",
+                      borderBottom: isActive ? "2px solid #808080" : "none", 
+                      transition: "color 0.3s, border-bottom 0.3s",
+                      lineHeight: "1.5",
                       }}
                     >
                       {item.label}
@@ -270,9 +272,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           {/* Right Section: User Name and Avatar */}
           <div
             style={{
-              display: "flex",
               alignItems: "center",
               gap: "15px",
+              display: screens.lg ? "flex" : "none",
             }}
           >
             <div
@@ -296,14 +298,13 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             
         </Header>
         {/* Navigation Tabs khi responsive (dưới Header) */}
-        {!screens.lg && pathname === "/home" && (
+        {!screens.lg && ["/home", "/people", "/trending"].includes(pathname) && (
           <div
             style={{
               width: "100%",
               maxWidth: "600px",
               backgroundColor: "white",
-              boxShadow:
-                "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
               borderRadius: 10,
               padding: "5px 10px",
               display: "inline-flex",
@@ -350,7 +351,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         <Content
           style={{
             marginLeft: screens.lg ? 250 : 0,
-            marginTop: !screens.lg ? "60px" : 0, // Thêm margin-top để tránh đè lên navigation cố định
+            marginTop: !screens.lg && ["/home", "/people", "/trending"].includes(pathname) ? "60px" : 0, // Thêm margin-top để tránh đè lên navigation cố định
           }}
         >
           <div
