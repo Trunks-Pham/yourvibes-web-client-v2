@@ -84,6 +84,10 @@ export const ENGLocalizedStrings = {
     Decline: "Decline",
     AllUsers: "Expand your network",
     Feed: "Feed",
+    Birtday:"Happy birthday, my friends!",
+    Dayof: "Birthday:",
+    YearsOld: "years old",
+    NoBirthdays: "No birthdays today",
   },
 
   Suggested: {

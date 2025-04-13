@@ -1,6 +1,3 @@
-import People from "@/app/(webRouter)/people/page";
-import { NotFoundBoundary } from "next/dist/client/components/not-found-boundary";
-
 export const VnLocalizedStrings = {
   Public: {
     All: "Tất cả",
@@ -87,6 +84,10 @@ export const VnLocalizedStrings = {
     Decline: "Từ chối",
     AllUsers: "Hãy mở rộng mạng lưới của bạn",
     Feed: "Bảng tin",
+    Birtday:"Hãy gửi lời chúc mừng sinh nhật đến những người bạn của bạn",
+    Dayof: "Ngày sinh nhật:",
+    YearsOld: "Tuổi",
+    NoBirthdays: "Không có ngày sinh nhật nào",
   },
   Suggested: {
     SuggestedFriends: "Những người bạn có thể biết",
