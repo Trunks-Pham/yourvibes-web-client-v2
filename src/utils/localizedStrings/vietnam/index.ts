@@ -481,6 +481,15 @@ export const VnLocalizedStrings = {
     DeclineSuccess: "Từ chối lời mời thành công",
     DeclineFailed: "Từ chối lời mời thất bại",  
     DeclineError: "Lỗi khi từ chối lời mời",
+    FriendRequestSent: "Đã gửi lời mời kết bạn",
+    FriendRequestSentError: "Lỗi khi gửi lời mời kết bạn",
+    FriendRequestSentSuccess: "Gửi lời mời kết bạn thành công",
+    FriendRequestCanceled: "Đã hủy lời mời kết bạn",
+    FriendRequestCanceledError: "Lỗi khi hủy lời mời kết bạn",
+    FriendRequestCanceledSuccess: "Hủy lời mời kết bạn thành công",
+    FriendRequestSentFailed: "Gửi lời mời kết bạn thất bại",
+    FriendRequestCanceledFailed: "Hủy lời mời kết bạn thất bại",
+    
   },
   
 };
