@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useState } from "react";
 import { Skeleton } from "antd";
-import dynamic from 'next/dynamic';
+import dynamic from 'next/dynamic'
 import { WebSocketMessageProvider } from "@/context/websocket/useWebSocket";
 
 const DynamicMessagesFeature = dynamic(
