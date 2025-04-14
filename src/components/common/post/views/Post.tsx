@@ -45,6 +45,7 @@ import PostDetailsScreen from "@/components/screens/postDetails/view/postDetails
 import { LikeUsersModel } from "@/api/features/post/models/LikeUsersModel";
 import ReportViewModel from "@/components/screens/report/ViewModel/reportViewModel";
 import ReportScreen from "@/components/screens/report/views/Report";
+import { defaultFriendRepo } from "@/api/features/friends/FriendRepo";
 
 interface IPost {
   post?: PostResponseModel;
@@ -88,7 +89,7 @@ const Post: React.FC<IPost> = React.memo(
       fetchUserLikePosts,
       userLikePost,
     } = EditPostViewModel(defaultPostRepo, post?.id || "", post?.id || "");
-    const { deleteNewFeed } = HomeViewModel(defaultNewFeedRepo);
+    const { deleteNewFeed } = HomeViewModel(defaultNewFeedRepo, defaultFriendRepo);
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
     const [sharePostPrivacy, setSharePostPrivacy] = useState(Privacy.PUBLIC);
     const [shareContent, setShareContent] = useState("");

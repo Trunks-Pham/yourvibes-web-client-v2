@@ -84,7 +84,7 @@ export const VnLocalizedStrings = {
     Decline: "Từ chối",
     AllUsers: "Hãy mở rộng mạng lưới của bạn",
     Feed: "Bảng tin",
-    Birtday:"Hãy gửi lời chúc mừng sinh nhật đến những người bạn của bạn",
+    Birtday:"Lời nhắc sinh nhật!",
     Dayof: "Ngày sinh nhật:",
     YearsOld: "Tuổi",
     NoBirthdays: "Không có ngày sinh nhật nào",
