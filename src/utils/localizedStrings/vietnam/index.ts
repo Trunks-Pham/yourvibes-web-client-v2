@@ -88,6 +88,8 @@ export const VnLocalizedStrings = {
     Dayof: "Ngày sinh nhật:",
     YearsOld: "Tuổi",
     NoBirthdays: "Không có ngày sinh nhật nào",
+    ConfirmLogoutMessage: "Bạn có chắc chắn muốn đăng xuất?",
+    ConfirmLogout:"Xác nhận đăng xuất",
   },
   Suggested: {
     SuggestedFriends: "Những người bạn có thể biết",

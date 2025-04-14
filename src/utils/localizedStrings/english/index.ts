@@ -88,6 +88,9 @@ export const ENGLocalizedStrings = {
     Dayof: "Birthday:",
     YearsOld: "years old",
     NoBirthdays: "No birthdays today",
+    ConfirmLogoutMessage: "Are you sure you want to log out?",
+    ConfirmLogout:"Confirm Logout",
+    Logout:"Logout",
   },
 
   Suggested: {
