@@ -81,10 +81,10 @@ const PeopleViewModel = () => {
         );
       } else {
         setIncomingFriendRequests([]);
-        message.info(`${localStrings.People.NoFriendRequests}`);
+        // message.info(`${localStrings.People.NoFriendRequests}`);
       }
     } catch (error) {
-      message.error(`${localStrings.People.NoFriendRequests}`);
+      // message.error(`${localStrings.People.NoFriendRequests}`);
     } finally {
       setLoadingFriendRequests(false);
     }
@@ -111,7 +111,7 @@ const PeopleViewModel = () => {
         if (response?.code === 20001 && response?.message === "Success") {
           setFriendRequestsSent((prev) => {
             const newSet = new Set(prev);
-            newSet.add(userId); // Thêm userId vào danh sách yêu cầu đã gửi
+            newSet.add(userId);  
             return newSet;
           });
           message.success(`${localStrings.People.FriendRequestSentSuccess}`);
