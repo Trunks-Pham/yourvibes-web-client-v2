@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Layout, Menu, Grid, ConfigProvider, Modal, Avatar } from "antd";
+import { Layout, Menu, Grid, ConfigProvider, Modal, Avatar, Button } from "antd";
 import { createElement } from "react";
 import {
   FaHome,
@@ -11,29 +11,17 @@ import {
   FaFacebookMessenger,
   FaAd,
 } from "react-icons/fa";
-import { HiTrendingUp } from "react-icons/hi";
 import { useAuth } from "@/context/auth/useAuth";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import SearchScreen from "@/components/screens/search/views/SearchScreen";
 import { Content, Header } from "antd/es/layout/layout";
 import Sider from "antd/es/layout/Sider";
 import useColor from "@/hooks/useColor";
 import SettingsTab from "@/components/screens/profile/components/SettingTabs";
 import NotificationScreen from "@/components/screens/notification/views/Notification";
-import { FaPeopleGroup } from "react-icons/fa6";
+import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
+
 
 const { useBreakpoint } = Grid;
-
-const siderStyle: React.CSSProperties = {
-  overflow: "auto",
-  height: "100vh",
-  position: "fixed",
-  insetInlineStart: 0,
-  top: 0,
-  bottom: 0,
-  scrollbarWidth: "thin",
-  scrollbarGutter: "stable",
-};
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [visible, setVisible] = useState(false);
@@ -45,7 +33,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const screens = useBreakpoint();
   const [settingModal, setSettingModal] = useState(false);
   const [notificationModal, setNotificationModal] = useState(false);
-
+  const [collapsed, setCollapsed] = useState(false);
   const content = {
     nav: [
       {
@@ -57,16 +45,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         link: "/messages",
         content: localStrings.Public.Messages,
         icon: FaFacebookMessenger,
-      },
-      {
-        link: "/trending",
-        content: localStrings.Public.Trending,
-        icon: HiTrendingUp,
-      },
-      {
-        link: "/people",
-        content: localStrings.Public.People,
-        icon: FaPeopleGroup,
       },
       {
         link: "/profile",
@@ -107,7 +85,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   const handleMenuClick = () => {
-    setVisible(!visible);
+    // setVisible(!visible);
+    setCollapsed(!collapsed);
   };
 
   const handleItemClick = (link: string) => {
@@ -123,57 +102,218 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
 
   // Define the header navigation items
   const headerNavItems = [
-    { label: "FEED", link: "/home" },
-    { label: "PEOPLE", link: "/people" },
-    { label: "TRENDING", link: "/trending" },
+    { label: `${localStrings.Public.Feed}`, link: "/home" },
+    { label: `${localStrings.Public.People}`, link: "/people" },
+    { label: `${localStrings.Public.Trending}`, link: "/trending" },
   ];
 
   return (
     <Layout>
-      <Header
-        style={{
-          position: "sticky",
-          top: 0,
-          backgroundColor: "#F5F5F5",
-          display: "flex",
-          justifyContent: "space-between", // Logo trái, User/Avatar phải
-          alignItems: "center",
-          width: "100%",
-          zIndex: 100,
-          padding: screens.lg ? "0 50px" : "0 10px", // Giảm padding khi responsive
-          borderBottom: "1px solid #e0e0e0",
+      <ConfigProvider
+        theme={{
+          components: {
+            Layout: {
+              siderBg: "rgb(244, 244, 244)",
+            },
+            Menu: {
+              itemActiveBg: lightGray,
+              itemSelectedBg: lightGray,
+              colorBgContainer: "rgb(244, 244, 244)",
+              lineWidth: 0,
+              itemBorderRadius: 5,
+              itemMarginBlock: 0,
+              itemHeight: 55,
+              padding: 0,
+            },
+          },
         }}
       >
-        {/* Left Section: Logo */}
-        <div
+        <Sider
+          trigger={null}
+          collapsedWidth={0}
+          width={250}
+          collapsed={collapsed}
+          breakpoint="lg"
+          onCollapse={(collapsed) => setCollapsed(collapsed)}
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
+            overflow: "auto",
+            height: "100vh",
+            position: "fixed",
+            zIndex: 100,
+            insetInlineStart: 0,
+            top: 0,
+            bottom: 0,
           }}
         >
-          <img
-            src="/image/yourvibes_black.png"
-            alt="YourVibes"
-            style={{ height: "40px", cursor: "pointer" }}
-            onClick={() => router.push("/home")}
-          />
-        </div>
+          <div className="demo-logo-vertical" />
+          <Menu
+            mode="inline"
+            className="flex flex-col justify-center h-full"
+            items={nav.map((item, index) => {
+              const actived = isActived(item.link);
+              return {
+                key: index.toString(),
+                label: (
+                  <div>
+                    <div
+                      className={`h-4 flex items-center gap-4 w-full h-full px-4 pl-8`}
+                      style={{
+                        backgroundColor: actived ? "#C0C0C0" : "transparent",
+                        color: "black",
+                      }}
 
-        {/* Center Section: Navigation Tabs (chỉ hiển thị ở giữa khi full-screen) */}
-        {screens.lg && (
+                      onClick={() => { handleItemClick(item.link), !screens.lg && handleMenuClick() }}
+                    >
+                      {createElement(item.icon, {
+                        size: 20,
+                      })}
+                      <span>{item.content}</span>
+                    </div>
+                    <div>
+                      <hr className="border-t-2 border-gray-300" />
+                    </div>
+                  </div>
+                ),
+                style: {
+                  paddingLeft: 0,
+                  paddingRight: 0,
+                  paddingTop: 0,
+                  paddingBottom: 0,
+                  margin: 0,
+                  cursor: "pointer",
+                  width: "100%",
+                },
+              };
+            })}
+          />
+        </Sider>
+      </ConfigProvider>
+      <Layout>
+        <Header
+          style={{
+            position: "sticky",
+            top: 0,
+            backgroundColor: screens.lg ? "#F5F5F5" : backgroundColor,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+            zIndex: 100,
+            padding: screens.lg ? "0 50px" : "0 10px",
+          }}
+        >
+          {/* Left Section: Logo */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <img
+              src="/image/yourvibes_black.png"
+              alt="YourVibes"
+              style={{ height: "40px", cursor: "pointer" }}
+              onClick={() => router.push("/home")}
+            />
+          </div>
+
+          {/* Center Section: Navigation Tabs (chỉ hiển thị ở giữa khi full-screen) */}
+          {screens.lg && (
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "600px",
+                position: "absolute",
+                left: "50%",
+                transform: "translateX(-50%)",
+                backgroundColor: "white",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                borderRadius: 10,
+                padding: "5px 0",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  width: "100%",
+                  alignItems: "center",
+                }}
+              >
+                {headerNavItems.map((item) => {
+                  const isActive = isActived(item.link);
+                  return (
+                    <div
+                      key={item.link}
+                      onClick={() => handleItemClick(item.link)}
+                      style={{
+                        flex: 1,
+                        textAlign: "center",
+                        padding: "10px 20px",
+                        cursor: "pointer",
+                        fontWeight: "bold",
+                        color: isActive ? "#808080" : "#000",
+                        borderBottom: isActive ? "2.5px solid #808080" : "none",
+                        transition: "color 0.3s, border-bottom 0.3s",
+                        lineHeight: "1.5", 
+                      }}
+                    >
+                      {item.label}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Right Section: User Name and Avatar */}
+          <div
+            style={{
+              alignItems: "center",
+              gap: "15px",
+              display: screens.lg ? "flex" : "none",
+            }}
+          >
+            <div
+              className="flex flex-row items-center gap-4 pl-2"
+              style={{ cursor: "pointer" }}
+            >
+              <span className="font-bold md:block hidden">
+                {user?.family_name} {user?.name}
+              </span>
+              <Avatar src={user?.avatar_url} alt={user?.name} size={40} />
+            </div>
+          </div>
+          {!screens.lg && (
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => handleMenuClick()}
+              style={{ fontSize: "20px", marginRight: "16px" }}
+            />
+          )}
+
+        </Header>
+        {/* Navigation Tabs khi responsive (dưới Header) */}
+        {!screens.lg && ["/home", "/people", "/trending"].includes(pathname) && (
           <div
             style={{
               width: "100%",
               maxWidth: "600px",
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)",
-              backgroundColor: "#ccc",
-              borderRadius: "20px",
+              backgroundColor: "white",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+              borderRadius: 10,
               padding: "5px 10px",
               display: "inline-flex",
               justifyContent: "center",
+              margin: "10px auto",
+              position: "fixed",
+              top: "65px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 99,
             }}
           >
             <div
@@ -193,8 +333,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                       padding: "10px 20px",
                       cursor: "pointer",
                       fontWeight: "bold",
-                      color: isActive ? "#1DA1F2" : "#000",
-                      borderBottom: isActive ? "2px solid #1DA1F2" : "none",
+                      color: isActive ? "#808080" : "#000",
+                      borderBottom: isActive ? "2.5px solid #808080" : "none",
                       transition: "color 0.3s, border-bottom 0.3s",
                       lineHeight: "1.5",
                     }}
@@ -207,208 +347,22 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
         )}
 
-        {/* Right Section: User Name and Avatar */}
-        <div
+        <Content
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "15px",
-          }}
-        >
-          <div
-            className="flex flex-row items-center gap-4 pl-2"
-            onClick={handleMenuClick}
-            style={{ cursor: "pointer" }}
-          >
-            <span className="font-bold md:block hidden">
-              {user?.family_name} {user?.name}
-            </span>
-            <Avatar src={user?.avatar_url} alt={user?.name} size={40} />
-          </div>
-        </div>
-      </Header>
-
-      {/* Navigation Tabs khi responsive (dưới Header) */}
-      {!screens.lg && (
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "600px",
-            backgroundColor: "#ccc",
-            borderRadius: "20px",
-            padding: "5px 10px",
-            display: "inline-flex",
-            justifyContent: "center",
-            margin: "10px auto", // Căn giữa và thêm khoảng cách
-            position: "relative",
+            marginLeft: screens.lg ? 250 : 0,
+            marginTop: !screens.lg && ["/home", "/people", "/trending"].includes(pathname) ? "60px" : 0, // Thêm margin-top để tránh đè lên navigation cố định
           }}
         >
           <div
             style={{
-              display: "flex",
-              gap: "20px",
               alignItems: "center",
+              marginLeft: screens.lg ? 70 : 0,
             }}
           >
-            {headerNavItems.map((item) => {
-              const isActive = isActived(item.link);
-              return (
-                <div
-                  key={item.label}
-                  onClick={() => handleItemClick(item.link)}
-                  style={{
-                    padding: "10px 20px",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                    color: isActive ? "#1DA1F2" : "#000",
-                    borderBottom: isActive ? "2px solid #1DA1F2" : "none",
-                    transition: "color 0.3s, border-bottom 0.3s",
-                    lineHeight: "1.5",
-                  }}
-                >
-                  {item.label}
-                </div>
-              );
-            })}
+            {children}
           </div>
-        </div>
-      )}
-
-      <ConfigProvider
-        theme={{
-          components: {
-            Layout: {
-              siderBg: "rgb(244, 244, 244)",
-            },
-          },
-        }}
-      >
-        <Layout>
-          <Sider
-            width={250}
-            style={{
-              display: screens.lg ? "block" : "none",
-              overflow: "auto",
-              height: "100vh",
-              position: "fixed",
-              insetInlineStart: 0,
-              top: 0,
-              bottom: 0,
-            }}
-          >
-            <div className="demo-logo-vertical" />
-            <ConfigProvider
-              theme={{
-                components: {
-                  Menu: {
-                    itemActiveBg: lightGray,
-                    itemSelectedBg: lightGray,
-                    colorBgContainer: "rgb(244, 244, 244)",
-                    lineWidth: 0,
-                    itemBorderRadius: 5,
-                    itemMarginBlock: 0,
-                    itemHeight: 55,
-                  },
-                },
-              }}
-            >
-              <Menu
-                mode="inline"
-                style={{ borderRight: 0 }}
-                className="flex flex-col justify-center h-full"
-                items={nav.map((item, index) => {
-                  const actived = isActived(item.link);
-                  return {
-                    key: index.toString(),
-                    label: (
-                      <div>
-                        <div
-                          className={`h-4 flex items-center gap-4 w-full h-full px-4 pl-8`}
-                          style={{
-                            backgroundColor: actived ? "#C0C0C0" : "transparent",
-                            color: "black",
-                          }}
-                          onClick={() => handleItemClick(item.link)}
-                        >
-                          {createElement(item.icon, {
-                            size: 20,
-                          })}
-                          <span>{item.content}</span>
-                        </div>
-                        <div>
-                          <hr className="border-t-2 border-gray-300" />
-                        </div>
-                      </div>
-                    ),
-                    style: {
-                      padding: 0,
-                      cursor: "pointer",
-                    },
-                  };
-                })}
-              />
-            </ConfigProvider>
-          </Sider>
-
-          <Content
-            style={{
-              marginLeft: screens.lg ? 250 : 0,
-            }}
-          >
-            <div
-              style={{
-                alignItems: "center",
-                marginLeft: screens.lg ? 70 : 0,
-              }}
-            >
-              {children}
-            </div>
-          </Content>
-        </Layout>
-      </ConfigProvider>
-
-      {visible && (
-        <Menu
-          mode="inline"
-          style={{
-            position: "fixed",
-            top: "64px",
-            right: "15px",
-            backgroundColor: "white",
-            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-            width: "200px",
-            borderRadius: "8px",
-            zIndex: 100,
-            border: "1px solid #dcdcdc",
-            fontFamily: "Arial, sans-serif",
-          }}
-          onClick={handleMenuClick}
-        >
-          {nav.map((item, index) => (
-            <Menu.Item
-              key={index}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "12px 20px",
-                fontSize: "16px",
-              }}
-              onClick={() => handleItemClick(item.link)}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  marginRight: "10px",
-                  fontSize: "20px",
-                  color: "#black",
-                }}
-              >
-                {item.content}
-              </div>
-            </Menu.Item>
-          ))}
-        </Menu>
-      )}
+        </Content>
+      </Layout>
 
       {settingModal && (
         <Modal
@@ -417,7 +371,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           footer={null}
           width={500}
           centered
-          title={<span className="font-bold">{localStrings.Public.Settings}</span>}
+          title={
+            <span className="font-bold">{localStrings.Public.Settings}</span>
+          }
         >
           <SettingsTab setSettingModal={setSettingModal} />
         </Modal>

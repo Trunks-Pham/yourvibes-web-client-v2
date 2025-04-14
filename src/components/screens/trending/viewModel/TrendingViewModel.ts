@@ -1,16 +1,20 @@
 import { PostResponseModel } from "@/api/features/post/models/PostResponseModel";
 import { PostRepo } from "@/api/features/post/PostRepo";
 import { BaseApiResponseModel } from "@/api/baseApiResponseModel/baseApiResponseModel";
+import { GetBirthdayFriendsModel } from "@/api/features/friends/models/GetBirthdayFriends"; 
+import { FriendRepo } from "@/api/features/friends/FriendRepo"; 
 import { useState } from "react";
 import { useAuth } from "@/context/auth/useAuth";
 import { message } from "antd";
 import { GetUsersPostsRequestModel } from "@/api/features/post/models/GetUsersPostsModel";
 
-const TrendingViewModel = (repo: PostRepo) => {
+const TrendingViewModel = (postRepo: PostRepo, friendRepo: FriendRepo) => { 
   const [trendingPosts, setTrendingPosts] = useState<PostResponseModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [birthdayFriends, setBirthdayFriends] = useState<GetBirthdayFriendsModel[]>([]);  
+  const [loadingBirthday, setLoadingBirthday] = useState(false);  
   const { localStrings } = useAuth();
   const limit = 20;
 
@@ -22,7 +26,7 @@ const TrendingViewModel = (repo: PostRepo) => {
         limit: limit,
       };
       const response: BaseApiResponseModel<PostResponseModel[]> =
-        await repo.getPostsTrending(requestData);
+        await postRepo.getPostsTrending(requestData);
 
       if (!response.error) {
         const newPosts = response.data || [];
@@ -51,6 +55,33 @@ const TrendingViewModel = (repo: PostRepo) => {
     await fetchTrendingPosts(page + 1);
   };
 
+  // Thêm hàm lấy danh sách bạn bè có sinh nhật
+  const fetchBirthdayFriends = async () => {
+    try {
+      setLoadingBirthday(true);
+      const response = await friendRepo.getBirthdayFriends();
+      if (!response.error) {
+        const cleanedData = response.data.map((friend: GetBirthdayFriendsModel) => {
+          if (friend.birthday && friend.birthday.includes("T") && friend.birthday.includes("/")) {
+            const datePart = friend.birthday.split("/")[1];
+            const [month, year] = datePart.split("/").map(Number);
+            const day = parseInt(friend.birthday.split("T")[0], 10);
+            return {
+              ...friend,
+              birthday: `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`,
+            };
+          }
+          return friend;
+        });
+        setBirthdayFriends(cleanedData || []);
+      }
+    } catch (error) {
+      console.error("Error fetching birthday friends:", error);
+    } finally {
+      setLoadingBirthday(false);
+    }
+  };
+
   return {
     trendingPosts,
     loading,
@@ -58,6 +89,9 @@ const TrendingViewModel = (repo: PostRepo) => {
     loadMoreTrendingPosts,
     hasMore,
     setTrendingPosts,
+    birthdayFriends,  
+    loadingBirthday,  
+    fetchBirthdayFriends,  
   };
 };
 

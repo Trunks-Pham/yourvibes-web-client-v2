@@ -1,4 +1,4 @@
-import { MessageResponseModel, MessageWebSocketResponseModel } from "@/api/features/messages/models/MessageModel";
+import { MessageResponseModel, MessageWebSocketResponseModel } from "@/src/api/features/messages/models/Messages";
 
 export interface SocketContextType {
     connectSocketMessage: ()=> void;

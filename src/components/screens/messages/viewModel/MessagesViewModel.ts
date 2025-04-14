@@ -360,12 +360,13 @@ export const useMessagesViewModel = () => {
     }
   };
 
-  const createConversation = async (name: string, image?: string, userIds?: string[]) => {
+  const createConversation = async (name: string, image?: File | string, userIds?: string[]) => {
     if (!user?.id) return null;
     
     try {
       const createResponse = await defaultMessagesRepo.createConversation({
         name: name,
+        image: image, 
         user_ids: userIds || []
       });
       

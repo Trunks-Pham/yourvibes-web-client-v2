@@ -604,7 +604,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
 interface NewConversationModalProps {
   visible: boolean;
   onCancel: () => void;
-  onCreateConversation: (name: string, image?: string, userIds?: string[]) => Promise<any>;
+  onCreateConversation: (name: string, image?: File | string, userIds?: string[]) => Promise<any>;
 }
 
 const NewConversationModal: React.FC<NewConversationModalProps> = ({ 
@@ -619,6 +619,8 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [conversationImage, setConversationImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (visible && user?.id) {
@@ -630,6 +632,8 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
     if (visible) {
       form.resetFields();
       setSelectedFriends([]);
+      setConversationImage(null);
+      setImagePreview(null);
     }
   }, [visible]);
 
@@ -653,6 +657,44 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageUpload = (info: any) => {
+    const file = info.file;
+    
+    if (!file) {
+      console.error("Không tìm thấy file:", info);
+      return false;
+    }
+    
+    const isImage = file.type.startsWith('image/');
+    const isLt5M = file.size / 1024 / 1024 < 5;
+    
+    if (!isImage) {
+      message.error(localStrings.Messages.OnlyImageFiles);
+      return false;
+    }
+    
+    if (!isLt5M) {
+      message.error(localStrings.Messages.ImageMustSmallerThan5M);
+      return false;
+    }
+    
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const previewUrl = reader.result as string;
+      setImagePreview(previewUrl);
+    };
+    reader.readAsDataURL(file);
+    
+    setConversationImage(file);
+    return false; 
+  };
+
+  const removeImage = () => {
+    setConversationImage(null);
+    setImagePreview(null);
   };
 
   const handleCreateConversation = async () => {
@@ -685,13 +727,15 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
       
       const newConversation = await onCreateConversation(
         conversationName, 
-        undefined, 
+        conversationImage || undefined, 
         userIdsToAdd
       );
       
       if (newConversation && newConversation.id) {
         form.resetFields();
         setSelectedFriends([]);
+        setConversationImage(null);
+        setImagePreview(null);
         
         onCancel();
       }
@@ -736,6 +780,73 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
           label={localStrings.Messages.ConversationName}
         >
           <Input placeholder={localStrings.Messages.OptionalGroupName} />
+        </Form.Item>
+        
+        {/* Image Upload Section */}
+        <Form.Item 
+          name="image" 
+          label={localStrings.Messages.ConversationImage}
+        >
+          <Dragger
+            name="avatar"
+            multiple={false}
+            showUploadList={false}
+            beforeUpload={() => false} 
+            onChange={(info) => {
+              handleImageUpload(info);
+            }}
+            accept="image/*"
+          >
+            {imagePreview ? (
+              <div style={{ 
+                position: 'relative',
+                width: '100%',
+                height: '200px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                overflow: 'hidden'
+              }}>
+                <img 
+                  src={imagePreview} 
+                  alt="Conversation" 
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '200px', 
+                    objectFit: 'contain' 
+                  }} 
+                />
+                <Button 
+                  type="text" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeImage();
+                  }}
+                  style={{ 
+                    position: 'absolute', 
+                    top: 5, 
+                    right: 5, 
+                    zIndex: 10,
+                    background: 'rgba(255, 255, 255, 0.7)'
+                  }}
+                >
+                  {localStrings.Messages.Remove}
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">
+                  {localStrings.Messages.ClickOrDragImageToUpload}
+                </p>
+                <p className="ant-upload-hint">
+                  {localStrings.Messages.SupportSingleImageUpload}
+                </p>
+              </div>
+            )}
+          </Dragger>
         </Form.Item>
         
         <div style={{ marginBottom: 16 }}>
