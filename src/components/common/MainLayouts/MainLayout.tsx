@@ -161,8 +161,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                         backgroundColor: actived ? "#C0C0C0" : "transparent",
                         color: "black",
                       }}
-                      
-                      onClick={() => { handleItemClick(item.link), !screens.lg && handleMenuClick()} }
+
+                      onClick={() => { handleItemClick(item.link), !screens.lg && handleMenuClick() }}
                     >
                       {createElement(item.icon, {
                         size: 20,
@@ -228,18 +228,17 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 left: "50%",
                 transform: "translateX(-50%)",
                 backgroundColor: "white",
-                boxShadow:
-                  "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
                 borderRadius: 10,
-                padding: "5px 10px",
-                display: "inline-flex",
+                padding: "5px 0",
+                display: "flex",
                 justifyContent: "center",
               }}
             >
               <div
                 style={{
                   display: "flex",
-                  gap: "20px",
+                  width: "100%",
                   alignItems: "center",
                 }}
               >
@@ -247,18 +246,18 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                   const isActive = isActived(item.link);
                   return (
                     <div
-                      key={item.label}
+                      key={item.link}
                       onClick={() => handleItemClick(item.link)}
                       style={{
-                        flex: 1, 
-                      textAlign: "center", 
-                      padding: "10px 20px",
-                      cursor: "pointer",
-                      fontWeight: "bold",
-                      color: isActive ? "#808080" : "#000",
-                      borderBottom: isActive ? "2px solid #808080" : "none", 
-                      transition: "color 0.3s, border-bottom 0.3s",
-                      lineHeight: "1.5",
+                        flex: 1,
+                        textAlign: "center",
+                        padding: "10px 20px",
+                        cursor: "pointer",
+                        fontWeight: "bold",
+                        color: isActive ? "#808080" : "#000",
+                        borderBottom: isActive ? "2.5px solid #808080" : "none",
+                        transition: "color 0.3s, border-bottom 0.3s",
+                        lineHeight: "1.5", 
                       }}
                     >
                       {item.label}
@@ -289,13 +288,13 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
           {!screens.lg && (
             <Button
-                type="text"
-                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                onClick={() => handleMenuClick()}
-                style={{ fontSize: "20px", marginRight: "16px" }}
-              />
-            )}
-            
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => handleMenuClick()}
+              style={{ fontSize: "20px", marginRight: "16px" }}
+            />
+          )}
+
         </Header>
         {/* Navigation Tabs khi responsive (dưới Header) */}
         {!screens.lg && ["/home", "/people", "/trending"].includes(pathname) && (
@@ -335,7 +334,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                       cursor: "pointer",
                       fontWeight: "bold",
                       color: isActive ? "#808080" : "#000",
-                      borderBottom: isActive ? "2px solid #808080" : "none",
+                      borderBottom: isActive ? "2.5px solid #808080" : "none",
                       transition: "color 0.3s, border-bottom 0.3s",
                       lineHeight: "1.5",
                     }}
