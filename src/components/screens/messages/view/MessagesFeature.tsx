@@ -936,7 +936,6 @@ const MessagesFeature: React.FC = () => {
     fetchMessages,
     isMessagesEnd,
     loadMoreMessages,
-    isWebSocketConnected,
     messageListRef,
     handleScroll,
     getMessagesForConversation,
@@ -1757,7 +1756,6 @@ const MessagesFeature: React.FC = () => {
                       padding: "8px 12px",
                       flex: 1
                     }}
-                    disabled={!isWebSocketConnected}
                   />
 
                   <Button
@@ -1766,7 +1764,7 @@ const MessagesFeature: React.FC = () => {
                     icon={<SendOutlined />}
                     onClick={handleSendMessage}
                     style={{ marginLeft: 8 }}
-                    disabled={!messageText.trim() || !isWebSocketConnected || messageText.length > 500}
+                    disabled={!messageText.trim() || messageText.length > 500}
                   />
                 </div>
 

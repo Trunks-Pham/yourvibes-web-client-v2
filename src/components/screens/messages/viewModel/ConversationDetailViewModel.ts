@@ -1,20 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { message } from "antd";
 
 import { useAuth } from "@/context/auth/useAuth";
-import { useWebSocket } from "@/context/websocket/useWebSocket";
 
 import { defaultMessagesRepo } from "@/api/features/messages/MessagesRepo";
 import { FriendResponseModel } from "@/api/features/profile/model/FriendReponseModel";
 
 export const useConversationDetailViewModel = () => {
   const { user, localStrings } = useAuth();
-  const {
-    resetUnreadCount,
-    unreadMessages,
-  } = useWebSocket();
 
   const [existingMembersLoading, setExistingMembersLoading] = useState(false);
+  const [conversationMembersMap, setConversationMembersMap] = useState<Record<string, FriendResponseModel[]>>({});
 
   const markConversationAsRead = async (conversationId: string) => {
     if (!user?.id || !conversationId) return;
@@ -24,9 +20,6 @@ export const useConversationDetailViewModel = () => {
         conversation_id: conversationId,
         user_id: user.id
       });
-      
-      resetUnreadCount(conversationId);
-      
     } catch (error) {
       // Silent error handling
     }
@@ -44,6 +37,9 @@ export const useConversationDetailViewModel = () => {
       );
       
       await Promise.all(createPromises);
+      
+      // Refresh members list
+      await fetchConversationMembers(conversationId);
       
       return true;
     } catch (error) {
@@ -78,8 +74,6 @@ export const useConversationDetailViewModel = () => {
       if (response.data) {
         const members = Array.isArray(response.data) ? response.data : [response.data];
         
-        const memberIds = members.map(member => member.user_id).filter(Boolean) as string[];
-        
         const membersWithDetails = members.filter(member => member.user && member.user.id);
         
         if (membersWithDetails.length > 0) {
@@ -90,7 +84,15 @@ export const useConversationDetailViewModel = () => {
             avatar_url: member.user?.avatar_url
           }));
           
-          return memberProfiles as FriendResponseModel[];
+          const membersList = memberProfiles as FriendResponseModel[];
+          
+          // Cache the result
+          setConversationMembersMap(prev => ({
+            ...prev,
+            [conversationId]: membersList
+          }));
+          
+          return membersList;
         }
       }
       return [];
@@ -102,15 +104,20 @@ export const useConversationDetailViewModel = () => {
     }
   };
 
+  const getMembersForConversation = (conversationId: string): FriendResponseModel[] => {
+    return conversationMembersMap[conversationId] || [];
+  };
+
   return {
     // State
-    unreadMessages,
     existingMembersLoading,
+    conversationMembersMap,
     
     // Actions
     markConversationAsRead,
     addConversationMembers,
     leaveConversation,
     fetchConversationMembers,
+    getMembersForConversation,
   };
 };

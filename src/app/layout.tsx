@@ -6,7 +6,6 @@ import "./globals.css";
 import { ConfigProvider } from "antd";
 import useColor from "@/hooks/useColor";
 import { WebSocketProvider } from "@/context/socket/useSocket";
-import { WebSocketMessageProvider } from "@/context/websocket/useWebSocket";
 
 
 export const metadata: Metadata = {

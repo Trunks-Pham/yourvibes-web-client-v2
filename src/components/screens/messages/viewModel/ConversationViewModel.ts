@@ -1,32 +1,46 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { message } from "antd";
 
 import { useAuth } from "@/context/auth/useAuth";
-import { useWebSocket } from "@/context/websocket/useWebSocket";
 
 import { defaultMessagesRepo } from "@/api/features/messages/MessagesRepo";
 import { ConversationResponseModel, UpdateConversationRequestModel } from "@/api/features/messages/models/ConversationModel";
+import { MessageResponseModel } from "@/api/features/messages/models/MessageModel";
 
 export const useConversationViewModel = () => {
   const { user, localStrings } = useAuth();
-  const {
-    isConnected: isWebSocketConnected,
-    sendMessage: wsSendMessage,
-    updateConversations,
-    conversations: wsConversations,
-    getMessagesForConversation,
-  } = useWebSocket();
 
   const [conversations, setConversations] = useState<ConversationResponseModel[]>([]);
   const [currentConversation, setCurrentConversation] = useState<ConversationResponseModel | null>(null);
   const [conversationsLoading, setConversationsLoading] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>("");
+  const [unreadMessages, setUnreadMessages] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    if (wsConversations && wsConversations.length > 0) {
-      setConversations(wsConversations);
-    }
-  }, [wsConversations]);
+  const addNewConversation = (conversation: ConversationResponseModel) => {
+    setConversations(prev => {
+      const exists = prev.some(c => c.id === conversation.id);
+      if (exists) return prev;
+      
+      return [conversation, ...prev];
+    });
+  };
+
+  const updateConversationOrder = (conversationId: string) => {
+    setConversations(prev => {
+      const conversationIndex = prev.findIndex(c => c.id === conversationId);
+      if (conversationIndex < 0) return prev;
+      
+      const updatedConversations = [...prev];
+      const conversation = { ...updatedConversations[conversationIndex] };
+      
+      conversation.updated_at = new Date().toISOString();
+      
+      updatedConversations.splice(conversationIndex, 1);
+      updatedConversations.unshift(conversation);
+      
+      return updatedConversations;
+    });
+  };
 
   const fetchConversations = async () => {
     if (!user?.id) return;
@@ -44,9 +58,6 @@ export const useConversationViewModel = () => {
           : [response.data];
         
         setConversations(conversationsList);
-        updateConversations(conversationsList);
-        
-        const lastMessagesMap = new Map();
         
         const fetchMessagesPromises = conversationsList.map(async (conversation) => {
           if (conversation.id) {
@@ -60,19 +71,7 @@ export const useConversationViewModel = () => {
               });
               
               if (messageResponse.data) {
-                const messageList = Array.isArray(messageResponse.data) 
-                  ? messageResponse.data 
-                  : [messageResponse.data];
-                
-                if (messageList.length > 0) {
-                  const formattedMessages = messageList.map(msg => ({
-                    ...msg,
-                    fromServer: true,
-                    isTemporary: false
-                  }));
-                  
-                  lastMessagesMap.set(conversation.id, formattedMessages[0]);
-                }
+                // Last message fetched successfully
               }
             } catch (error) {
               console.error("Error fetching messages for conversation", conversation.id, error);
@@ -81,23 +80,6 @@ export const useConversationViewModel = () => {
         });
         
         await Promise.all(fetchMessagesPromises);
-        
-        const sortedConversations = [...conversationsList].sort((a, b) => {
-          const lastMessageA = lastMessagesMap.get(a.id);
-          const lastMessageB = lastMessagesMap.get(b.id);
-          
-          if (!lastMessageA && !lastMessageB) return 0;
-          if (!lastMessageA) return 1;
-          if (!lastMessageB) return -1;
-          
-          const timeA = new Date(lastMessageA.created_at || '').getTime();
-          const timeB = new Date(lastMessageB.created_at || '').getTime();
-          
-          return timeB - timeA;
-        });
-        
-        setConversations(sortedConversations);
-        updateConversations(sortedConversations);
       }
     } catch (error) {
       message.error(localStrings.Messages.ErrorFetchingConversations);
@@ -118,14 +100,6 @@ export const useConversationViewModel = () => {
       
       if (createResponse.data) {
         const newConversation = createResponse.data;
-        
-        if (isWebSocketConnected) {
-          wsSendMessage({
-            type: "new_conversation",
-            conversation: newConversation,
-            members: userIds
-          });
-        }
         
         await fetchConversations();
         return newConversation;
@@ -189,12 +163,20 @@ export const useConversationViewModel = () => {
     }
   };
 
+  const resetUnreadCount = (conversationId: string) => {
+    setUnreadMessages(prev => ({
+      ...prev,
+      [conversationId]: 0
+    }));
+  };
+
   return {
     // State
     conversations,
     currentConversation,
     conversationsLoading,
     searchText,
+    unreadMessages,
     
     // Setters
     setSearchText,
@@ -205,6 +187,8 @@ export const useConversationViewModel = () => {
     createConversation,
     updateConversation,
     deleteConversation,
-    getMessagesForConversation,
+    addNewConversation,
+    updateConversationOrder,
+    resetUnreadCount,
   };
 };
