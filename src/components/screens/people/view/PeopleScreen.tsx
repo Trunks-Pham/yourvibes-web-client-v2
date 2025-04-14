@@ -66,7 +66,7 @@ const PeopleScreens: React.FC = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3
-                          className="text-base font-medium text-gray-900 truncate cursor-pointer hover:text-blue-600"
+                          className="text-base font-medium text-gray-900 truncate cursor-pointer hover:text-gray-600"
                           onClick={() => router.push(`/user/${request.from_user.id}`)}
                         >
                           {request.from_user.name} {request.from_user.family_name}
@@ -134,7 +134,7 @@ const PeopleScreens: React.FC = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3
-                          className="text-base font-medium text-gray-900 truncate cursor-pointer hover:text-blue-600"
+                          className="text-base font-medium text-gray-900 truncate cursor-pointer hover:text-gray-600"
                           onClick={() => router.push(`/user/${user.id}`)}
                         >
                           {user.name} {user.family_name}
