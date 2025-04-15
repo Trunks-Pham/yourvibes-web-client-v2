@@ -20,16 +20,14 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
   const { brandPrimary, backgroundColor } = useColor();
   const { localStrings } = useAuth();
   const router = useRouter();
-  const inputRef = useRef<HTMLDivElement>(null); 
+  const inputRef = useRef<HTMLDivElement>(null);
 
-  // Callback when users change
   useEffect(() => {
     if (onSearchResults && users) {
       onSearchResults(users, total);
     }
-  }, [users, total, onSearchResults]);
+  }, []);
 
-  // Debounce search
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (keyword) {
@@ -43,16 +41,14 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [keyword, searchUsers, onSearchResults]);
+  }, [keyword]);
 
-  // Update options for AutoComplete
   useEffect(() => {
     if (Array.isArray(users)) {
       setOptions(users.map((user) => ({ value: user.name })));
     }
   }, [users]);
 
-  // Handle select
   const handleSelect = (userId: string) => {
     router.push(`/user/${userId}`);
     setKeyword("");
@@ -68,14 +64,16 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
   }, [loading]);
 
   const renderDropdown = () => {
-    // Get input bounding box for dynamic positioning
     const inputRect = inputRef.current?.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 768;
+
     const dropdownStyle: React.CSSProperties = {
       position: "fixed",
-      top: inputRect ? inputRect.bottom + window.scrollY + 4 : "auto", // 4px gap
-      left: inputRect ? inputRect.left + window.scrollX : "auto",
-      width: inputRect ? inputRect.width : "280px",
-      maxHeight: "400px",
+      top: inputRect ? inputRect.bottom + window.scrollY + 4 : "auto",
+      left: isMobile ? 16 : inputRect ? inputRect.left + window.scrollX : "auto",
+      right: isMobile ? 16 : "auto",
+      width: isMobile ? "calc(100% - 32px)" : inputRect ? inputRect.width : "280px",
+      maxHeight: isMobile ? "300px" : "400px",
       overflowY: "auto",
       backgroundColor,
       boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
@@ -92,7 +90,7 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                padding: 10,
+                padding: isMobile ? "8px" : "10px",
                 borderBottom: "1px solid #f0f0f0",
                 cursor: "pointer",
               }}
@@ -102,9 +100,20 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
                 <img
                   src={user.avatar_url}
                   alt={user.name}
-                  style={{ width: 50, height: 50, borderRadius: "50%" }}
+                  loading="lazy"
+                  style={{
+                    width: isMobile ? 40 : 50,
+                    height: isMobile ? 40 : 50,
+                    borderRadius: "50%",
+                  }}
                 />
-                <Text style={{ marginLeft: 10, fontWeight: "bold", fontSize: 16 }}>
+                <Text
+                  style={{
+                    marginLeft: isMobile ? 8 : 10,
+                    fontWeight: "bold",
+                    fontSize: isMobile ? 14 : 16,
+                  }}
+                >
                   {user.family_name + " " + user.name}
                 </Text>
               </div>
@@ -116,13 +125,18 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
     } else {
       return (
         <div style={dropdownStyle}>
-          <div style={{ textAlign: "center", padding: 20 }}>
+          <div style={{ textAlign: "center", padding: isMobile ? 10 : 20 }}>
             <img
               src="https://res.cloudinary.com/dkf51e57t/image/upload/v1729847545/Search-rafiki_uuq8tx.png"
               alt="No results"
-              style={{ width: "100%", maxWidth: 280, marginBottom: 20 }}
+              loading="lazy"
+              style={{
+                width: "100%",
+                maxWidth: isMobile ? 200 : 280,
+                marginBottom: isMobile ? 10 : 20,
+              }}
             />
-            <Text style={{ color: "gray", fontSize: 16 }}>
+            <Text style={{ color: "gray", fontSize: isMobile ? 14 : 16 }}>
               {keyword ? localStrings.Search.NoUsers : localStrings.Search.TrySearch}
             </Text>
           </div>
@@ -132,7 +146,15 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
   };
 
   return (
-    <div ref={inputRef} style={{ width: "65%", position: "relative" }}>
+    <div
+      ref={inputRef}
+      style={{
+        width: "100%",
+        maxWidth: "600px",
+        minWidth: "280px",
+        position: "relative",
+      }}
+    >
       <AutoComplete
         options={options}
         onSearch={(value) => setKeyword(value)}
@@ -141,9 +163,12 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
         dropdownRender={renderDropdown}
         className="w-full"
         style={{ width: "100%" }}
-        popupMatchSelectWidth={false}  
+        popupMatchSelectWidth={false}
       >
-        <Input placeholder={localStrings.Search.Search} />
+        <Input
+          placeholder={localStrings.Search.Search}
+          aria-label={localStrings.Search.Search}
+        />
       </AutoComplete>
     </div>
   );

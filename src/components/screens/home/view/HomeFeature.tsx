@@ -84,7 +84,7 @@ const Homepage = () => {
   const renderAddPost = useCallback(() => {
     return (
       <>
-      
+
         <div
           onClick={() => setIsModalVisible(true)}
           style={{
@@ -92,7 +92,7 @@ const Homepage = () => {
             display: "flex",
             alignItems: "center",
             backgroundColor: backgroundColor,
-            border: `1px solid `,
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
             borderRadius: "10px",
             cursor: "pointer",
             width: "100%",
@@ -253,11 +253,11 @@ const Homepage = () => {
                         role="img"
                         aria-label="birthday"
                         style={{ marginRight: 6, fontSize: 16 }}
-                      > 
+                      >
                       </span>
                       <span>
                         {formatted}
-                        {age !== null && ` (${age} ${localStrings.Public.YearsOld })`}
+                        {age !== null && ` (${age} ${localStrings.Public.YearsOld})`}
                       </span>
                     </div>
                   </div>
@@ -269,7 +269,7 @@ const Homepage = () => {
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
                     onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.7")}
-                  > 
+                  >
                   </span>
                 </div>
               );
