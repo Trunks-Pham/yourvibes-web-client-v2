@@ -158,8 +158,11 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                     <div
                       className={`h-4 flex items-center gap-4 w-full h-full px-4 pl-8`}
                       style={{
-                        backgroundColor: actived ? "#C0C0C0" : "transparent",
+                        backgroundColor: actived ? "white" : "transparent",
                         color: "black",
+                        boxShadow:
+                          "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                        borderRadius: 10,
                       }}
                       
                       onClick={() => { handleItemClick(item.link), !screens.lg && handleMenuClick()} }
@@ -169,9 +172,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                       })}
                       <span>{item.content}</span>
                     </div>
-                    <div>
-                      <hr className="border-t-2 border-gray-300" />
-                    </div>
                   </div>
                 ),
                 style: {
@@ -179,7 +179,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                   paddingRight: 0,
                   paddingTop: 0,
                   paddingBottom: 0,
-                  margin: 0,
+                  marginBottom: 10,
                   cursor: "pointer",
                   width: "100%",
                 },
