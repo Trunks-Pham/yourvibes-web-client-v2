@@ -17,7 +17,7 @@ import FriendSuggestions from "@/components/common/Suggestions/friendSuggestions
 import dayjs from "dayjs";
 
 const Homepage = () => {
-  const { brandPrimary, backgroundColor, lightGray } = useColor();
+  const { brandPrimary, backgroundColor, lightGray, pink } = useColor();
   const {
     loading,
     newFeeds,
@@ -155,141 +155,129 @@ const Homepage = () => {
           width: "300px",
           maxHeight: "600px",
           overflowY: "auto",
-          backgroundColor: "#f9fafb",
-          borderRadius: "12px",
           padding: "16px",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
         }}
-      >
-        <span className="font-bold text-lg text-gray-800">{localStrings.Public.Friend}</span>
-        <hr className="border-t-1 border-gray-300 my-3" />
-
-        {/* Phần hiển thị bạn bè có sinh nhật */}
-        {loadingBirthday ? (
-          <div style={{ textAlign: "center", padding: "12px" }}>
-            <Spin indicator={<LoadingOutlined spin />} size="small" />
+      > 
+      {/* Phần hiển thị bạn bè có sinh nhật */}
+      {loadingBirthday ? (
+        <div style={{ textAlign: "center", padding: "12px" }}>
+          <Spin indicator={<LoadingOutlined spin />} size="small" />
+        </div>
+      ) : birthdayFriends.length > 0 ? (
+        <div>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
+            <span style={{ fontSize: "18px", marginRight: "8px" }}></span>
+            <span
+              style={{
+                fontWeight: "700",
+                fontSize: 16,
+                color: brandPrimary || "#1890ff",
+                letterSpacing: "0.5px",
+              }}
+            >
+              {localStrings.Public.Birtday}
+            </span>
           </div>
-        ) : birthdayFriends.length > 0 ? (
-          <div
-            style={{
-              background: "linear-gradient(135deg, #fff1f5 0%, #e6f0ff 100%)",
-              borderRadius: "12px",
-              padding: "16px",
-              marginBottom: "16px",
-              boxShadow: "0 6px 16px rgba(0, 0, 0, 0.1)",
-              animation: "fadeIn 0.5s ease-in-out",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
-              <span style={{ fontSize: "18px", marginRight: "8px" }}></span>
-              <span
+          {birthdayFriends.map((friend) => {
+            const { formatted, age } = formatBirthday(friend.birthday);
+            return (
+              <div
+                key={friend.id}
                 style={{
-                  fontWeight: "700",
-                  fontSize: 16,
-                  color: brandPrimary || "#1890ff",
-                  letterSpacing: "0.5px",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "12px",
+                  margin: "6px 0",
+                  cursor: "pointer",
+                  borderRadius: "10px",
+                  backgroundColor: "#ffffff",
+                  transition: "all 0.3s ease",
+                  background: "linear-gradient(135deg, #fff1f5 0%, #e6f0ff 100%)",
+                  animation: "fadeIn 0.5s ease-in-out",
+                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                }}
+                onClick={() => router.push(`/user/${friend.id}`)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.06)";
                 }}
               >
-                {localStrings.Public.Birtday}
-              </span>
-            </div>
-            {birthdayFriends.map((friend) => {
-              const { formatted, age } = formatBirthday(friend.birthday);
-              return (
-                <div
-                  key={friend.id}
+                <Avatar
+                  src={friend.avatar_url}
+                  alt={friend.name}
+                  size={44}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    padding: "12px",
-                    margin: "6px 0",
-                    cursor: "pointer",
-                    borderRadius: "10px",
-                    backgroundColor: "#ffffff",
-                    transition: "all 0.3s ease",
-                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+                    border: `2px solid ${pink || "#FF6699"}`,
+                    boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
                   }}
-                  onClick={() => router.push(`/user/${friend.id}`)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.06)";
-                  }}
-                >
-                  <Avatar
-                    src={friend.avatar_url}
-                    alt={friend.name}
-                    size={44}
-                    style={{
-                      border: `2px solid ${brandPrimary || "#1890ff"}`,
-                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                    }}
-                  />
-                  <div style={{ marginLeft: 12, flex: 1 }}>
-                    <span
-                      style={{
-                        fontWeight: "600",
-                        fontSize: 15,
-                        color: "#1f2937",
-                        display: "block",
-                      }}
-                    >
-                      {friend.family_name + " " + friend.name}
-                    </span>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        color: "#4b5563",
-                        fontSize: 13,
-                        fontWeight: "500",
-                        marginTop: 4,
-                      }}
-                    >
-                      <span
-                        role="img"
-                        aria-label="birthday"
-                        style={{ marginRight: 6, fontSize: 16 }}
-                      >
-                      </span>
-                      <span>
-                        {formatted}
-                        {age !== null && ` (${age} ${localStrings.Public.YearsOld})`}
-                      </span>
-                    </div>
-                  </div>
+                />
+                <div style={{ marginLeft: 12, flex: 1 }}>
                   <span
                     style={{
-                      fontSize: "20px",
-                      opacity: 0.7,
-                      transition: "opacity 0.3s",
+                      fontWeight: "600",
+                      fontSize: 15,
+                      color: "#1f2937",
+                      display: "block",
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-                    onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.7")}
                   >
+                    {friend.family_name + " " + friend.name}
                   </span>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      color: "#4b5563",
+                      fontSize: 13,
+                      fontWeight: "500",
+                      marginTop: 4,
+                    }}
+                  >
+                    <span
+                      role="img"
+                      aria-label="birthday"
+                      style={{ marginRight: 6, fontSize: 16 }}
+                    >
+                    </span>
+                    <span>
+                      {formatted}
+                      {age !== null && ` (${age} ${localStrings.Public.YearsOld})`}
+                    </span>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div
-            style={{
-              fontSize: 13,
-              color: "#6b7280",
-              padding: "12px",
-              textAlign: "center",
-              backgroundColor: "#ffffff",
-              borderRadius: "8px",
-            }}
-          >
-            {localStrings.Public.NoBirthdays}
-          </div>
-        )}
+                <span
+                  style={{
+                    fontSize: "20px",
+                    opacity: 0.7,
+                    transition: "opacity 0.3s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.7")}
+                >
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div
+          style={{
+            fontSize: 13,
+            color: "#6b7280",
+            padding: "12px",
+            textAlign: "center",
+            backgroundColor: "#ffffff",
+            borderRadius: "8px",
+          }}
+        >
+          {localStrings.Public.NoBirthdays}
+        </div>
+      )}
 
+        <span className="font-bold text-lg text-gray-800">{localStrings.Public.Friend}</span>
         {/* Danh sách bạn bè thông thường */}
         <hr className="border-t-1 border-gray-300 my-3" />
         {friends.length > 0 ? (
@@ -299,10 +287,13 @@ const Homepage = () => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  padding: "10px 0",
                   cursor: "pointer",
-                  borderRadius: "8px",
                   transition: "background-color 0.3s ease",
+                  backgroundColor: "white",
+                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                  borderRadius: 10,
+                  marginBottom: 8,
+                  padding: "12px",
                 }}
                 onClick={() => router.push(`/user/${user?.id}`)}
                 onMouseEnter={(e) =>
@@ -312,7 +303,11 @@ const Homepage = () => {
                   (e.currentTarget.style.backgroundColor = "transparent")
                 }
               >
-                <Avatar src={user.avatar_url} alt={user.name} size={36} />
+                <Avatar src={user.avatar_url} alt={user.name} size={36} style={
+                  {
+                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                  }
+                } />
                 <span
                   style={{
                     marginLeft: 12,
@@ -324,7 +319,6 @@ const Homepage = () => {
                   {user.family_name + " " + user.name}
                 </span>
               </div>
-              <hr className="border-t-1 border-gray-200 my-1" />
             </div>
           ))
         ) : (

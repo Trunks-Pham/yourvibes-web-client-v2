@@ -10,6 +10,7 @@ import {
   FaUser,
   FaFacebookMessenger,
   FaAd,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import { useAuth } from "@/context/auth/useAuth";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -20,13 +21,12 @@ import SettingsTab from "@/components/screens/profile/components/SettingTabs";
 import NotificationScreen from "@/components/screens/notification/views/Notification";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 
-
 const { useBreakpoint } = Grid;
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [visible, setVisible] = useState(false);
   const { backgroundColor, lightGray } = useColor();
-  const { user, localStrings } = useAuth();
+  const { user, localStrings, onLogout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -34,6 +34,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [settingModal, setSettingModal] = useState(false);
   const [notificationModal, setNotificationModal] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [logoutModal, setLogoutModal] = useState(false);  
+
   const content = {
     nav: [
       {
@@ -66,6 +68,11 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         content: localStrings.Public.Settings,
         icon: FaCog,
       },
+      {
+        link: "/logout",
+        content: localStrings.Public.LogOut ,
+        icon: FaSignOutAlt,
+      },
     ],
   };
 
@@ -85,7 +92,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   const handleMenuClick = () => {
-    // setVisible(!visible);
     setCollapsed(!collapsed);
   };
 
@@ -94,10 +100,18 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       setSettingModal(true);
     } else if (link === "/notifications") {
       setNotificationModal(true);
+    } else if (link === "/logout") {
+      setLogoutModal(true); 
     } else {
       router.push(link);
     }
     setVisible(false);
+  };
+ 
+  const handleLogout = () => {
+    onLogout();
+    setLogoutModal(false);  
+    router.push("/login");  
   };
 
   // Define the header navigation items
@@ -154,34 +168,33 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               return {
                 key: index.toString(),
                 label: (
-                  <div>
                     <div
-                      className={`h-4 flex items-center gap-4 w-full h-full px-4 pl-8`}
+                      className="h-4 flex items-center gap-4 w-full h-full px-4 pl-8"
                       style={{
-                        backgroundColor: actived ? "#C0C0C0" : "transparent",
+                        backgroundColor: actived ? "white" : "transparent",
                         color: "black",
-                      }}
 
-                      onClick={() => { handleItemClick(item.link), !screens.lg && handleMenuClick() }}
+                      }}
+                      onClick={() => {
+                        handleItemClick(item.link);
+                        !screens.lg && handleMenuClick();
+                      }}
                     >
                       {createElement(item.icon, {
                         size: 20,
                       })}
                       <span>{item.content}</span>
                     </div>
-                    <div>
-                      <hr className="border-t-2 border-gray-300" />
-                    </div>
-                  </div>
                 ),
                 style: {
                   paddingLeft: 0,
                   paddingRight: 0,
                   paddingTop: 0,
                   paddingBottom: 0,
-                  margin: 0,
+                  marginBottom: 10,
                   cursor: "pointer",
-                  width: "100%",
+                  boxShadow:actived ? "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)" : "none",
+                  borderRadius: actived ? 10 : 0,
                 },
               };
             })}
@@ -202,7 +215,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             padding: screens.lg ? "0 50px" : "0 10px",
           }}
         >
-          {/* Left Section: Logo */}
           <div
             style={{
               display: "flex",
@@ -218,7 +230,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             />
           </div>
 
-          {/* Center Section: Navigation Tabs (chỉ hiển thị ở giữa khi full-screen) */}
           {screens.lg && (
             <div
               style={{
@@ -255,9 +266,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                         cursor: "pointer",
                         fontWeight: "bold",
                         color: isActive ? "#808080" : "#000",
-                        borderBottom: isActive ? "2.5px solid #808080" : "none",
                         transition: "color 0.3s, border-bottom 0.3s",
-                        lineHeight: "1.5", 
+                        lineHeight: "1.5",
                       }}
                     >
                       {item.label}
@@ -268,7 +278,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           )}
 
-          {/* Right Section: User Name and Avatar */}
           <div
             style={{
               alignItems: "center",
@@ -294,9 +303,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               style={{ fontSize: "20px", marginRight: "16px" }}
             />
           )}
-
         </Header>
-        {/* Navigation Tabs khi responsive (dưới Header) */}
+
         {!screens.lg && ["/home", "/people", "/trending"].includes(pathname) && (
           <div
             style={{
@@ -334,7 +342,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                       cursor: "pointer",
                       fontWeight: "bold",
                       color: isActive ? "#808080" : "#000",
-                      borderBottom: isActive ? "2.5px solid #808080" : "none",
                       transition: "color 0.3s, border-bottom 0.3s",
                       lineHeight: "1.5",
                     }}
@@ -350,13 +357,13 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         <Content
           style={{
             marginLeft: screens.lg ? 250 : 0,
-            marginTop: !screens.lg && ["/home", "/people", "/trending"].includes(pathname) ? "60px" : 0, // Thêm margin-top để tránh đè lên navigation cố định
+            marginTop: !screens.lg && ["/home", "/people", "/trending"].includes(pathname) ? "60px" : 0,
           }}
         >
           <div
             style={{
               alignItems: "center",
-              marginLeft: screens.lg ? 70 : 0,
+              marginLeft: screens.lg && ["/home", "/people", "/trending"].includes(pathname) ? 70 : 0,
             }}
           >
             {children}
@@ -400,6 +407,30 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           />
         </Modal>
       )}
+
+      {/* Modal xác nhận đăng xuất */}
+      <Modal
+        open={logoutModal}
+        onCancel={() => setLogoutModal(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setLogoutModal(false)}>
+            {localStrings.Public.Cancel}
+          </Button>,
+          <Button key="confirm" type="primary" onClick={handleLogout}>
+            {localStrings.Public.Confirm}
+          </Button>,
+        ]}
+        centered
+        title={
+          <span className="font-bold">
+            {localStrings.Public.ConfirmLogout}
+          </span>
+        }
+      >
+        <p>
+          {localStrings.Public.ConfirmLogoutMessage}
+        </p>
+      </Modal>
     </Layout>
   );
 };

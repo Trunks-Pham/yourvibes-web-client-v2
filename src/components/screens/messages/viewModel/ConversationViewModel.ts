@@ -5,7 +5,6 @@ import { useAuth } from "@/context/auth/useAuth";
 
 import { defaultMessagesRepo } from "@/api/features/messages/MessagesRepo";
 import { ConversationResponseModel, UpdateConversationRequestModel } from "@/api/features/messages/models/ConversationModel";
-import { MessageResponseModel } from "@/api/features/messages/models/MessageModel";
 
 export const useConversationViewModel = () => {
   const { user, localStrings } = useAuth();
@@ -71,7 +70,6 @@ export const useConversationViewModel = () => {
               });
               
               if (messageResponse.data) {
-                // Last message fetched successfully
               }
             } catch (error) {
               console.error("Error fetching messages for conversation", conversation.id, error);
