@@ -224,7 +224,7 @@ export const VnLocalizedStrings = {
     ShareContent: "Nhập nội dung chia sẻ của bạn...",
     CharacterLimit: "10000 ký tự",
     CharacterLimitR: "255 ký tự",
-    NoTrendingPosts: "No trending posts found",
+    NoTrendingPosts: "Chưa có bài viết trending nào",
   },
   PostDetails: {
     ViewReplies: "Xem phản hồi",
