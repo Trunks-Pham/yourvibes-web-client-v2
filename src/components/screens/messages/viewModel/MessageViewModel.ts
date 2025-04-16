@@ -183,23 +183,27 @@ export const useMessageViewModel = () => {
   const processMessagesWithDateSeparators = (messages: MessageResponseModel[]): MessageWithDate[] => {
     if (!messages || messages.length === 0) return [];
   
-    const processedMessages: MessageWithDate[] = [];
-    let currentDate: string | null = null;
-  
     const sortedMessages = [...messages].sort((a, b) => {
       const dateA = new Date(a.created_at || "");
       const dateB = new Date(b.created_at || "");
       return dateA.getTime() - dateB.getTime();
     });
   
-    sortedMessages.forEach((message) => {
+    const dateMap = new Map<string, boolean>();
+    
+    const messagesWithoutSeparators = sortedMessages.filter(msg => !msg.isDateSeparator);
+    
+    const processedMessages: MessageWithDate[] = [];
+    let currentDate: string | null = null;
+  
+    messagesWithoutSeparators.forEach((message) => {
       if (message.created_at) {
         const messageDate = new Date(message.created_at);
-        
         const messageDateStr = messageDate.toISOString().split('T')[0];
   
-        if (messageDateStr !== currentDate) {
+        if (messageDateStr !== currentDate && !dateMap.has(messageDateStr)) {
           currentDate = messageDateStr;
+          dateMap.set(messageDateStr, true);
           
           const formattedDate = formatDateForDisplay(messageDate);
           
@@ -259,35 +263,18 @@ export const useMessageViewModel = () => {
         let existingMessages = shouldAppend ? [...messages] : [];
         
         if (shouldAppend) {
-          const existingMessageMap = new Map();
-          existingMessages.forEach(msg => {
-            if (msg.id) {
-              existingMessageMap.set(msg.id, true);
-            }
-          });
+          const existingMessagesWithoutSeparators = existingMessages.filter(msg => !msg.isDateSeparator);
           
-          const uniqueNewMessages = sortedApiMessages.filter(msg => 
-            !msg.id || !existingMessageMap.has(msg.id)
-          );
+          const allMessages = [...sortedApiMessages, ...existingMessagesWithoutSeparators];
           
-          const firstApiMsgTime = new Date(sortedApiMessages[0]?.created_at || Date.now()).getTime();
-          const firstExistingMsgTime = new Date(existingMessages[0]?.created_at || Date.now()).getTime();
-          
-          let updatedMessages = [];
-          if (firstApiMsgTime < firstExistingMsgTime) {
-            updatedMessages = [...uniqueNewMessages, ...existingMessages];
-          } else {
-            updatedMessages = [...existingMessages, ...uniqueNewMessages];
-          }
-          
-          const sortedMessages = updatedMessages.sort((a, b) => {
+          const sortedMessages = allMessages.sort((a, b) => {
             const dateA = new Date(a.created_at || "");
             const dateB = new Date(b.created_at || "");
             return dateA.getTime() - dateB.getTime();
           });
           
           const messagesWithDateSeparators = processMessagesWithDateSeparators(sortedMessages);
-
+          
           setMessages(messagesWithDateSeparators);
 
           updateMessagesForConversation(conversationId, sortedMessages);
@@ -385,14 +372,12 @@ export const useMessageViewModel = () => {
       if (response.data) {
         const serverMessage = { ...response.data, fromServer: true, isTemporary: false };
         
-        // Update local state
         setMessages(prev => 
           prev.map(msg => 
             msg.id === tempId ? serverMessage : msg
           )
         );
         
-        // Update message records
         setMessagesByConversation(prev => {
           const conversationMessages = prev[conversationId] || [];
           const updatedMessages = conversationMessages.map(msg => 
@@ -421,10 +406,8 @@ export const useMessageViewModel = () => {
     if (!user?.id || !currentConversationId) return;
     
     try {
-      // Remove from UI first
       setMessages(prev => prev.filter(msg => msg.id !== messageId));
       
-      // Remove from store
       setMessagesByConversation(prev => {
         if (!prev[currentConversationId]) return prev;
         
@@ -436,7 +419,6 @@ export const useMessageViewModel = () => {
         };
       });
       
-      // Call API
       await defaultMessagesRepo.deleteMessage({ message_id: messageId });
     } catch (error) {
       message.error(localStrings.Public.Error);
