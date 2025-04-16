@@ -23,7 +23,12 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
     const wsMessageRef = useRef<WebSocket | null>(null);
     const wsNotificationRef = useRef<WebSocket | null>(null);
 
-    const { LIKE_POST, NEW_SHARE, NEW_COMMENT, FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, NEW_POST, LIKE_COMMENT } = useTypeNotification();
+    const { LIKE_POST, NEW_SHARE, NEW_COMMENT, FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, NEW_POST, LIKE_COMMENT, NEW_POST_PERSONAL,
+        BLOCK_CREATE_POST,
+        DEACTIVATE_POST,
+        ACTIVACE_POST,
+        DEACTIVATE_COMMENT,
+        ACTIVACE_COMMENT, } = useTypeNotification();
 
     const mapNotifiCationContent = (type: string) => {
         switch (type) {
@@ -34,9 +39,18 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
             case ACCEPT_FRIEND_REQUEST: return localStrings.Notification.Items.AcceptFriend;
             case NEW_POST: return localStrings.Notification.Items.NewPost;
             case LIKE_COMMENT: return localStrings.Notification.Items.LikeComment;
-            default: return "notifications";
+            case NEW_POST_PERSONAL: return localStrings.Notification.Items.NewPostPersonal;
+            case BLOCK_CREATE_POST: return localStrings.Notification.Items.BlockCreatePost;
+            case DEACTIVATE_POST: return localStrings.Notification.Items.DeactivatePostContent;
+            case ACTIVACE_POST: return localStrings.Notification.Items.ActivacePostContent;
+            case DEACTIVATE_COMMENT: return localStrings.Notification.Items.DeactivateCommentContent;
+            case ACTIVACE_COMMENT: return localStrings.Notification.Items.ActivaceCommentContent;
+
+            default: return localStrings.Notification.Notification;
         }
     };
+
+        
 
     // 👉 Hàm kết nối WebSocket Message
     const connectSocketMessage = () => {
@@ -93,10 +107,22 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
             const { from: userName, content, notification_type: type } = notificationData;
             const notificationContent = mapNotifiCationContent(type);
 
+            const getDescription = (content: string) => {
+                if (content.includes("violence")) {
+                    return localStrings.Notification.Items.violence;
+                }
+                if (content.includes("nsfw")) {
+                    return localStrings.Notification.Items.nsfw;
+                }
+                if (content.includes("political")) {
+                    return localStrings.Notification.Items.political;
+                }
+                return content;
+            }
             const key = `open${Date.now()}`;
             notification.open({
                 message: `${userName} ${notificationContent}`,
-                description: content,
+                description: getDescription(content),
                 placement: "topRight",
                 key,
                 duration: 5,

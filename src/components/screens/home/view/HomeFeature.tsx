@@ -15,6 +15,8 @@ import { LoadingOutlined } from "@ant-design/icons";
 import InfiniteScroll from "react-infinite-scroll-component";
 import FriendSuggestions from "@/components/common/Suggestions/friendSuggestions";
 import dayjs from "dayjs";
+import AddPostViewModel from "../../addPost/viewModel/AddpostViewModel";
+import { defaultPostRepo } from "@/api/features/post/PostRepo";
 
 const Homepage = () => {
   const { brandPrimary, backgroundColor, lightGray, pink } = useColor();
@@ -52,7 +54,9 @@ const Homepage = () => {
 
   const handleDeleteNewFeed = async (id: string) => {
     await deleteNewFeed(id);
-    setNewFeeds((prevNewFeeds) => prevNewFeeds.filter((post) => post.id !== id));
+    setNewFeeds((prevNewFeeds) =>
+      prevNewFeeds.filter((post) => post.id !== id)
+    );
   };
 
   const formatBirthday = (birthday: string) => {
@@ -84,7 +88,6 @@ const Homepage = () => {
   const renderAddPost = useCallback(() => {
     return (
       <>
-
         <div
           onClick={() => setIsModalVisible(true)}
           style={{
@@ -92,7 +95,8 @@ const Homepage = () => {
             display: "flex",
             alignItems: "center",
             backgroundColor: backgroundColor,
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+            boxShadow:
+              "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
             borderRadius: "10px",
             cursor: "pointer",
             width: "100%",
@@ -107,7 +111,10 @@ const Homepage = () => {
           />
           <div style={{ marginLeft: "10px", flex: 1 }}>
             <p>
-              <b>{user?.family_name + " " + user?.name || localStrings.Public.Username}</b>
+              <b>
+                {user?.family_name + " " + user?.name ||
+                  localStrings.Public.Username}
+              </b>
             </p>
             <p style={{ color: "gray" }}>{localStrings.Public.Today}</p>
           </div>
@@ -140,11 +147,22 @@ const Homepage = () => {
           width={800}
           footer={null}
         >
-          <AddPostScreen onPostSuccess={() => setIsModalVisible(false)} fetchNewFeeds={fetchNewFeeds} />
+          <AddPostScreen
+            onPostSuccess={() => setIsModalVisible(false)}
+            fetchNewFeeds={fetchNewFeeds}
+          />
         </Modal>
       </>
     );
-  }, [user, localStrings, isModalVisible, backgroundColor, lightGray, brandPrimary, fetchNewFeeds]);
+  }, [
+    user,
+    localStrings,
+    isModalVisible,
+    backgroundColor,
+    lightGray,
+    brandPrimary,
+    fetchNewFeeds,
+  ]);
 
   const renderFriends = () => {
     return (
@@ -153,191 +171,217 @@ const Homepage = () => {
           marginInline: "10px",
           position: "fixed",
           width: "300px",
-          maxHeight: "600px",
+          maxHeight: "650px",
           overflowY: "auto",
           padding: "16px",
+          display: "flex",
+          flexDirection: "column",
         }}
-      > 
-      {/* Phần hiển thị bạn bè có sinh nhật */}
-      {loadingBirthday ? (
-        <div style={{ textAlign: "center", padding: "12px" }}>
-          <Spin indicator={<LoadingOutlined spin />} size="small" />
-        </div>
-      ) : birthdayFriends.length > 0 ? (
-        <div>
-          <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
-            <span style={{ fontSize: "18px", marginRight: "8px" }}></span>
-            <span
-              style={{
-                fontWeight: "700",
-                fontSize: 16,
-                color: brandPrimary || "#1890ff",
-                letterSpacing: "0.5px",
-              }}
-            >
-              {localStrings.Public.Birtday}
-            </span>
-          </div>
-          {birthdayFriends.map((friend) => {
-            const { formatted, age } = formatBirthday(friend.birthday);
-            return (
-              <div
-                key={friend.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "12px",
-                  margin: "6px 0",
-                  cursor: "pointer",
-                  borderRadius: "10px",
-                  backgroundColor: "#ffffff",
-                  transition: "all 0.3s ease",
-                  background: "linear-gradient(135deg, #fff1f5 0%, #e6f0ff 100%)",
-                  animation: "fadeIn 0.5s ease-in-out",
-                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
-                }}
-                onClick={() => router.push(`/user/${friend.id}`)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.06)";
-                }}
-              >
-                <Avatar
-                  src={friend.avatar_url}
-                  alt={friend.name}
-                  size={44}
-                  style={{
-                    border: `2px solid ${pink || "#FF6699"}`,
-                    boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
-                  }}
-                />
-                <div style={{ marginLeft: 12, flex: 1 }}>
-                  <span
-                    style={{
-                      fontWeight: "600",
-                      fontSize: 15,
-                      color: "#1f2937",
-                      display: "block",
-                    }}
-                  >
-                    {friend.family_name + " " + friend.name}
-                  </span>
+      >
+        <span
+          style={{
+            fontWeight: "700",
+            fontSize: 16,
+            color: brandPrimary || "#1890ff",
+            letterSpacing: "0.5px",
+          }}
+        >
+          {localStrings.Public.Birtday}
+        </span>
+        <div style={{ flex: 1, maxHeight: "50%", overflowY: "auto", scrollbarWidth: "none"  }}>
+          {/* Phần hiển thị bạn bè có sinh nhật */}
+          {loadingBirthday ? (
+            <div style={{ textAlign: "center", padding: "12px" }}>
+              <Spin indicator={<LoadingOutlined spin />} size="small" />
+            </div>
+          ) : birthdayFriends.length > 0 ? (
+            <div>
+              {birthdayFriends.map((friend) => {
+                const { formatted, age } = formatBirthday(friend.birthday);
+                return (
                   <div
+                    key={friend.id}
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      color: "#4b5563",
-                      fontSize: 13,
-                      fontWeight: "500",
-                      marginTop: 4,
+                      padding: "12px",
+                      margin: "6px 0",
+                      cursor: "pointer",
+                      borderRadius: "10px",
+                      backgroundColor: "#ffffff",
+                      transition: "all 0.3s ease",
+                      background:
+                        "linear-gradient(135deg, #e6f0ff 0%, #fff1f5 100%)",
+                      animation: "fadeIn 0.5s ease-in-out",
+                      boxShadow:
+                        "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                    }}
+                    onClick={() => router.push(`/user/${friend.id}`)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 6px 12px rgba(0, 0, 0, 0.1)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow =
+                        "0 2px 8px rgba(0, 0, 0, 0.06)";
                     }}
                   >
+                    <Avatar
+                      src={friend.avatar_url}
+                      alt={friend.name}
+                      size={44}
+                      style={{
+                        border: `2px solid ${pink || "#FF6699"}`,
+                        boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
+                      }}
+                    />
+                    <div style={{ marginLeft: 12, flex: 1 }}>
+                      <span
+                        style={{
+                          fontWeight: "600",
+                          fontSize: 15,
+                          color: "#1f2937",
+                          display: "block",
+                        }}
+                      >
+                        {friend.family_name + " " + friend.name}
+                      </span>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          color: "#4b5563",
+                          fontSize: 13,
+                          fontWeight: "500",
+                          marginTop: 4,
+                        }}
+                      >
+                        <span
+                          role="img"
+                          aria-label="birthday"
+                          style={{ marginRight: 6, fontSize: 16 }}
+                        ></span>
+                        <span>
+                          {formatted}
+                          {age !== null &&
+                            ` (${age} ${localStrings.Public.YearsOld})`}
+                        </span>
+                      </div>
+                    </div>
                     <span
-                      role="img"
-                      aria-label="birthday"
-                      style={{ marginRight: 6, fontSize: 16 }}
-                    >
-                    </span>
-                    <span>
-                      {formatted}
-                      {age !== null && ` (${age} ${localStrings.Public.YearsOld})`}
-                    </span>
+                      style={{
+                        fontSize: "20px",
+                        opacity: 0.7,
+                        transition: "opacity 0.3s",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.opacity = "1")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.opacity = "0.7")
+                      }
+                    ></span>
                   </div>
-                </div>
-                <span
-                  style={{
-                    fontSize: "20px",
-                    opacity: 0.7,
-                    transition: "opacity 0.3s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.7")}
-                >
-                </span>
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          ) : (
+            <div
+              style={{
+                fontSize: 13,
+                color: "#6b7280",
+                padding: "12px",
+                textAlign: "center",
+                backgroundColor: "#ffffff",
+                borderRadius: "8px",
+              }}
+            >
+              {localStrings.Public.NoBirthdays}
+            </div>
+          )}
         </div>
-      ) : (
-        <div
+        <span
           style={{
-            fontSize: 13,
-            color: "#6b7280",
-            padding: "12px",
-            textAlign: "center",
-            backgroundColor: "#ffffff",
-            borderRadius: "8px",
+            fontWeight: "700",
+            fontSize: 16,
+            color: brandPrimary || "#1890ff",
+            letterSpacing: "0.5px",
           }}
         >
-          {localStrings.Public.NoBirthdays}
-        </div>
-      )}
-
-        <span className="font-bold text-lg text-gray-800">{localStrings.Public.Friend}</span>
-        {/* Danh sách bạn bè thông thường */}
-        <hr className="border-t-1 border-gray-300 my-3" />
-        {friends.length > 0 ? (
-          friends.map((user) => (
-            <div key={user.id}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  cursor: "pointer",
-                  transition: "background-color 0.3s ease",
-                  backgroundColor: "white",
-                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
-                  borderRadius: 10,
-                  marginBottom: 8,
-                  padding: "12px",
-                }}
-                onClick={() => router.push(`/user/${user?.id}`)}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.03)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <Avatar src={user.avatar_url} alt={user.name} size={36} style={
-                  {
-                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
-                  }
-                } />
-                <span
+          {localStrings.Public.Friend}
+        </span>
+        <div style={{ flex: 1, maxHeight: "50%", overflowY: "auto", scrollbarWidth: "none" }}>
+          {/* Danh sách bạn bè thông thường */}
+          <hr className="border-t-1 border-gray-300 my-3" />
+          {friends.length > 0 ? (
+            friends.map((user) => (
+              <div key={user.id}>
+                <div
                   style={{
-                    marginLeft: 12,
-                    fontWeight: "600",
-                    fontSize: 14,
-                    color: "#1f2937",
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    transition: "background-color 0.3s ease",
+                    backgroundColor: "white",
+                    boxShadow:
+                      "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                    borderRadius: 10,
+                    marginBottom: 8,
+                    padding: "12px",
                   }}
+                  onClick={() => router.push(`/user/${user?.id}`)}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor =
+                      "rgba(0, 0, 0, 0.03)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "transparent")
+                  }
                 >
-                  {user.family_name + " " + user.name}
-                </span>
+                  <Avatar
+                    src={user.avatar_url}
+                    alt={user.name}
+                    size={36}
+                    style={{
+                      boxShadow:
+                        "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                    }}
+                  />
+                  <span
+                    style={{
+                      marginLeft: 12,
+                      fontWeight: "600",
+                      fontSize: 14,
+                      color: "#1f2937",
+                    }}
+                  >
+                    {user.family_name + " " + user.name}
+                  </span>
+                </div>
               </div>
+            ))
+          ) : (
+            <div
+              style={{
+                textAlign: "center",
+                color: "#6b7280",
+                fontSize: 12,
+                padding: "12px",
+              }}
+            >
+              {localStrings.Public.AllUsers}
             </div>
-          ))
-        ) : (
-          <div
-            style={{
-              textAlign: "center",
-              color: "#6b7280",
-              fontSize: 12,
-              padding: "12px",
-            }}
-          >
-            {localStrings.Public.AllUsers}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     );
   };
 
-  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleMouseDown = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     setIsDragging(true);
     setStartY(event.clientY);
   };
@@ -347,7 +391,9 @@ const Homepage = () => {
     setStartY(0);
   };
 
-  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleMouseMove = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     if (isDragging && scrollContainerRef.current) {
       const deltaY = event.clientY - startY;
       if (deltaY > 100) {
@@ -406,12 +452,19 @@ const Homepage = () => {
                   dataLength={newFeeds.length}
                   next={loadMoreNewFeeds}
                   hasMore={hasMore}
-                  loader={<Spin indicator={<LoadingOutlined spin />} size="large" />}
+                  loader={
+                    <Spin indicator={<LoadingOutlined spin />} size="large" />
+                  }
                 >
                   {newFeeds.map((item, index) => (
-                    <div key={item?.id} style={{ width: "100%", maxWidth: "600px" }}>
+                    <div
+                      key={item?.id}
+                      style={{ width: "100%", maxWidth: "600px" }}
+                    >
                       <Post post={item} onDeleteNewFeed={handleDeleteNewFeed}>
-                        {item?.parent_post && <Post post={item?.parent_post} isParentPost />}
+                        {item?.parent_post && (
+                          <Post post={item?.parent_post} isParentPost />
+                        )}
                       </Post>
                     </div>
                   ))}
@@ -420,14 +473,18 @@ const Homepage = () => {
                 <div className="w-full h-screen flex justify-center items-center">
                   <Empty
                     description={
-                      <span style={{ color: "gray", fontSize: 16 }}>{localStrings.Post.NoPosts}</span>
+                      <span style={{ color: "gray", fontSize: 16 }}>
+                        {localStrings.Post.NoPosts}
+                      </span>
                     }
                   />
                 </div>
               )}
             </div>
           </div>
-          <div className="flex-initial w-[320px] hidden xl:block">{renderFriends()}</div>
+          <div className="flex-initial w-[320px] hidden xl:block">
+            {renderFriends()}
+          </div>
         </>
       )}
     </div>
