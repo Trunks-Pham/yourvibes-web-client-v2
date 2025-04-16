@@ -918,6 +918,7 @@ const MessagesFeature: React.FC = () => {
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const [existingMembers, setExistingMembers] = useState<FriendResponseModel[]>([]);
   const {
+    fetchConversations,
     deleteMessage,
     createConversation,
     updateConversation,
@@ -955,6 +956,10 @@ const MessagesFeature: React.FC = () => {
 
   // Lấy conversation_id từ query params
   const conversationIdFromUrl = searchParams.get("conversation_id");
+
+  useEffect(() => {
+    fetchConversations();
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => {

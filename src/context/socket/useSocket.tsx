@@ -61,15 +61,15 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         ws.onmessage = (e) => {
             const message = JSON.parse(e.data);
-            console.log("📩 Nhận tin nhắn:", message);
-                // setSocketMessages((prev) => [message, ...prev]);
-                if (message?.user?.id !== user?.id) {
-                    notification.open({
-                        message: `${message?.user?.name} đã gửi cho bạn một tin nhắn`,
-                        placement: "topRight",
-                        duration: 5,
-                    });
-                }
+            setSocketMessages((prev) => [message, ...prev]);
+            
+            if (message?.user?.id !== user?.id) {
+                notification.open({
+                    message: `${message?.user?.name} đã gửi cho bạn một tin nhắn`,
+                    placement: "topRight",
+                    duration: 5,
+                });
+            }
         };
 
         ws.onclose = (e) => {
