@@ -6,12 +6,18 @@ import { MessageWebSocketResponseModel } from "@/api/features/messages/models/Me
 import useTypeNotification from "@/hooks/useTypeNotification";
 import { ApiPath } from "@/api/ApiPath";
 import { notification } from "antd";
+import { log } from "console";
 
 const WebSocketContext = createContext<SocketContextType | undefined>(undefined);
 
 export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { user, localStrings } = useAuth();
     const [socketMessages, setSocketMessages] = useState<MessageWebSocketResponseModel[]>([]);
+
+    const MaxConnection = 3; // Số lần kết nối tối đa
+    const [connectionAttempts, setConnectionAttempts] = useState(0); // Biến đếm số lần kết nối
+    const [connectionAttemptsNotification, setConnectionAttemptsNotification] = useState(0); // Biến đếm số lần kết nối
+
 
     // Sử dụng useRef để lưu trữ WebSocket
     const wsMessageRef = useRef<WebSocket | null>(null);
@@ -56,22 +62,18 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         ws.onclose = (e) => {
             console.log("❌ WebSocket Message disconnected:", e.reason, e.code);
-            if (e.code === 1006) {
-                console.log("🔄 Attempting to reconnect WebSocket Message...");
-                setTimeout(() => {
-                    connectSocketMessage();
-                }, 5000); // Thử lại sau 5 giây
-            }
-            wsMessageRef.current = null; // Reset ref khi bị ngắt kết nối
+            wsMessageRef.current = null;
+            setConnectionAttempts((prevAttempts) => {
+                const newAttempts = prevAttempts + 1;
+                if (newAttempts < MaxConnection) {
+                    setTimeout(() => connectSocketMessage(), 5000); // Thử lại sau 5 giây
+                }
+                return newAttempts;
+            });
         };
 
         ws.onerror = (error) => {
             console.error("⚠️ WebSocket Message error:", error);
-            // Toast.show({
-            //     type: "error",
-            //     text1: "Lỗi WebSocket",
-            //     text2: "Không thể kết nối WebSocket.",
-            // });
         };
     };
 
@@ -104,15 +106,21 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
         ws.onclose = (e) => {
             console.log("❌ WebSocket Notification disconnected:", e.reason);
             wsNotificationRef.current = null;
+            setConnectionAttemptsNotification((prevAttempts) => {
+                const newAttempts = prevAttempts + 1;
+                console.log("connectionAttemptsNotification", newAttempts);
+                console.log("MaxConnection", MaxConnection);
+                
+                // Kiểm tra điều kiện và cố gắng kết nối lại nếu chưa đạt MaxConnection
+                if (newAttempts < MaxConnection) {
+                    setTimeout(() => connectSocketNotification(), 5000); // Thử lại sau 5 giây
+                }
+                return newAttempts;
+            });
         };
 
         ws.onerror = (error) => {
             console.error("⚠️ WebSocket Notification error:", error);
-            // Toast.show({
-            //     type: "error",
-            //     text1: "Lỗi WebSocket",
-            //     text2: "Không thể kết nối WebSocket.",
-            // });
         };
     };
 

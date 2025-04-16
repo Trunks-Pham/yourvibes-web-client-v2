@@ -168,15 +168,12 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               return {
                 key: index.toString(),
                 label: (
-                  <div>
                     <div
-                      className={`h-4 flex items-center gap-4 w-full h-full px-4 pl-8`}
+                      className="h-4 flex items-center gap-4 w-full h-full px-4 pl-8"
                       style={{
                         backgroundColor: actived ? "white" : "transparent",
                         color: "black",
-                        boxShadow:
-                          "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
-                        borderRadius: 10,
+
                       }}
                       onClick={() => {
                         handleItemClick(item.link);
@@ -188,7 +185,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                       })}
                       <span>{item.content}</span>
                     </div>
-                  </div>
                 ),
                 style: {
                   paddingLeft: 0,
@@ -197,7 +193,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                   paddingBottom: 0,
                   marginBottom: 10,
                   cursor: "pointer",
-                  width: "100%",
+                  boxShadow:actived ? "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)" : "none",
+                  borderRadius: actived ? 10 : 0,
                 },
               };
             })}
@@ -366,7 +363,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           <div
             style={{
               alignItems: "center",
-              marginLeft: screens.lg ? 70 : 0,
+              marginLeft: screens.lg && ["/home", "/people", "/trending"].includes(pathname) ? 70 : 0,
             }}
           >
             {children}
