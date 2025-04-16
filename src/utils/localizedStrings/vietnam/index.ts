@@ -72,24 +72,24 @@ export const VnLocalizedStrings = {
     Message: "Nhắn tin",
     Trending: "Xu hướng",
     People: "Mọi người",
-    Discover:"Khám phá mọi người",
+    Discover: "Khám phá mọi người",
     Connect: "Kết nối với những người bạn mới và mở rộng mạng lưới của bạn",
     UserNotFound: "Không tìm thấy người dùng",
     ShowOnlyUnrequested: "Chỉ hiển thị những người chưa gửi lời mời",
-    SearchUsers: "Tìm người dùng", 
+    SearchUsers: "Tìm người dùng",
     ErrorLoading: "Lỗi tải dữ liệu",
-    FriendRequests: "Lời mời kết bạn", 
+    FriendRequests: "Lời mời kết bạn",
     NoFriendRequests: "Không có lời mời kết bạn",
     Accept: "Chấp nhận",
     Decline: "Từ chối",
     AllUsers: "Hãy mở rộng mạng lưới của bạn",
     Feed: "Bảng tin",
-    Birtday:"Lời nhắc sinh nhật!",
+    Birtday: "Lời nhắc sinh nhật!",
     Dayof: "Ngày sinh nhật:",
     YearsOld: "Tuổi",
     NoBirthdays: "Không có ngày sinh nhật nào",
     ConfirmLogoutMessage: "Bạn có chắc chắn muốn đăng xuất?",
-    ConfirmLogout:"Xác nhận đăng xuất",
+    ConfirmLogout: "Xác nhận đăng xuất",
   },
   Suggested: {
     SuggestedFriends: "Những người bạn có thể biết",
@@ -103,7 +103,8 @@ export const VnLocalizedStrings = {
     WhyFactor1: "Bạn bè chung",
     WhyFactor2: "Sở thích tương đồng",
     WhyFactor3: "Hoạt động gần đây trên mạng xã hội",
-    WhyConclusion: "Chúng tôi sử dụng thuật toán để tìm những người bạn có thể quen biết hoặc muốn kết nối!"
+    WhyConclusion:
+      "Chúng tôi sử dụng thuật toán để tìm những người bạn có thể quen biết hoặc muốn kết nối!",
   },
   Form: {
     Label: {
@@ -140,7 +141,8 @@ export const VnLocalizedStrings = {
       ConfirmPasswordTypeMessage: "Xác nhận mật khẩu không hợp lệ!",
       OTPTypeMessage: "Mã OTP phải là chuỗi 6 số!",
       PhoneTypeMessage: "Số điện thoại phải là chuỗi 10 số!",
-      PleaseOldPasswordDifferentNewPassword: "Mật khẩu mới phải khác mật khẩu cũ!",
+      PleaseOldPasswordDifferentNewPassword:
+        "Mật khẩu mới phải khác mật khẩu cũ!",
       PleaseInformationDifferent: "Vui lòng nhập đầy đủ thông tin",
     },
   },
@@ -165,7 +167,7 @@ export const VnLocalizedStrings = {
     OTPFailed: "Gửi OTP thất bại!",
     OTPExpired: "Mã OTP không tồn tại hoặc đã hết hạn!",
     OTPFailedUserHasRegistered: "Tài khoản đã tồn tại!",
-    OTPEmail:"OTP đã được gửi đến email của bạn",
+    OTPEmail: "OTP đã được gửi đến email của bạn",
     AlreadyHaveAccount: "Bạn đã có tài khoản?",
     LoginNow: "Đăng nhập ngay!",
     AgreePolicies: "Tôi đồng ý các điều khoản của YourVibes",
@@ -180,6 +182,7 @@ export const VnLocalizedStrings = {
     EmptyContent: "Thiếu nội dung hoặc file media",
     PickImgFailed: "Tải file thất bại!",
     UploadImage: "Tải hình ảnh",
+    CensorPost: "Bài viết của bạn đang được kiểm duyệt, vui lòng chờ.",
   },
   ObjectPostPrivacy: {
     PublicDescription: "Bất kỳ ai ở trên YourVibes",
@@ -221,7 +224,7 @@ export const VnLocalizedStrings = {
     ShareContent: "Nhập nội dung chia sẻ của bạn...",
     CharacterLimit: "10000 ký tự",
     CharacterLimitR: "255 ký tự",
-    NoTrendingPosts: "No trending posts found",
+    NoTrendingPosts: "Chưa có bài viết trending nào",
   },
   PostDetails: {
     ViewReplies: "Xem phản hồi",
@@ -307,7 +310,17 @@ export const VnLocalizedStrings = {
       AcceptFriend: "đã chấp nhận lời mời kết bạn của bạn.",
       NewPost: "đã đăng một bài viết mới.",
       LikeComment: "đã thích bình luận của bạn: ",
-    }
+      NewPostPersonal: "bài viết của bạn đăng thành công:",
+      NewPostError: "bài viết của bạn bị lỗi",
+      BlockCreatePost: "bài viết của bạn đã bị chặn",
+      nsfw: "vì chứa nội dung nhạy cảm",
+      political: "vì chứa nội dung chính trị không phù hợp",
+      violence: "vì chứa nội dung bạo lực",
+      DeactivatePostContent:"bài viết của bạn đã bị chặn vì vi phạm các điều khoản và điều kiện của chúng tôi. Nếu bạn nghĩ rằng đây là một sai lầm, vui lòng liên hệ với bộ phận hỗ trợ của chúng tôi để được xem xét lại.",
+      ActivacePostContent:"bài viết của bạn đã được kích hoạt lại sau khi xem xét. Cảm ơn bạn đã kiên nhẫn chờ đợi.",
+      DeactivateCommentContent:"bình luận của bạn đã bị chặn vì vi phạm các điều khoản và điều kiện của chúng tôi. Nếu bạn nghĩ rằng đây là một sai lầm, vui lòng liên hệ với bộ phận hỗ trợ của chúng tôi để được xem xét lại.",
+      ActivaceCommentContent:"bình luận của bạn đã được kích hoạt lại sau khi xem xét. Cảm ơn bạn đã kiên nhẫn chờ đợi.",
+    },
   },
   ListFriends: {
     ListFriends: "Danh sách bạn bè",
@@ -340,7 +353,8 @@ export const VnLocalizedStrings = {
     PaymentSuccess: "Thanh toán thành công",
     PaymentFailed: "Thanh toán thất bại",
     NoCampaign: "Không có chiến dịch nào",
-    AdvertisePostPending: "Quảng cáo đang chờ xử lý, vui lòng kiểm tra lại quá trình.",
+    AdvertisePostPending:
+      "Quảng cáo đang chờ xử lý, vui lòng kiểm tra lại quá trình.",
     CampaignStatus: "Trạng thái chiến dịch",
     Click: "Tổng số lượt ấn vào",
     TotalReach: "Tổng số lượt người tiếp cận",
@@ -367,9 +381,9 @@ export const VnLocalizedStrings = {
     HistoryforPost: "Lịch sử quảng cáo cho bài viết",
     NoAdsHistory: "Không có lịch sử quảng cáo",
     Discount: "Giảm giá",
-    LimitDay: "- Giới hạn 30 ngày vì phương thức thanh toán MOMO không hỗ trợ thanh toán vượt hơn 30 ngày!",
+    LimitDay:
+      "- Giới hạn 30 ngày vì phương thức thanh toán MOMO không hỗ trợ thanh toán vượt hơn 30 ngày!",
   },
-
 
   Report: {
     ReportPost: " Tại sao bạn báo cáo bài viết này?",
@@ -377,9 +391,11 @@ export const VnLocalizedStrings = {
     ReportComment: "Tại sao bạn báo cáo bình luận này?",
     ReportSuccess: "Báo cáo thành công!",
     ReportFailed: "Báo cáo thất bại!",
-    ReportUserFailed: "Báo cáo thất bại, bạn đã báo cáo tài khoản này trước đó!",
+    ReportUserFailed:
+      "Báo cáo thất bại, bạn đã báo cáo tài khoản này trước đó!",
     ReportPostFailed: "Báo cáo thất bại, bạn đã báo cáo bài viết này trước đó!",
-    ReportCommentFailed: "Báo cáo thất bại, bạn đã báo cáo bình luận này trước đó!",
+    ReportCommentFailed:
+      "Báo cáo thất bại, bạn đã báo cáo bình luận này trước đó!",
     Note: "Nếu bạn nhận thấy sự đe dọa hoặc ai đó dang gặp nguy hiểm, đừng chần chừ mà hãy tìm ngay sự giúp đỡ và báo cho dịch vụ khẩn cấp ở địa phương trước khi báo cáo với YourVibes.",
     placeholder: "Viết lý do báo cáo của bạn ở đây...",
     Report: "Báo cáo",
@@ -388,7 +404,8 @@ export const VnLocalizedStrings = {
 
   ChangePassword: {
     ChangePassword: "Thay đổi mật khẩu",
-    ChangePasswordFailed: "Thay đổi mật khẩu thất bại, vui lòng kiểm tra lại mật khẩu!",
+    ChangePasswordFailed:
+      "Thay đổi mật khẩu thất bại, vui lòng kiểm tra lại mật khẩu!",
     ChangePasswordSuccess: "Thay đổi mật khẩu thành công!",
     OldPassword: "Mật khẩu cũ",
     NewPassword: "Mật khẩu mới",
@@ -474,15 +491,15 @@ export const VnLocalizedStrings = {
     ManageMembers: "Quản lý thành viên",
   },
   People: {
-    FetchUsersFailed: "Tải danh sách người dùng thất bại", 
-    ErrorFetchingUsers: "Lỗi khi tải danh sách người dùng", 
+    FetchUsersFailed: "Tải danh sách người dùng thất bại",
+    ErrorFetchingUsers: "Lỗi khi tải danh sách người dùng",
     NoFriendRequests: "Không có lời mời kết bạn nào",
     ErrorFriendRequests: "Lỗi khi tải danh sách lời mời kết bạn",
     AcceptScuccess: "Chấp nhận lời mời thành công",
     AcceptFailed: "Chấp nhận lời mời thất bại",
     AcceptError: "Lỗi khi chấp nhận lời mời",
     DeclineSuccess: "Từ chối lời mời thành công",
-    DeclineFailed: "Từ chối lời mời thất bại",  
+    DeclineFailed: "Từ chối lời mời thất bại",
     DeclineError: "Lỗi khi từ chối lời mời",
     FriendRequestSent: "Đã gửi lời mời kết bạn",
     FriendRequestSentError: "Lỗi khi gửi lời mời kết bạn",
@@ -492,7 +509,5 @@ export const VnLocalizedStrings = {
     FriendRequestCanceledSuccess: "Hủy lời mời kết bạn thành công",
     FriendRequestSentFailed: "Gửi lời mời kết bạn thất bại",
     FriendRequestCanceledFailed: "Hủy lời mời kết bạn thất bại",
-    
   },
-  
 };
