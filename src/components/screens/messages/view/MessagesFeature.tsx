@@ -783,72 +783,6 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
         </Form.Item>
         
         {/* Image Upload Section */}
-        <Form.Item 
-          name="image" 
-          label={localStrings.Messages.ConversationImage}
-        >
-          <Dragger
-            name="avatar"
-            multiple={false}
-            showUploadList={false}
-            beforeUpload={() => false} 
-            onChange={(info) => {
-              handleImageUpload(info);
-            }}
-            accept="image/*"
-          >
-            {imagePreview ? (
-              <div style={{ 
-                position: 'relative',
-                width: '100%',
-                height: '200px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                overflow: 'hidden'
-              }}>
-                <img 
-                  src={imagePreview} 
-                  alt="Conversation" 
-                  style={{ 
-                    maxWidth: '100%', 
-                    maxHeight: '200px', 
-                    objectFit: 'contain' 
-                  }} 
-                />
-                <Button 
-                  type="text" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeImage();
-                  }}
-                  style={{ 
-                    position: 'absolute', 
-                    top: 5, 
-                    right: 5, 
-                    zIndex: 10,
-                    background: 'rgba(255, 255, 255, 0.7)'
-                  }}
-                >
-                  {localStrings.Messages.Remove}
-                </Button>
-              </div>
-            ) : (
-              <div>
-                <p className="ant-upload-drag-icon">
-                  <InboxOutlined />
-                </p>
-                <p className="ant-upload-text">
-                  {localStrings.Messages.ClickOrDragImageToUpload}
-                </p>
-                <p className="ant-upload-hint">
-                  {localStrings.Messages.SupportSingleImageUpload}
-                </p>
-              </div>
-            )}
-          </Dragger>
-        </Form.Item>
-        
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: "block", marginBottom: 8 }}>
             {localStrings.Public.Messages}
@@ -994,7 +928,6 @@ const MessagesFeature: React.FC = () => {
       }
     }, 200);
   }, [currentConversation?.id, fetchMessages, setCurrentConversation, markConversationAsRead]);
-  // Xử lý khi có conversation_id từ URL
   useEffect(() => {
     if (conversationIdFromUrl && conversations.length > 0) {
       const selectedConversation = conversations.find(conv => conv.id === conversationIdFromUrl);
