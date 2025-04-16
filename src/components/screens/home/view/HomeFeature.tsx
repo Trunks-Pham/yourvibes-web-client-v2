@@ -15,8 +15,6 @@ import { LoadingOutlined } from "@ant-design/icons";
 import InfiniteScroll from "react-infinite-scroll-component";
 import FriendSuggestions from "@/components/common/Suggestions/friendSuggestions";
 import dayjs from "dayjs";
-import AddPostViewModel from "../../addPost/viewModel/AddpostViewModel";
-import { defaultPostRepo } from "@/api/features/post/PostRepo";
 
 const Homepage = () => {
   const { brandPrimary, backgroundColor, lightGray, pink } = useColor();
@@ -57,32 +55,6 @@ const Homepage = () => {
     setNewFeeds((prevNewFeeds) =>
       prevNewFeeds.filter((post) => post.id !== id)
     );
-  };
-
-  const formatBirthday = (birthday: string) => {
-    if (!birthday) return { formatted: "", age: null };
-
-    let parsedDate: dayjs.Dayjs | null = null;
-
-    if (birthday.includes("T") && birthday.includes("/")) {
-      const datePart = birthday.split("/")[1];
-      const [month, year] = datePart.split("/").map(Number);
-      const day = parseInt(birthday.split("T")[0], 10);
-      parsedDate = dayjs(`${year}-${month}-${day}`);
-    } else {
-      parsedDate = dayjs(birthday, ["YYYY-MM-DD", "DD/MM/YYYY"], true);
-    }
-
-    if (!parsedDate.isValid()) {
-      console.warn("Invalid birthday:", birthday);
-      return { formatted: "Invalid date", age: null };
-    }
-
-    const formatted = parsedDate.format("DD/MM/YYYY");
-    const currentYear = 2025;
-    const age = currentYear - parsedDate.year();
-
-    return { formatted, age };
   };
 
   const renderAddPost = useCallback(() => {
@@ -197,7 +169,6 @@ const Homepage = () => {
           ) : birthdayFriends.length > 0 ? (
             <div>
               {birthdayFriends.map((friend) => {
-                const { formatted, age } = formatBirthday(friend.birthday);
                 return (
                   <div
                     key={friend.id}
@@ -264,9 +235,8 @@ const Homepage = () => {
                           style={{ marginRight: 6, fontSize: 16 }}
                         ></span>
                         <span>
-                          {formatted}
-                          {age !== null &&
-                            ` (${age} ${localStrings.Public.YearsOld})`}
+                          {localStrings.Public.Birthday}{" "}
+                          {dayjs(friend.birthday).format("DD/MM")}
                         </span>
                       </div>
                     </div>

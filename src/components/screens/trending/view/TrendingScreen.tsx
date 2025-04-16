@@ -13,9 +13,10 @@ import ProfileViewModel from "@/components/screens/profile/viewModel/ProfileView
 import { useRouter } from "next/navigation";
 import { LoadingOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { DateTransfer } from "@/utils/helper/DateTransfer";
 
 const TrendingScreen = () => {
-  const { brandPrimary , pink} = useColor();
+  const { brandPrimary, pink } = useColor();
   const { localStrings, user } = useAuth();
   const router = useRouter();
   const {
@@ -45,33 +46,7 @@ const TrendingScreen = () => {
     );
   };
 
-  // Hàm formatBirthday
-  const formatBirthday = (birthday: string) => {
-    if (!birthday) return { formatted: "", age: null };
-
-    let parsedDate: dayjs.Dayjs | null = null;
-
-    if (birthday.includes("T") && birthday.includes("/")) {
-      const datePart = birthday.split("/")[1];
-      const [month, year] = datePart.split("/").map(Number);
-      const day = parseInt(birthday.split("T")[0], 10);
-      parsedDate = dayjs(`${year}-${month}-${day}`);
-    } else {
-      parsedDate = dayjs(birthday, ["YYYY-MM-DD", "DD/MM/YYYY"], true);
-    }
-
-    if (!parsedDate.isValid()) {
-      console.warn("Invalid birthday:", birthday);
-      return { formatted: "Invalid date", age: null };
-    }
-
-    const formatted = parsedDate.format("DD/MM/YYYY");
-    const currentYear = 2025;
-    const age = currentYear - parsedDate.year();
-
-    return { formatted, age };
-  };
- const renderFriends = () => {
+  const renderFriends = () => {
     return (
       <div
         style={{
@@ -95,7 +70,14 @@ const TrendingScreen = () => {
         >
           {localStrings.Public.Birtday}
         </span>
-        <div style={{ flex: 1, maxHeight: "50%", overflowY: "auto", scrollbarWidth: "none"  }}>
+        <div
+          style={{
+            flex: 1,
+            maxHeight: "50%",
+            overflowY: "auto",
+            scrollbarWidth: "none",
+          }}
+        >
           {/* Phần hiển thị bạn bè có sinh nhật */}
           {loadingBirthday ? (
             <div style={{ textAlign: "center", padding: "12px" }}>
@@ -104,7 +86,6 @@ const TrendingScreen = () => {
           ) : birthdayFriends.length > 0 ? (
             <div>
               {birthdayFriends.map((friend) => {
-                const { formatted, age } = formatBirthday(friend.birthday);
                 return (
                   <div
                     key={friend.id}
@@ -171,9 +152,8 @@ const TrendingScreen = () => {
                           style={{ marginRight: 6, fontSize: 16 }}
                         ></span>
                         <span>
-                          {formatted}
-                          {age !== null &&
-                            ` (${age} ${localStrings.Public.YearsOld})`}
+                          {localStrings.Public.Birthday}{" "}
+                          {dayjs(friend.birthday).format("DD/MM")}
                         </span>
                       </div>
                     </div>
@@ -219,7 +199,14 @@ const TrendingScreen = () => {
         >
           {localStrings.Public.Friend}
         </span>
-        <div style={{ flex: 1, maxHeight: "50%", overflowY: "auto", scrollbarWidth: "none" }}>
+        <div
+          style={{
+            flex: 1,
+            maxHeight: "50%",
+            overflowY: "auto",
+            scrollbarWidth: "none",
+          }}
+        >
           {/* Danh sách bạn bè thông thường */}
           <hr className="border-t-1 border-gray-300 my-3" />
           {friends.length > 0 ? (
@@ -285,7 +272,6 @@ const TrendingScreen = () => {
       </div>
     );
   };
-
 
   // Thêm keyframes cho animation
   useEffect(() => {

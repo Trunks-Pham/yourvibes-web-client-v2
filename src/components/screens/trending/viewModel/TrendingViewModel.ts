@@ -61,19 +61,9 @@ const TrendingViewModel = (postRepo: PostRepo, friendRepo: FriendRepo) => {
       setLoadingBirthday(true);
       const response = await friendRepo.getBirthdayFriends();
       if (!response.error) {
-        const cleanedData = response.data.map((friend: GetBirthdayFriendsModel) => {
-          if (friend.birthday && friend.birthday.includes("T") && friend.birthday.includes("/")) {
-            const datePart = friend.birthday.split("/")[1];
-            const [month, year] = datePart.split("/").map(Number);
-            const day = parseInt(friend.birthday.split("T")[0], 10);
-            return {
-              ...friend,
-              birthday: `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`,
-            };
-          }
-          return friend;
-        });
-        setBirthdayFriends(cleanedData || []);
+        setBirthdayFriends(response.data || []);
+      } else {
+        message.error(localStrings.Public.ErrorLoading);
       }
     } catch (error) {
       console.error("Error fetching birthday friends:", error);
