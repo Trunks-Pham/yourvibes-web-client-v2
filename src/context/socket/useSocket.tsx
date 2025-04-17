@@ -61,7 +61,9 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         ws.onmessage = (e) => {
             const message = JSON.parse(e.data);
-            setSocketMessages((prev) => [message, ...prev]);
+            console.log("🔥 WebSocket Message Received:", message);
+            
+            setSocketMessages((prev) => [...prev, message]);
             
             if (message?.user?.id !== user?.id) {
                 notification.open({
