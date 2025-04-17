@@ -14,7 +14,7 @@ export const useMessagesViewModel = () => {
   const messageViewModel = useMessageViewModel();
   const conversationViewModel = useConversationViewModel();
   const conversationDetailViewModel = useConversationDetailViewModel();
-  const { socketMessages } = useWebSocket();
+  const { socketMessages, sendSocketMessage } = useWebSocket();
 
   const { 
     messages, messagesLoading, messageText, setMessageText,
@@ -159,5 +159,6 @@ export const useMessagesViewModel = () => {
     leaveConversation,
     fetchExistingMembers,
     getMessagesForConversation,
+    sendSocketMessage,
   };
 };

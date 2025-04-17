@@ -148,11 +148,20 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
         };
     };
 
+    const sendSocketMessage = (message: MessageWebSocketResponseModel) => {
+        if (wsMessageRef.current && wsMessageRef.current.readyState === WebSocket.OPEN) {
+          wsMessageRef.current.send(JSON.stringify(message));
+          return true;
+        }
+        return false;
+      };
+
     // 👉 Xử lý cleanup khi user thay đổi hoặc component unmount
     useEffect(() => {
         if (user?.id) {
             connectSocketNotification();
             connectSocketMessage();
+            
         }
 
         return () => {
@@ -168,7 +177,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
     }, [user?.id]);
     return (
         <WebSocketContext.Provider value={{ 
-            socketMessages, setSocketMessages, connectSocketMessage, connectSocketNotification, }}>
+            socketMessages, setSocketMessages, connectSocketMessage, connectSocketNotification, sendSocketMessage }}>
             {children}
         </WebSocketContext.Provider>
         

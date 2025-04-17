@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { message } from "antd";
+import { useWebSocket } from "@/context/socket/useSocket";
 
 import { useAuth } from "@/context/auth/useAuth";
 
 import { defaultMessagesRepo } from "@/api/features/messages/MessagesRepo";
-import { MessageResponseModel } from "@/api/features/messages/models/MessageModel";
+import { MessageResponseModel, MessageWebSocketResponseModel } from "@/api/features/messages/models/MessageModel";
 
 interface ExtendedMessageResponseModel extends MessageResponseModel {
   isDateSeparator?: boolean;
@@ -14,7 +15,7 @@ type MessageWithDate = ExtendedMessageResponseModel;
 
 export const useMessageViewModel = () => {
   const { user, localStrings } = useAuth();
-
+  const { sendSocketMessage } = useWebSocket();
   const [messages, setMessages] = useState<MessageResponseModel[]>([]);
   const [messagesLoading, setMessagesLoading] = useState<boolean>(false);
   const [messageText, setMessageText] = useState<string>("");
@@ -322,85 +323,98 @@ export const useMessageViewModel = () => {
 
   const sendMessage = async (conversationId: string) => {
     if (!user?.id || !conversationId || !messageText.trim()) {
-      return;
+        return;
     }
     
     if (messageText.length > 500) {
-      message.error(localStrings.Messages.MessageTooLong);
-      return;
+        message.error(localStrings.Messages.MessageTooLong);
+        return;
     }
     
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const messageContent = messageText.trim();
     
     const tempMessage: MessageResponseModel = {
-      id: tempId,
-      user_id: user.id,
-      user: {
-        id: user.id,
-        name: user.name,
-        family_name: user.family_name,
-        avatar_url: user.avatar_url
-      },
-      conversation_id: conversationId,
-      content: messageContent,
-      created_at: new Date().toISOString(),
-      isTemporary: true
+        id: tempId,
+        user_id: user.id,
+        user: {
+            id: user.id,
+            name: user.name,
+            family_name: user.family_name,
+            avatar_url: user.avatar_url
+        },
+        conversation_id: conversationId,
+        content: messageContent,
+        created_at: new Date().toISOString(),
+        isTemporary: true
     };
     
     setMessages(prev => [...prev, tempMessage]);
     addNewMessage(conversationId, tempMessage);
     
     setMessageText("");
-    
     scrollToBottom();
     
-    try {
-      const createMessageData = {
+    const messageData = {
         content: messageContent,
         conversation_id: conversationId,
+        user_id: user.id,
         user: {
-          id: user.id,
-          name: user.name,
-          family_name: user.family_name,
-          avatar_url: user.avatar_url
-        }
-      };
-      
-      const response = await defaultMessagesRepo.createMessage(createMessageData);
-      
-      if (response.data) {
-        const serverMessage = { ...response.data, fromServer: true, isTemporary: false };
+            id: user.id,
+            name: user.name,
+            family_name: user.family_name,
+            avatar_url: user.avatar_url
+        },
+        created_at: new Date().toISOString()
+    };
+    
+    const sentViaWebSocket = sendSocketMessage(messageData);
+    
+    try {
+        const createMessageData = {
+            content: messageContent,
+            conversation_id: conversationId,
+            user: {
+                id: user.id,
+                name: user.name,
+                family_name: user.family_name,
+                avatar_url: user.avatar_url
+            }
+        };
         
+        const response = await defaultMessagesRepo.createMessage(createMessageData);
+        
+        if (response.data) {
+            const serverMessage = { ...response.data, fromServer: true, isTemporary: false };
+            
+            setMessages(prev => 
+                prev.map(msg => 
+                    msg.id === tempId ? serverMessage : msg
+                )
+            );
+            
+            setMessagesByConversation(prev => {
+                const conversationMessages = prev[conversationId] || [];
+                const updatedMessages = conversationMessages.map(msg => 
+                    msg.id === tempId ? serverMessage : msg
+                );
+                
+                return {
+                    ...prev,
+                    [conversationId]: updatedMessages
+                };
+            });
+        }
+    } catch (error) {
         setMessages(prev => 
-          prev.map(msg => 
-            msg.id === tempId ? serverMessage : msg
-          )
+            prev.map(msg => 
+                msg.id === tempId ? { ...msg, sendFailed: true } : msg
+            )
         );
         
-        setMessagesByConversation(prev => {
-          const conversationMessages = prev[conversationId] || [];
-          const updatedMessages = conversationMessages.map(msg => 
-            msg.id === tempId ? serverMessage : msg
-          );
-          
-          return {
-            ...prev,
-            [conversationId]: updatedMessages
-          };
-        });
-        
-      }
-    } catch (error) {
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === tempId ? { ...msg, sendFailed: true } : msg
-        )
-      );
-      
-      message.error(localStrings.Public.Error);
+        message.error(localStrings.Public.Error);
     }
-  };
+};
 
   const deleteMessage = async (messageId: string) => {
     if (!user?.id || !currentConversationId) return;
