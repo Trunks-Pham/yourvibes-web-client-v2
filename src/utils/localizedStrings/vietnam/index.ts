@@ -105,6 +105,7 @@ export const VnLocalizedStrings = {
     WhyFactor3: "Hoạt động gần đây trên mạng xã hội",
     WhyConclusion:
       "Chúng tôi sử dụng thuật toán để tìm những người bạn có thể quen biết hoặc muốn kết nối!",
+      NoMoreSuggestions: "Không có gợi ý nữa!",
   },
   Form: {
     Label: {
