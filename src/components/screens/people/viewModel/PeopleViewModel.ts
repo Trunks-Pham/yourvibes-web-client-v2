@@ -33,7 +33,7 @@ const PeopleViewModel = () => {
       setLoading(true);
       const response = await defaultFriendRepo.getUsersNonFriend();
 
-      // Kiểm tra nếu response.data là một mảng
+      // Check if response.data is an array
       if (response?.data && Array.isArray(response.data)) {
         const mappedUsers: UserModel[] = response.data.map((user: GetUserNonFriendsModel) => ({
           id: user.id,
@@ -43,7 +43,7 @@ const PeopleViewModel = () => {
         }));
 
         if (newPage === 1) {
-          setUsers(mappedUsers); // Hiển thị ngay dữ liệu
+          setUsers(mappedUsers); // Display data immediately
         } else {
           setUsers((prevUsers) => [...prevUsers, ...mappedUsers]);
         }
@@ -81,14 +81,34 @@ const PeopleViewModel = () => {
         );
       } else {
         setIncomingFriendRequests([]);
-        // message.info(`${localStrings.People.NoFriendRequests}`);
       }
     } catch (error) {
-      // message.error(`${localStrings.People.NoFriendRequests}`);
     } finally {
       setLoadingFriendRequests(false);
     }
   };
+
+  // Handle infinite scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop >=
+          document.documentElement.offsetHeight - 100 && // Trigger 100px before bottom
+        hasMore &&
+        !loading
+      ) {
+        setLoading(true);
+        setPage((prevPage) => {
+          const nextPage = prevPage + 1;
+          fetchAllUsers(nextPage);
+          return nextPage;
+        });
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [hasMore, loading]);
 
   // Fetch initial data on mount
   useEffect(() => {
@@ -107,11 +127,11 @@ const PeopleViewModel = () => {
     handleAddFriend: async (userId: string) => {
       try {
         const response = await defaultProfileRepo.sendFriendRequest(userId);
-    
+
         if (response?.code === 20001 && response?.message === "Success") {
           setFriendRequestsSent((prev) => {
             const newSet = new Set(prev);
-            newSet.add(userId);  
+            newSet.add(userId);
             return newSet;
           });
           message.success(`${localStrings.People.FriendRequestSentSuccess}`);
@@ -167,16 +187,6 @@ const PeopleViewModel = () => {
         }
       } catch (error) {
         message.error(`${localStrings.People.DeclineFailed}`);
-      }
-    },
-    loadMoreUsers: () => {
-      if (hasMore && !loading) {
-        setLoading(true);
-        setPage((prevPage) => {
-          const nextPage = prevPage + 1;
-          fetchAllUsers(nextPage);
-          return nextPage;
-        });
       }
     },
   };
