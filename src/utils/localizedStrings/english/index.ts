@@ -107,6 +107,7 @@ export const ENGLocalizedStrings = {
     WhyFactor3: "Recent activity on social media",
     WhyConclusion:
       "We use an algorithm to find people you might know or want to connect with!",
+      NoMoreSuggestions: "No more suggestions!",
   },
 
   Form: {
