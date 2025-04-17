@@ -6,7 +6,6 @@ import { MessageWebSocketResponseModel } from "@/api/features/messages/models/Me
 import useTypeNotification from "@/hooks/useTypeNotification";
 import { ApiPath } from "@/api/ApiPath";
 import { notification } from "antd";
-import { log } from "console";
 
 const WebSocketContext = createContext<SocketContextType | undefined>(undefined);
 
