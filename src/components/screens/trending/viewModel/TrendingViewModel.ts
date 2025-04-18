@@ -42,8 +42,7 @@ const TrendingViewModel = (postRepo: PostRepo, friendRepo: FriendRepo) => {
       } else {
         message.error(localStrings.Public.ErrorLoading);
       }
-    } catch (error: any) {
-      console.error("Error fetching trending posts:", error);
+    } catch (error: any) { 
       message.error(localStrings.Public.ErrorLoading);
     } finally {
       setLoading(false);
