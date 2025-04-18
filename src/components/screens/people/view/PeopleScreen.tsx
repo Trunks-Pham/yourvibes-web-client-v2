@@ -19,7 +19,6 @@ const PeopleScreens: React.FC = () => {
     handleCancelFriend,
     handleAcceptFriendRequest,
     handleDeclineFriendRequest,
-    loadMoreUsers,
   } = PeopleViewModel();
 
   const { localStrings } = useAuth();
@@ -167,14 +166,8 @@ const PeopleScreens: React.FC = () => {
                 ))}
               </div>
               {hasMore && (
-                <div className="text-center mt-8">
-                  <Button
-                    onClick={loadMoreUsers}
-                    loading={loading}
-                    className="px-6 py-2 text-gray-900 border-gray-300 hover:bg-gray-50"
-                  >
-                    {localStrings.Public.LoadMore}
-                  </Button>
+                <div className="flex justify-center items-center py-8">
+                  <Spin size="large" tip="Loading more..." />
                 </div>
               )}
             </>
