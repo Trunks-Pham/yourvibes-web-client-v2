@@ -7,8 +7,8 @@ import { useMessageViewModel } from "./MessageViewModel";
 import { useConversationViewModel } from "./ConversationViewModel";
 import { useConversationDetailViewModel } from "./ConversationDetailViewModel";
 
-import { useWebSocket } from "@/context/socket/useSocket";
-
+// import { useWebSocket } from "@/context/socket/useSocket";
+import { useWebSocket } from "@/context/websocket/useWebSocket";
 
 export const useMessagesViewModel = () => {
   const messageViewModel = useMessageViewModel();
