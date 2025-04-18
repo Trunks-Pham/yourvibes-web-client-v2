@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { message } from "antd";
-import { useWebSocket } from "@/context/socket/useSocket";
 
 import { useAuth } from "@/context/auth/useAuth";
 
@@ -15,7 +14,6 @@ type MessageWithDate = ExtendedMessageResponseModel;
 
 export const useMessageViewModel = () => {
   const { user, localStrings } = useAuth();
-  const { sendSocketMessage } = useWebSocket();
   const [messages, setMessages] = useState<MessageResponseModel[]>([]);
   const [messagesLoading, setMessagesLoading] = useState<boolean>(false);
   const [messageText, setMessageText] = useState<string>("");
@@ -372,8 +370,6 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
         },
         created_at: new Date().toISOString()
     };
-    
-    const sentViaWebSocket = sendSocketMessage(messageData);
     
     try {
         const createMessageData = {

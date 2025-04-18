@@ -14,7 +14,7 @@ export const useMessagesViewModel = () => {
   const messageViewModel = useMessageViewModel();
   const conversationViewModel = useConversationViewModel();
   const conversationDetailViewModel = useConversationDetailViewModel();
-  const { socketMessages, sendSocketMessage } = useWebSocket();
+  const { socketMessages } = useWebSocket();
 
   const { 
     messages, messagesLoading, messageText, setMessageText,
@@ -57,24 +57,23 @@ export const useMessagesViewModel = () => {
 
   useEffect(() => {
     if (socketMessages.length > 0) {
-        socketMessages.forEach(newMsg => {
-            const messageModel: MessageResponseModel = {
-                id: `ws-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                content: newMsg.content,
-                user_id: newMsg.user_id,
-                conversation_id: newMsg.conversation_id,
-                parent_id: newMsg.parent_id,
-                created_at: newMsg.created_at || new Date().toISOString(),
-                user: newMsg.user,
-                fromServer: true
-            };
-            
-            addNewMessage(newMsg.conversation_id, messageModel);
-            
-            if (currentConversation?.id === newMsg.conversation_id) {
-                setTimeout(() => messageViewModel.scrollToBottom(), 100);
-            }
-        });
+        const latestMessage = socketMessages[socketMessages.length - 1];
+        const messageModel: MessageResponseModel = {
+            id: `ws-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            content: latestMessage.content,
+            user_id: latestMessage.user_id,
+            conversation_id: latestMessage.conversation_id,
+            parent_id: latestMessage.parent_id,
+            created_at: latestMessage.created_at || new Date().toISOString(),
+            user: latestMessage.user,
+            fromServer: true
+        };
+        
+        addNewMessage(latestMessage.conversation_id, messageModel);
+        
+        if (currentConversation?.id === latestMessage.conversation_id) {
+            setTimeout(() => messageViewModel.scrollToBottom(), 100);
+        }
     }
   }, [socketMessages, currentConversation?.id]);
 
@@ -155,6 +154,5 @@ export const useMessagesViewModel = () => {
     leaveConversation,
     fetchExistingMembers,
     getMessagesForConversation,
-    sendSocketMessage,
   };
 };

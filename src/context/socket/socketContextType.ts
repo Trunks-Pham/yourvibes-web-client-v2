@@ -4,7 +4,7 @@ import { MessageWebSocketResponseModel } from "@/api/features/messages/models/Me
 
 export interface SocketContextType {
     connectSocketMessage: ()=> void;
-    sendSocketMessage: (message: MessageWebSocketResponseModel) => boolean;
+    // sendSocketMessage: (message: MessageWebSocketResponseModel) => boolean;
     connectSocketNotification: () => void;
     socketMessages: MessageWebSocketResponseModel[];
     setSocketMessages: (messages: MessageWebSocketResponseModel[]) => void;
