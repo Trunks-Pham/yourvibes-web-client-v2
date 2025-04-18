@@ -56,29 +56,25 @@ export const useMessagesViewModel = () => {
   }, [currentConversation?.id]);
 
   useEffect(() => {
-    if (socketMessages.length > 0 && currentConversation?.id) {
-      const newMessages = socketMessages.filter(
-        msg => msg.conversation_id === currentConversation.id
-      );
-      
-      if (newMessages.length > 0) {
-        newMessages.forEach(newMsg => {
-          const messageModel: MessageResponseModel = {
-            id: `ws-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            content: newMsg.content,
-            user_id: newMsg.user_id,
-            conversation_id: newMsg.conversation_id,
-            parent_id: newMsg.parent_id,
-            created_at: newMsg.created_at,
-            user: newMsg.user,
-            fromServer: true
-          };
-          
-          if (currentConversation.id) {
-            addNewMessage(currentConversation.id, messageModel);
-          }
+    if (socketMessages.length > 0) {
+        socketMessages.forEach(newMsg => {
+            const messageModel: MessageResponseModel = {
+                id: `ws-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                content: newMsg.content,
+                user_id: newMsg.user_id,
+                conversation_id: newMsg.conversation_id,
+                parent_id: newMsg.parent_id,
+                created_at: newMsg.created_at || new Date().toISOString(),
+                user: newMsg.user,
+                fromServer: true
+            };
+            
+            addNewMessage(newMsg.conversation_id, messageModel);
+            
+            if (currentConversation?.id === newMsg.conversation_id) {
+                setTimeout(() => messageViewModel.scrollToBottom(), 100);
+            }
         });
-      }
     }
   }, [socketMessages, currentConversation?.id]);
 

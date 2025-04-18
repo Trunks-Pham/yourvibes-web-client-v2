@@ -48,50 +48,55 @@ export const useMessageViewModel = () => {
     });
   };
 
-  const addNewMessage = (conversationId: string, message: MessageResponseModel) => {
-    if (!conversationId || !message) {
+const addNewMessage = (conversationId: string, message: MessageResponseModel) => {
+  if (!conversationId || !message) {
       return;
-    }
-    
-    setMessagesByConversation(prev => {
+  }
+  
+  setMessagesByConversation(prev => {
       const conversationMessages = prev[conversationId] || [];
       
+      // Check for duplicates with more reliable criteria
       const isDuplicate = message.id 
-        ? conversationMessages.some(msg => msg.id === message.id)
-        : conversationMessages.some(
-            msg => 
-              msg.content === message.content && 
-              msg.user_id === message.user_id &&
-              Math.abs(new Date(msg.created_at || "").getTime() - 
-                      new Date(message.created_at || "").getTime()) < 2000
-          );
+          ? conversationMessages.some(msg => msg.id === message.id)
+          : conversationMessages.some(
+              msg => 
+                  msg.content === message.content && 
+                  msg.user_id === message.user_id &&
+                  Math.abs(new Date(msg.created_at || "").getTime() - 
+                        new Date(message.created_at || "").getTime()) < 2000
+            );
       
       if (isDuplicate) {
-        return prev;
+          return prev;
       }
       
       const formattedMessage = {
-        ...message,
-        isTemporary: false,
-        fromServer: true
+          ...message,
+          isTemporary: false,
+          fromServer: true
       };
       
+      // Add the new message and sort by timestamp
       const updatedMessages = [...conversationMessages, formattedMessage].sort(
-        (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
+          (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
       );
       
+      // Notify any listeners about the update
       notifyMessageListeners(conversationId, updatedMessages);
       
+      // Update the current messages if this is for the active conversation
       if (conversationId === currentConversationId) {
-        setMessages(processMessagesWithDateSeparators(updatedMessages));
+          setMessages(processMessagesWithDateSeparators(updatedMessages));
       }
       
+      // Always update the message cache for all conversations
       return {
-        ...prev,
-        [conversationId]: updatedMessages
+          ...prev,
+          [conversationId]: updatedMessages
       };
-    });
-  };
+  });
+};
 
   const getMessagesForConversation = (conversationId: string): MessageResponseModel[] => {
     return messagesByConversation[conversationId] || [];

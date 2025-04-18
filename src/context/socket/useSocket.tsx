@@ -14,9 +14,9 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
     const { user, localStrings } = useAuth();
     const [socketMessages, setSocketMessages] = useState<MessageWebSocketResponseModel[]>([]);
 
-    const MaxConnection = 3; // Số lần kết nối tối đa
-    const [connectionAttempts, setConnectionAttempts] = useState(0); // Biến đếm số lần kết nối
-    const [connectionAttemptsNotification, setConnectionAttemptsNotification] = useState(0); // Biến đếm số lần kết nối
+    const MaxConnection = 3;
+    const [connectionAttempts, setConnectionAttempts] = useState(0); 
+    const [connectionAttemptsNotification, setConnectionAttemptsNotification] = useState(0);
 
     const wsMessageRef = useRef<WebSocket | null>(null);
     const wsNotificationRef = useRef<WebSocket | null>(null);
@@ -48,50 +48,70 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     };
 
-        
-
-    // 👉 Hàm kết nối WebSocket Message
     const connectSocketMessage = () => {
-        if (!user?.id || wsMessageRef.current) return; // Tránh kết nối lại khi đã có kết nối
-
-        const ws = new WebSocket(`${ApiPath.GET_WS_PATH_MESSAGE}${user.id}`);
-        wsMessageRef.current = ws;
-
-        ws.onopen = () => console.log("🔗 WebSocket Message connected");
-
-        ws.onmessage = (e) => {
-            const message = JSON.parse(e.data);
-            console.log("🔥 WebSocket Message Received:", message);
-            
-            setSocketMessages((prev) => [...prev, message]);
-            
-            if (message?.user?.id !== user?.id) {
-                notification.open({
-                    message: `${message?.user?.name} đã gửi cho bạn một tin nhắn`,
-                    placement: "topRight",
-                    duration: 5,
-                });
-            }
-        };
-
-        ws.onclose = (e) => {
-            console.log("❌ WebSocket Message disconnected:", e.reason, e.code);
+        if (!user?.id) return; 
+        
+        if (wsMessageRef.current) {
+            wsMessageRef.current.close();
             wsMessageRef.current = null;
-            setConnectionAttempts((prevAttempts) => {
-                const newAttempts = prevAttempts + 1;
-                if (newAttempts < MaxConnection) {
-                    setTimeout(() => connectSocketMessage(), 5000); // Thử lại sau 5 giây
+        }
+    
+        try {
+            const ws = new WebSocket(`${ApiPath.GET_WS_PATH_MESSAGE}${user.id}`);
+            wsMessageRef.current = ws;
+    
+            ws.onopen = () => {
+                console.log("🔗 WebSocket Message connected");
+                setConnectionAttempts(0); 
+            };
+    
+            ws.onmessage = (e) => {
+                try {
+                    const message = JSON.parse(e.data);
+                    console.log("🔥 WebSocket Message Received:", message);
+                    
+                    setSocketMessages((prev) => [...prev, message]);
+                    
+                    if (message?.user?.id !== user?.id) {
+                        notification.open({
+                            message: `${message?.user?.family_name || ''} ${message?.user?.name || ''} sent you a message`,
+                            description: message.content,
+                            placement: "topRight",
+                            duration: 5,
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error processing message:", error);
                 }
-                return newAttempts;
-            });
-        };
-
-        ws.onerror = (error) => {
-            console.error("⚠️ WebSocket Message error:", error);
-        };
+            };
+    
+            ws.onclose = (e) => {
+                console.log("❌ WebSocket Message disconnected:", e.reason, e.code);
+                wsMessageRef.current = null;
+                
+                setConnectionAttempts((prevAttempts) => {
+                    const newAttempts = prevAttempts + 1;
+                    const delay = Math.min(500 * Math.pow(2, newAttempts), 30000); 
+                    
+                    if (newAttempts < MaxConnection) {
+                        console.log(`Attempting to reconnect in ${delay/1000}s (attempt ${newAttempts})`);
+                        setTimeout(() => connectSocketMessage(), delay);
+                    } else {
+                        console.log("Maximum reconnection attempts reached");
+                    }
+                    return newAttempts;
+                });
+            };
+    
+            ws.onerror = (error) => {
+                console.error("⚠️ WebSocket Message error:", error);
+            };
+        } catch (error) {
+            console.error("Failed to connect to WebSocket:", error);
+            wsMessageRef.current = null;
+        }
     };
 
-    // 👉 Hàm kết nối WebSocket Notification
     const connectSocketNotification = () => {
         if (!user?.id || wsNotificationRef.current) return;
 
@@ -137,9 +157,8 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
                 console.log("connectionAttemptsNotification", newAttempts);
                 console.log("MaxConnection", MaxConnection);
                 
-                // Kiểm tra điều kiện và cố gắng kết nối lại nếu chưa đạt MaxConnection
                 if (newAttempts < MaxConnection) {
-                    setTimeout(() => connectSocketNotification(), 5000); // Thử lại sau 5 giây
+                    setTimeout(() => connectSocketNotification(), 5000); 
                 }
                 return newAttempts;
             });
@@ -151,14 +170,22 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
     };
 
     const sendSocketMessage = (message: MessageWebSocketResponseModel) => {
-        if (wsMessageRef.current && wsMessageRef.current.readyState === WebSocket.OPEN) {
-          wsMessageRef.current.send(JSON.stringify(message));
-          return true;
+        if (!wsMessageRef.current || wsMessageRef.current.readyState !== WebSocket.OPEN) {
+            connectSocketMessage();
+            
+            return false;
         }
-        return false;
-      };
+        
+        try {
+            console.log("Sending message via WebSocket:", message);
+            wsMessageRef.current.send(JSON.stringify(message));
+            return true;
+        } catch (error) {
+            console.error("Error sending message:", error);
+            return false;
+        }
+    };
 
-    // 👉 Xử lý cleanup khi user thay đổi hoặc component unmount
     useEffect(() => {
         if (user?.id) {
             connectSocketNotification();
