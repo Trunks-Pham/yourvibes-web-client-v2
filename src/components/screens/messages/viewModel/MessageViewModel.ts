@@ -48,44 +48,50 @@ export const useMessageViewModel = () => {
     });
   };
 
-  const addNewMessage = (conversationId: string, message: MessageResponseModel) => {
-    if (!conversationId || !message) return;
+const addNewMessage = (conversationId: string, message: MessageResponseModel) => {
+  if (!conversationId || !message) {
+      return;
+  }
   
-    setMessagesByConversation(prev => {
+  setMessagesByConversation(prev => {
       const conversationMessages = prev[conversationId] || [];
-  
-      const isDuplicate = conversationMessages.some(existing => {
-        const sameUser = existing.user_id === message.user_id;
-        const sameContent = existing.content === message.content;
-        const timeDiff = Math.abs(new Date(existing.created_at || "").getTime() - new Date(message.created_at || "").getTime());
-        return sameUser && sameContent && timeDiff < 3000; 
-      });
-  
-      if (isDuplicate) return prev; 
-  
-      const updatedMessages = [...conversationMessages, {
-        ...message,
-        isTemporary: false,
-        fromServer: true
-      }];
-  
-      const sortedMessages = updatedMessages.sort((a, b) =>
-        new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
-      );
-  
-      notifyMessageListeners(conversationId, sortedMessages);
-  
-      if (conversationId === currentConversationId) {
-        setMessages(processMessagesWithDateSeparators(sortedMessages));
+      
+      const isDuplicate = message.id 
+          ? conversationMessages.some(msg => msg.id === message.id)
+          : conversationMessages.some(
+              msg => 
+                  msg.content === message.content && 
+                  msg.user_id === message.user_id &&
+                  Math.abs(new Date(msg.created_at || "").getTime() - 
+                        new Date(message.created_at || "").getTime()) < 2000
+            );
+      
+      if (isDuplicate) {
+          return prev;
       }
-  
-      return {
-        ...prev,
-        [conversationId]: sortedMessages
+      
+      const formattedMessage = {
+          ...message,
+          isTemporary: false,
+          fromServer: true
       };
-    });
-  };
-  
+      
+      const updatedMessages = [...conversationMessages, formattedMessage].sort(
+          (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
+      );
+      
+      notifyMessageListeners(conversationId, updatedMessages);
+      
+      if (conversationId === currentConversationId) {
+          setMessages(processMessagesWithDateSeparators(updatedMessages));
+      }
+      
+      return {
+          ...prev,
+          [conversationId]: updatedMessages
+      };
+  });
+};
 
   const getMessagesForConversation = (conversationId: string): MessageResponseModel[] => {
     return messagesByConversation[conversationId] || [];
