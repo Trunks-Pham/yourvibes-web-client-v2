@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { message } from "antd";
 
 import { useAuth } from "@/context/auth/useAuth";
@@ -15,16 +15,16 @@ export const useConversationViewModel = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [unreadMessages, setUnreadMessages] = useState<Record<string, number>>({});
 
-  const addNewConversation = (conversation: ConversationResponseModel) => {
+  const addNewConversation = useCallback((conversation: ConversationResponseModel) => {
     setConversations(prev => {
       const exists = prev.some(c => c.id === conversation.id);
       if (exists) return prev;
       
       return [conversation, ...prev];
     });
-  };
+  }, []);
 
-  const updateConversationOrder = (conversationId: string) => {
+  const updateConversationOrder = useCallback((conversationId: string) => {
     setConversations(prev => {
       const conversationIndex = prev.findIndex(c => c.id === conversationId);
       if (conversationIndex < 0) return prev;
@@ -39,7 +39,15 @@ export const useConversationViewModel = () => {
       
       return updatedConversations;
     });
-  };
+  }, []);
+  const incrementUnreadCount = useCallback((conversationId: string) => {
+    if (currentConversation?.id === conversationId) return; 
+    
+    setUnreadMessages(prev => ({
+      ...prev,
+      [conversationId]: (prev[conversationId] || 0) + 1
+    }));
+  }, [currentConversation?.id]);
 
   const fetchConversations = async () => {
     if (!user?.id) return;
@@ -99,6 +107,7 @@ export const useConversationViewModel = () => {
       if (createResponse.data) {
         const newConversation = createResponse.data;
         
+        addNewConversation(newConversation);
         await fetchConversations();
         return newConversation;
       }
@@ -161,12 +170,12 @@ export const useConversationViewModel = () => {
     }
   };
 
-  const resetUnreadCount = (conversationId: string) => {
+  const resetUnreadCount = useCallback((conversationId: string) => {
     setUnreadMessages(prev => ({
       ...prev,
       [conversationId]: 0
     }));
-  };
+  }, []);
 
   return {
     // State
@@ -188,5 +197,6 @@ export const useConversationViewModel = () => {
     addNewConversation,
     updateConversationOrder,
     resetUnreadCount,
+    incrementUnreadCount,
   };
 };

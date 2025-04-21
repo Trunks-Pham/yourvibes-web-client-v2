@@ -490,6 +490,8 @@ export const VnLocalizedStrings = {
     CurrentMembers: "Thành viên hiện tại",
     NoMembersInConversation: "Không có thành viên nào trong cuộc trò chuyện",
     ManageMembers: "Quản lý thành viên",
+    Today: "Hôm nay",
+    Yesterday: "Hôm qua",
   },
   People: {
     FetchUsersFailed: "Tải danh sách người dùng thất bại",

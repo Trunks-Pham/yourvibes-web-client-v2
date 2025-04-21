@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ConversationResponseModel } from "@/api/features/messages/models/ConversationModel";
 import { FriendResponseModel } from "@/api/features/profile/model/FriendReponseModel";
 import { MessageResponseModel } from "@/api/features/messages/models/MessageModel";
@@ -7,8 +7,7 @@ import { useMessageViewModel } from "./MessageViewModel";
 import { useConversationViewModel } from "./ConversationViewModel";
 import { useConversationDetailViewModel } from "./ConversationDetailViewModel";
 
-// import { useWebSocket } from "@/context/socket/useSocket";
-import { useWebSocket } from "@/context/websocket/useWebSocket";
+import { useWebSocket } from "@/context/socket/useSocket";
 
 export const useMessagesViewModel = () => {
   const messageViewModel = useMessageViewModel();
@@ -29,7 +28,7 @@ export const useMessagesViewModel = () => {
     conversations, currentConversation, conversationsLoading, 
     searchText, unreadMessages, setSearchText, setCurrentConversation,
     fetchConversations, createConversation, updateConversation, 
-    deleteConversation, resetUnreadCount
+    deleteConversation, resetUnreadCount, addNewConversation, updateConversationOrder
   } = conversationViewModel;
 
   const {
@@ -48,34 +47,52 @@ export const useMessagesViewModel = () => {
 
   useEffect(() => {
     const unsubscribe = addMessageListener((conversationId, updatedMessages) => {
-      if (conversationId === currentConversation?.id) {
-      }
     });
     
     return unsubscribe;
   }, [currentConversation?.id]);
 
   useEffect(() => {
-    if (socketMessages.length > 0) {
-        const latestMessage = socketMessages[socketMessages.length - 1];
-        const messageModel: MessageResponseModel = {
-            id: `ws-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            content: latestMessage.content,
-            user_id: latestMessage.user_id,
-            conversation_id: latestMessage.conversation_id,
-            parent_id: latestMessage.parent_id,
-            created_at: latestMessage.created_at || new Date().toISOString(),
-            user: latestMessage.user,
-            fromServer: true
-        };
-        
-        addNewMessage(latestMessage.conversation_id, messageModel);
-        
-        if (currentConversation?.id === latestMessage.conversation_id) {
-            setTimeout(() => messageViewModel.scrollToBottom(), 100);
-        }
+    if (!socketMessages.length) return;
+  
+    const latestMessage = socketMessages[0];
+    if (!latestMessage) return;
+  
+    const isDuplicate = messages.some(m => m.id === latestMessage.id);
+    if (isDuplicate) return;
+  
+    const messageModel: MessageResponseModel = {
+      ...latestMessage,
+      id: latestMessage.id || `ws-${Date.now()}`,
+      fromServer: true
+    };
+  
+    addNewMessage(latestMessage.conversation_id, messageModel);
+    updateConversationOrder(latestMessage.conversation_id);
+  
+    if (currentConversation?.id === latestMessage.conversation_id) {
+      setTimeout(() => messageViewModel.scrollToBottom(), 100);
+    } else {
+      updateUnreadCount(latestMessage.conversation_id);
     }
-  }, [socketMessages, currentConversation?.id]);
+  }, [socketMessages.map(m => m.id).join(',')]);
+
+  useEffect(() => {
+    const handleNewConversation = (event: CustomEvent) => {
+      if (event.detail) {
+        addNewConversation(event.detail);
+      }
+    };
+    
+    window.addEventListener('new_conversation', handleNewConversation as EventListener);
+    
+    return () => {
+      window.removeEventListener('new_conversation', handleNewConversation as EventListener);
+    };
+  }, []);
+
+  const updateUnreadCount = useCallback((conversationId: string) => {
+  }, []);
 
   const fetchExistingMembers = async (conversationId: string) => {
     const members = await fetchConversationMembers(conversationId);
@@ -154,5 +171,6 @@ export const useMessagesViewModel = () => {
     leaveConversation,
     fetchExistingMembers,
     getMessagesForConversation,
+    handleSelectConversation,
   };
 };

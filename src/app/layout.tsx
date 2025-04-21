@@ -6,7 +6,6 @@ import "./globals.css";
 import { ConfigProvider } from "antd";
 import useColor from "@/hooks/useColor";
 import { WebSocketProvider } from "@/context/socket/useSocket";
-import { WebSocketMessageProvider } from "@/context/websocket/useWebSocket";
 
 
 export const metadata: Metadata = {
@@ -34,11 +33,11 @@ export default function RootLayout({
           }}
         >
           <AuthProvider>
-            <WebSocketMessageProvider>
+            <WebSocketProvider>
                 <PostProvider>
                   <body>{children}</body>
                 </PostProvider>
-            </WebSocketMessageProvider>
+            </WebSocketProvider>
           </AuthProvider>
         </ConfigProvider>
       </AntdRegistry>

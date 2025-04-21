@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { message } from "antd";
 
 import { useAuth } from "@/context/auth/useAuth";
+import { useWebSocket } from "@/context/socket/useSocket";
 
 import { defaultMessagesRepo } from "@/api/features/messages/MessagesRepo";
 import { MessageResponseModel, MessageWebSocketResponseModel } from "@/api/features/messages/models/MessageModel";
@@ -22,6 +23,7 @@ export const useMessageViewModel = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [messagesByConversation, setMessagesByConversation] = useState<Record<string, MessageResponseModel[]>>({});
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const { sendSocketMessage } = useWebSocket();
   
   const pageSize = 20;
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -46,55 +48,44 @@ export const useMessageViewModel = () => {
     });
   };
 
-const addNewMessage = (conversationId: string, message: MessageResponseModel) => {
-  if (!conversationId || !message) {
-      return;
-  }
+  const addNewMessage = (conversationId: string, message: MessageResponseModel) => {
+    if (!conversationId || !message) return;
   
-  setMessagesByConversation(prev => {
+    setMessagesByConversation(prev => {
       const conversationMessages = prev[conversationId] || [];
-      
-      // Check for duplicates with more reliable criteria
-      const isDuplicate = message.id 
-          ? conversationMessages.some(msg => msg.id === message.id)
-          : conversationMessages.some(
-              msg => 
-                  msg.content === message.content && 
-                  msg.user_id === message.user_id &&
-                  Math.abs(new Date(msg.created_at || "").getTime() - 
-                        new Date(message.created_at || "").getTime()) < 2000
-            );
-      
-      if (isDuplicate) {
-          return prev;
-      }
-      
-      const formattedMessage = {
-          ...message,
-          isTemporary: false,
-          fromServer: true
-      };
-      
-      // Add the new message and sort by timestamp
-      const updatedMessages = [...conversationMessages, formattedMessage].sort(
-          (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
+  
+      const isDuplicate = conversationMessages.some(existing => {
+        const sameUser = existing.user_id === message.user_id;
+        const sameContent = existing.content === message.content;
+        const timeDiff = Math.abs(new Date(existing.created_at || "").getTime() - new Date(message.created_at || "").getTime());
+        return sameUser && sameContent && timeDiff < 3000; 
+      });
+  
+      if (isDuplicate) return prev; 
+  
+      const updatedMessages = [...conversationMessages, {
+        ...message,
+        isTemporary: false,
+        fromServer: true
+      }];
+  
+      const sortedMessages = updatedMessages.sort((a, b) =>
+        new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
       );
-      
-      // Notify any listeners about the update
-      notifyMessageListeners(conversationId, updatedMessages);
-      
-      // Update the current messages if this is for the active conversation
+  
+      notifyMessageListeners(conversationId, sortedMessages);
+  
       if (conversationId === currentConversationId) {
-          setMessages(processMessagesWithDateSeparators(updatedMessages));
+        setMessages(processMessagesWithDateSeparators(sortedMessages));
       }
-      
-      // Always update the message cache for all conversations
+  
       return {
-          ...prev,
-          [conversationId]: updatedMessages
+        ...prev,
+        [conversationId]: sortedMessages
       };
-  });
-};
+    });
+  };
+  
 
   const getMessagesForConversation = (conversationId: string): MessageResponseModel[] => {
     return messagesByConversation[conversationId] || [];
