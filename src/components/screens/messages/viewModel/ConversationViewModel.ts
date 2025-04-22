@@ -44,11 +44,17 @@ export const useConversationViewModel = () => {
   const incrementUnreadCount = useCallback((conversationId: string) => {
     if (currentConversation?.id === conversationId) return; 
     
+    console.log("Current unread count:", unreadMessages[conversationId] || 0);
+    
     setUnreadMessages(prev => {
+      const currentCount = prev[conversationId] || 0;
+      const newCount = currentCount + 1;
+      
+      console.log("Updating unread count for", conversationId, "from", currentCount, "to", newCount);
       
       return {
         ...prev,
-        [conversationId]: (prev[conversationId] || 0) + 1
+        [conversationId]: newCount
       };
     });
   }, [currentConversation?.id]);

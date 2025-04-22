@@ -1279,7 +1279,13 @@ const MessagesFeature: React.FC = () => {
 
                       return (
                         <List.Item
-                          onClick={() => handleSelectConversation(item)}
+                          onClick={() => {
+                            console.log("Clicking conversation:", item.id, "current unread:", unreadMessages[item.id || '']);
+                            if (unreadMessages[item.id || ''] > 0) {
+                              resetUnreadCount(item.id || '');
+                            }
+                            handleSelectConversation(item);
+                          }}
                           style={{
                             cursor: "pointer",
                             padding: "12px 16px",
@@ -1320,11 +1326,12 @@ const MessagesFeature: React.FC = () => {
                               <Text type="secondary" style={{ fontSize: '12px' }}>
                                 {lastMessageTime}
                               </Text>
-                              {hasUnreadMessages && (
+                              {hasUnreadMessages && unreadMessages[item.id || ''] > 0 && (
                                 <Badge
                                   count={unreadMessages[item.id || '']}
                                   size="small"
                                   style={{ marginTop: 4 }}
+                                  overflowCount={99}
                                 />
                               )}
                             </div>
