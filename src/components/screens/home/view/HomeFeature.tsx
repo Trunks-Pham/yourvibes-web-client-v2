@@ -15,6 +15,9 @@ import { LoadingOutlined } from "@ant-design/icons";
 import InfiniteScroll from "react-infinite-scroll-component";
 import FriendSuggestions from "@/components/common/Suggestions/friendSuggestions";
 import dayjs from "dayjs";
+import EditPostViewModel from "@/components/features/editpost/viewModel/EditPostViewModel";
+import { defaultPostRepo } from "@/api/features/post/PostRepo";
+import { PostResponseModel } from '@/api/features/post/models/PostResponseModel';
 
 const Homepage = () => {
   const { brandPrimary, backgroundColor, lightGray, pink } = useColor();
@@ -37,6 +40,8 @@ const Homepage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [posts, setPosts] = useState<PostResponseModel[]>([]);
+  const { deletePost } = EditPostViewModel(defaultPostRepo, user?.id || "", "");
 
   useEffect(() => {
     if (user) {
@@ -160,7 +165,7 @@ const Homepage = () => {
         >
           {localStrings.Public.Birtday}
         </span>
-        <div style={{ flex: 1, maxHeight: "50%", overflowY: "auto", scrollbarWidth: "none"  }}>
+        <div style={{ flex: 1, maxHeight: "50%", overflowY: "auto", scrollbarWidth: "none" }}>
           {/* Phần hiển thị bạn bè có sinh nhật */}
           {loadingBirthday ? (
             <div style={{ textAlign: "center", padding: "12px" }}>
@@ -303,8 +308,8 @@ const Homepage = () => {
                   }}
                   onClick={() => router.push(`/user/${user?.id}`)}
                   onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      "rgba(0, 0, 0, 0.03)")
+                  (e.currentTarget.style.backgroundColor =
+                    "rgba(0, 0, 0, 0.03)")
                   }
                   onMouseLeave={(e) =>
                     (e.currentTarget.style.backgroundColor = "transparent")
@@ -431,7 +436,8 @@ const Homepage = () => {
                       key={item?.id}
                       style={{ width: "100%", maxWidth: "600px" }}
                     >
-                      <Post post={item} onDeleteNewFeed={handleDeleteNewFeed}>
+                      <Post post={item} onDeleteNewFeed={handleDeleteNewFeed}
+                        onDeletePost={deletePost}>
                         {item?.parent_post && (
                           <Post post={item?.parent_post} isParentPost />
                         )}

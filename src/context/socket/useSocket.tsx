@@ -61,8 +61,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
         ws.onopen = () => console.log("🔗 WebSocket Message connected");
 
         ws.onmessage = (e) => {
-            const message = JSON.parse(e.data);
-            console.log("📩 Nhận tin nhắn:", message);
+            const message = JSON.parse(e.data); 
                 // setSocketMessages((prev) => [message, ...prev]);
                 if (message?.user?.id !== user?.id) {
                     notification.open({
@@ -95,7 +94,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
         if (!user?.id || wsNotificationRef.current) return;
 
         const ws = new WebSocket(`${ApiPath.GET_WS_PATH_NOTIFICATION}${user.id}`);
-        console.log(ApiPath.GET_WS_PATH_NOTIFICATION, user.id);
+    
         
         wsNotificationRef.current = ws;
 
