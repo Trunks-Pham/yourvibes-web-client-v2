@@ -26,9 +26,9 @@ export const useMessagesViewModel = () => {
 
   const {
     conversations, currentConversation, conversationsLoading, 
-    searchText, unreadMessages, setSearchText, setCurrentConversation,
+    searchText, setSearchText, setCurrentConversation,
     fetchConversations, createConversation, updateConversation, 
-    deleteConversation, resetUnreadCount, addNewConversation, updateConversationOrder
+    deleteConversation, addNewConversation, updateConversationOrder
   } = conversationViewModel;
 
   const {
@@ -74,11 +74,7 @@ export const useMessagesViewModel = () => {
       setTimeout(() => {
         messageViewModel.scrollToBottom();
         markConversationAsRead(latestMessage.conversation_id);
-        resetUnreadCount(latestMessage.conversation_id);
       }, 100);
-    } else {
-      console.log("Incrementing unread count for:", latestMessage.conversation_id);
-      conversationViewModel.incrementUnreadCount(latestMessage.conversation_id);
     }
   }, [socketMessages, currentConversation?.id]);
 
@@ -98,7 +94,6 @@ export const useMessagesViewModel = () => {
 
   useEffect(() => {
     if (currentConversation?.id) {
-      resetUnreadCount(currentConversation.id);
       markConversationAsRead(currentConversation.id);
     }
   }, [currentConversation?.id]);
@@ -117,11 +112,7 @@ export const useMessagesViewModel = () => {
     if (currentConversation?.id === conversation.id) {
       return;
     }
-  
-    if (conversation.id) {
-      resetUnreadCount(conversation.id);
-    }
-  
+
     setCurrentConversation(conversation);
   
     setTimeout(() => {
@@ -149,7 +140,6 @@ export const useMessagesViewModel = () => {
     
     if (!messagesLoading) {
       markConversationAsRead(currentConversation.id);
-      resetUnreadCount(currentConversation.id);
     }
   };
 
@@ -165,7 +155,6 @@ export const useMessagesViewModel = () => {
     currentConversation,
     conversationsLoading,
     searchText,
-    unreadMessages,
     existingMembers,
     existingMemberIds,
     
@@ -190,6 +179,5 @@ export const useMessagesViewModel = () => {
     fetchExistingMembers,
     getMessagesForConversation,
     handleSelectConversation,
-    resetUnreadCount,
   };
 };

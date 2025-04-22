@@ -875,11 +875,9 @@ const MessagesFeature: React.FC = () => {
     handleScroll,
     getMessagesForConversation,
     initialMessagesLoaded,
-    unreadMessages,
     markConversationAsRead,
     addConversationMembers,
     leaveConversation,
-    resetUnreadCount,
   } = useMessagesViewModel();
 
   const [isMobile, setIsMobile] = useState(false);
@@ -899,7 +897,6 @@ const MessagesFeature: React.FC = () => {
   useEffect(() => {
     if (currentConversation?.id) {
       markConversationAsRead(currentConversation.id);
-      resetUnreadCount(currentConversation.id);
     }
   }, [currentConversation?.id]);
   
@@ -907,7 +904,6 @@ const MessagesFeature: React.FC = () => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && currentConversation?.id) {
         markConversationAsRead(currentConversation.id);
-        resetUnreadCount(currentConversation.id);
       }
     };
   
@@ -940,10 +936,6 @@ const MessagesFeature: React.FC = () => {
   const handleSelectConversation = (conversation: ConversationResponseModel) => {
     if (currentConversation?.id === conversation.id) {
       return;
-    }
-  
-    if (conversation.id) {
-      resetUnreadCount(conversation.id);
     }
   
     setCurrentConversation(conversation);
@@ -1256,8 +1248,6 @@ const MessagesFeature: React.FC = () => {
                         ? formatMessageTime(lastMessage.created_at)
                         : '';
 
-                      const hasUnreadMessages = currentConversation?.id !== item.id &&
-                        unreadMessages[item.id || ''] > 0;
 
                       const isOneOnOneChat = item.name?.includes(" & ") ||
                         (actualMessages.some(msg => msg.user_id !== user?.id) &&
@@ -1280,10 +1270,6 @@ const MessagesFeature: React.FC = () => {
                       return (
                         <List.Item
                           onClick={() => {
-                            console.log("Clicking conversation:", item.id, "current unread:", unreadMessages[item.id || '']);
-                            if (unreadMessages[item.id || ''] > 0) {
-                              resetUnreadCount(item.id || '');
-                            }
                             handleSelectConversation(item);
                           }}
                           style={{
@@ -1291,7 +1277,6 @@ const MessagesFeature: React.FC = () => {
                             padding: "12px 16px",
                             background: currentConversation?.id === item.id ? lightGray : "transparent",
                             transition: "background 0.3s",
-                            borderLeft: hasUnreadMessages ? `3px solid ${brandPrimary}` : "none"
                           }}
                           key={item.id}
                         >
@@ -1314,7 +1299,6 @@ const MessagesFeature: React.FC = () => {
                                 ellipsis
                                 style={{
                                   maxWidth: '100%',
-                                  fontWeight: hasUnreadMessages ? 'bold' : 'normal'
                                 }}
                               >
                                 {messageDisplay}
@@ -1326,14 +1310,6 @@ const MessagesFeature: React.FC = () => {
                               <Text type="secondary" style={{ fontSize: '12px' }}>
                                 {lastMessageTime}
                               </Text>
-                              {hasUnreadMessages && unreadMessages[item.id || ''] > 0 && (
-                                <Badge
-                                  count={unreadMessages[item.id || '']}
-                                  size="small"
-                                  style={{ marginTop: 4 }}
-                                  overflowCount={99}
-                                />
-                              )}
                             </div>
                           )}
                         </List.Item>
