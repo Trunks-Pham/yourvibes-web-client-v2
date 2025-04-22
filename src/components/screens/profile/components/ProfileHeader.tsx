@@ -287,9 +287,10 @@ const ProfileHeader = ({
           <Image
             src={user?.capwall_url}
             alt="Cover"
-            className="w-full md:max-h-[375px] max-h-[250px] object-cover"
+            className="w-full md:max-h-[375px] max-h-[250px] object-cover hover:cursor-pointer"
             width="100%"
             style={{ objectPosition: objectPosition }}
+            preview={{ mask: null }}
           />
         </div>
 
@@ -316,6 +317,7 @@ const ProfileHeader = ({
                       "https://static2.yan.vn/YanNews/2167221/202102/facebook-cap-nhat-avatar-doi-voi-tai-khoan-khong-su-dung-anh-dai-dien-e4abd14d.jpg"
                     }
                     style={{ display: "none" }}
+                    alt="Profile"
                   />
                 </Image.PreviewGroup>
 
