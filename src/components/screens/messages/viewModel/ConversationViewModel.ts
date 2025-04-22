@@ -248,8 +248,5 @@ export const useConversationViewModel = () => {
     deleteConversation,
     addNewConversation,
     updateConversationOrder,
-    updateConversationReadStatus,
-    markNewMessageUnread,
-    hasUnreadMessages,
   };
 };

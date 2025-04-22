@@ -76,10 +76,8 @@ export const useMessagesViewModel = () => {
       setTimeout(() => {
         messageViewModel.scrollToBottom();
         markConversationAsRead(latestMessage.conversation_id);
-        conversationViewModel.updateConversationReadStatus(latestMessage.conversation_id);
       }, 100);
     } else {
-      conversationViewModel.markNewMessageUnread(latestMessage.conversation_id);
       incrementUnreadCount(latestMessage.conversation_id);
     }
   }, [socketMessages, currentConversation?.id]);
@@ -123,7 +121,6 @@ export const useMessagesViewModel = () => {
   
     if (conversation.id) {
       markConversationAsRead(conversation.id);
-      conversationViewModel.updateConversationReadStatus(conversation.id);
       resetUnreadCount(conversation.id);
       
       fetchMessages(conversation.id);
@@ -186,8 +183,6 @@ export const useMessagesViewModel = () => {
     fetchExistingMembers,
     getMessagesForConversation,
     handleSelectConversation,
-    hasUnreadMessages: conversationViewModel.hasUnreadMessages,
-    updateConversationReadStatus: conversationViewModel.updateConversationReadStatus,
     unreadMessageCounts,
     resetUnreadCount,
   };
