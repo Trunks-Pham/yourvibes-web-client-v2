@@ -951,7 +951,6 @@ const MessagesFeature: React.FC = () => {
       if (conversation.id) {
         fetchMessages(conversation.id);
         markConversationAsRead(conversation.id);
-        resetUnreadCount(conversation.id);
       }
     }, 200);
   };
