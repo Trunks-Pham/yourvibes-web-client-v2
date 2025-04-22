@@ -5,6 +5,7 @@ import { useAuth } from "@/context/auth/useAuth";
 
 import { defaultMessagesRepo } from "@/api/features/messages/MessagesRepo";
 import { ConversationResponseModel, UpdateConversationRequestModel } from "@/api/features/messages/models/ConversationModel";
+import { ConversationDetailResponseModel } from "@/api/features/messages/models/ConversationDetailModel";
 
 export const useConversationViewModel = () => {
   const { user, localStrings } = useAuth();
@@ -13,6 +14,7 @@ export const useConversationViewModel = () => {
   const [currentConversation, setCurrentConversation] = useState<ConversationResponseModel | null>(null);
   const [conversationsLoading, setConversationsLoading] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>("");
+  const [conversationDetails, setConversationDetails] = useState<Record<string, ConversationDetailResponseModel>>({});
 
   const addNewConversation = useCallback((conversation: ConversationResponseModel) => {
     setConversations(prev => {
@@ -58,26 +60,34 @@ export const useConversationViewModel = () => {
         
         setConversations(conversationsList);
         
-        const fetchMessagesPromises = conversationsList.map(async (conversation) => {
+        const detailsPromises = conversationsList.map(async (conversation) => {
           if (conversation.id) {
             try {
-              const messageResponse = await defaultMessagesRepo.getMessagesByConversationId({
-                conversation_id: conversation.id,
-                sort_by: "created_at",
-                is_descending: true,
-                limit: 1,
-                page: 1
+              const detailResponse = await defaultMessagesRepo.getConversationDetailByID({
+                userId: user.id,
+                conversationId: conversation.id
               });
               
-              if (messageResponse.data) {
+              if (detailResponse.data) {
+                return { id: conversation.id, detail: detailResponse.data };
               }
             } catch (error) {
-              console.error("Error fetching messages for conversation", conversation.id, error);
+              console.error("Error fetching conversation detail", conversation.id, error);
             }
+          }
+          return null;
+        });
+        
+        const details = await Promise.all(detailsPromises);
+        const detailsMap: Record<string, ConversationDetailResponseModel> = {};
+        
+        details.filter(Boolean).forEach(item => {
+          if (item && item.id) {
+            detailsMap[item.id] = item.detail as ConversationDetailResponseModel;
           }
         });
         
-        await Promise.all(fetchMessagesPromises);
+        setConversationDetails(detailsMap);
       }
     } catch (error) {
       message.error(localStrings.Messages.ErrorFetchingConversations);
@@ -163,12 +173,54 @@ export const useConversationViewModel = () => {
     }
   };
 
+  const hasUnreadMessages = (conversationId: string): boolean => {
+    if (!conversationId) return false;
+    
+    const detail = conversationDetails[conversationId];
+    return detail && detail.last_mess_status === false;
+  };
+
+  const updateConversationReadStatus = (conversationId: string) => {
+    if (!conversationId) return;
+    
+    setConversationDetails(prev => {
+      const detail = prev[conversationId];
+      if (!detail) return prev;
+      
+      return {
+        ...prev,
+        [conversationId]: {
+          ...detail,
+          last_mess_status: true 
+        }
+      };
+    });
+  };
+
+  const markNewMessageUnread = (conversationId: string) => {
+    if (!conversationId || conversationId === currentConversation?.id) return;
+    
+    setConversationDetails(prev => {
+      const detail = prev[conversationId];
+      if (!detail) return prev;
+      
+      return {
+        ...prev,
+        [conversationId]: {
+          ...detail,
+          last_mess_status: false 
+        }
+      };
+    });
+  };
+
   return {
     // State
     conversations,
     currentConversation,
     conversationsLoading,
     searchText,
+    conversationDetails,
     
     // Setters
     setSearchText,
@@ -181,5 +233,8 @@ export const useConversationViewModel = () => {
     deleteConversation,
     addNewConversation,
     updateConversationOrder,
+    hasUnreadMessages,
+    updateConversationReadStatus,
+    markNewMessageUnread
   };
 };

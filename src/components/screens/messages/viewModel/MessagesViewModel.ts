@@ -56,7 +56,7 @@ export const useMessagesViewModel = () => {
     if (!socketMessages.length) return;
   
     const latestMessage = socketMessages[0];
-    if (!latestMessage) return;
+    if (!latestMessage || !latestMessage.conversation_id) return;
   
     const isDuplicate = messages.some(m => m.id === latestMessage.id);
     if (isDuplicate) return;
@@ -68,13 +68,17 @@ export const useMessagesViewModel = () => {
     };
   
     addNewMessage(latestMessage.conversation_id, messageModel);
+    
     updateConversationOrder(latestMessage.conversation_id);
   
     if (currentConversation?.id === latestMessage.conversation_id) {
       setTimeout(() => {
         messageViewModel.scrollToBottom();
         markConversationAsRead(latestMessage.conversation_id);
+        conversationViewModel.updateConversationReadStatus(latestMessage.conversation_id);
       }, 100);
+    } else {
+      conversationViewModel.markNewMessageUnread(latestMessage.conversation_id);
     }
   }, [socketMessages, currentConversation?.id]);
 
@@ -112,15 +116,15 @@ export const useMessagesViewModel = () => {
     if (currentConversation?.id === conversation.id) {
       return;
     }
-
+  
     setCurrentConversation(conversation);
   
-    setTimeout(() => {
-      if (conversation.id) {
-        fetchMessages(conversation.id);
-        markConversationAsRead(conversation.id);
-      }
-    }, 200);
+    if (conversation.id) {
+      markConversationAsRead(conversation.id);
+      conversationViewModel.updateConversationReadStatus(conversation.id);
+      
+      fetchMessages(conversation.id);
+    }
   };
 
   const handleSendMessage = () => {
@@ -179,5 +183,7 @@ export const useMessagesViewModel = () => {
     fetchExistingMembers,
     getMessagesForConversation,
     handleSelectConversation,
+    hasUnreadMessages: conversationViewModel.hasUnreadMessages,
+    updateConversationReadStatus: conversationViewModel.updateConversationReadStatus,
   };
 };

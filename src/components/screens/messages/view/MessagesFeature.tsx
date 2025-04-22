@@ -878,6 +878,8 @@ const MessagesFeature: React.FC = () => {
     markConversationAsRead,
     addConversationMembers,
     leaveConversation,
+    hasUnreadMessages,
+    updateConversationReadStatus,
   } = useMessagesViewModel();
 
   const [isMobile, setIsMobile] = useState(false);
@@ -904,6 +906,7 @@ const MessagesFeature: React.FC = () => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && currentConversation?.id) {
         markConversationAsRead(currentConversation.id);
+        updateConversationReadStatus(currentConversation.id);
       }
     };
   
@@ -912,7 +915,9 @@ const MessagesFeature: React.FC = () => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [currentConversation?.id]);
+  }, [currentConversation?.id, markConversationAsRead, updateConversationReadStatus]);
+
+  
 
   useEffect(() => {
     const checkMobile = () => {
@@ -1266,6 +1271,8 @@ const MessagesFeature: React.FC = () => {
                       const avatarInitial = isOneOnOneChat && otherUser?.name
                         ? otherUser.name.charAt(0).toUpperCase()
                         : item.name?.charAt(0).toUpperCase();
+                      
+                      const hasUnread = hasUnreadMessages(item.id || '');
 
                       return (
                         <List.Item
@@ -1277,20 +1284,23 @@ const MessagesFeature: React.FC = () => {
                             padding: "12px 16px",
                             background: currentConversation?.id === item.id ? lightGray : "transparent",
                             transition: "background 0.3s",
+                            borderLeft: hasUnread ? `3px solid ${brandPrimary}` : "none" 
                           }}
                           key={item.id}
                         >
                           <List.Item.Meta
                             avatar={
-                              <Avatar
-                                src={avatarUrl}
-                                size={48}
-                                style={{
-                                  backgroundColor: !avatarUrl ? brandPrimary : undefined
-                                }}
-                              >
-                                {!avatarUrl && avatarInitial}
-                              </Avatar>
+                              <Badge dot={hasUnread} color={brandPrimary} offset={[-5, 5]}>
+                                <Avatar
+                                  src={avatarUrl}
+                                  size={48}
+                                  style={{
+                                    backgroundColor: !avatarUrl ? brandPrimary : undefined
+                                  }}
+                                >
+                                  {!avatarUrl && avatarInitial}
+                                </Avatar>
+                              </Badge>
                             }
                             title={<Text strong>{item.name}</Text>}
                             description={
@@ -1299,6 +1309,7 @@ const MessagesFeature: React.FC = () => {
                                 ellipsis
                                 style={{
                                   maxWidth: '100%',
+                                  fontWeight: hasUnread ? 'bold' : 'normal' 
                                 }}
                               >
                                 {messageDisplay}
@@ -1310,6 +1321,16 @@ const MessagesFeature: React.FC = () => {
                               <Text type="secondary" style={{ fontSize: '12px' }}>
                                 {lastMessageTime}
                               </Text>
+                              
+                              {hasUnread && (
+                                <Badge
+                                  dot
+                                  style={{ 
+                                    marginTop: 4,
+                                    backgroundColor: brandPrimary 
+                                  }}
+                                />
+                              )}
                             </div>
                           )}
                         </List.Item>
