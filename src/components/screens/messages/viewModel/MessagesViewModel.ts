@@ -71,10 +71,13 @@ export const useMessagesViewModel = () => {
     updateConversationOrder(latestMessage.conversation_id);
   
     if (currentConversation?.id === latestMessage.conversation_id) {
-      setTimeout(() => messageViewModel.scrollToBottom(), 100);
-      markConversationAsRead(latestMessage.conversation_id);
-      resetUnreadCount(latestMessage.conversation_id);
+      setTimeout(() => {
+        messageViewModel.scrollToBottom();
+        markConversationAsRead(latestMessage.conversation_id);
+        resetUnreadCount(latestMessage.conversation_id);
+      }, 100);
     } else {
+      console.log("Incrementing unread count for:", latestMessage.conversation_id);
       conversationViewModel.incrementUnreadCount(latestMessage.conversation_id);
     }
   }, [socketMessages, currentConversation?.id]);
@@ -93,9 +96,12 @@ export const useMessagesViewModel = () => {
     };
   }, []);
 
-  const updateUnreadCount = useCallback((conversationId: string) => {
-    conversationViewModel.incrementUnreadCount(conversationId);
-  }, [conversationViewModel.incrementUnreadCount]);
+  useEffect(() => {
+    if (currentConversation?.id) {
+      resetUnreadCount(currentConversation.id);
+      markConversationAsRead(currentConversation.id);
+    }
+  }, [currentConversation?.id]);
 
   const fetchExistingMembers = async (conversationId: string) => {
     const members = await fetchConversationMembers(conversationId);
@@ -111,14 +117,17 @@ export const useMessagesViewModel = () => {
     if (currentConversation?.id === conversation.id) {
       return;
     }
-
+  
+    if (conversation.id) {
+      resetUnreadCount(conversation.id);
+    }
+  
     setCurrentConversation(conversation);
-
+  
     setTimeout(() => {
       if (conversation.id) {
         fetchMessages(conversation.id);
         markConversationAsRead(conversation.id);
-        resetUnreadCount(conversation.id);
       }
     }, 200);
   };

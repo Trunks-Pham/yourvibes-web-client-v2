@@ -942,13 +942,16 @@ const MessagesFeature: React.FC = () => {
       return;
     }
   
+    if (conversation.id) {
+      resetUnreadCount(conversation.id);
+    }
+  
     setCurrentConversation(conversation);
   
     setTimeout(() => {
       if (conversation.id) {
         fetchMessages(conversation.id);
         markConversationAsRead(conversation.id);
-        resetUnreadCount(conversation.id);
       }
     }, 200);
   };

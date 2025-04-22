@@ -40,13 +40,17 @@ export const useConversationViewModel = () => {
       return updatedConversations;
     });
   }, []);
+
   const incrementUnreadCount = useCallback((conversationId: string) => {
     if (currentConversation?.id === conversationId) return; 
     
-    setUnreadMessages(prev => ({
-      ...prev,
-      [conversationId]: (prev[conversationId] || 0) + 1
-    }));
+    setUnreadMessages(prev => {
+      
+      return {
+        ...prev,
+        [conversationId]: (prev[conversationId] || 0) + 1
+      };
+    });
   }, [currentConversation?.id]);
 
   const fetchConversations = async () => {
