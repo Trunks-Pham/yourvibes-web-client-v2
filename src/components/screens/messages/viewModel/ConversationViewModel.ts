@@ -96,25 +96,26 @@ export const useConversationViewModel = () => {
 
   const createConversation = async (name: string, image?: File | string, userIds?: string[]) => {
     if (!user?.id) return null;
-    
     try {
+      const filteredUserIds = (userIds || []).filter(id => id !== user.id);
+      
       const createResponse = await defaultMessagesRepo.createConversation({
         name: name,
         image: image, 
-        user_ids: userIds || []
+        user_ids: filteredUserIds
       });
-      
-      if (createResponse.data) {
-        const newConversation = createResponse.data;
         
-        addNewConversation(newConversation);
-        await fetchConversations();
-        return newConversation;
-      }
-      return null;
+        if (createResponse.data) {
+          const newConversation = createResponse.data;
+          
+          addNewConversation(newConversation);
+          await fetchConversations();
+          return newConversation;
+        }
+        return null;
     } catch (error) {
-      message.error(localStrings.Messages.GroupCreationFailed);
-      return null;
+        message.error(localStrings.Messages.GroupCreationFailed);
+        return null;
     }
   };
 

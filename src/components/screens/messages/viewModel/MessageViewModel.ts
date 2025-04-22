@@ -349,8 +349,8 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
         isTemporary: true
     };
     
-    setMessages(prev => [...prev, tempMessage]);
-    addNewMessage(conversationId, tempMessage);
+    // setMessages(prev => [...prev, tempMessage]);
+    // addNewMessage(conversationId, tempMessage);
     
     setMessageText("");
     scrollToBottom();

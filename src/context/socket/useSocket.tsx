@@ -50,11 +50,8 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     };
 
-        
-
-    // 👉 Hàm kết nối WebSocket Message
     const connectSocketMessage = () => {
-        if (!user?.id || wsMessageRef.current) return; // Tránh kết nối lại khi đã có kết nối
+        if (!user?.id || wsMessageRef.current) return; 
 
         const ws = new WebSocket(`${ApiPath.GET_WS_PATH_MESSAGE}${user.id}`);
         wsMessageRef.current = ws;
@@ -83,7 +80,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
             setConnectionAttempts((prevAttempts) => {
                 const newAttempts = prevAttempts + 1;
                 if (newAttempts < MaxConnection) {
-                    setTimeout(() => connectSocketMessage(), 5000); // Thử lại sau 5 giây
+                    setTimeout(() => connectSocketMessage(), 2000); // Thử lại sau 5 giây
                 }
                 return newAttempts;
             });
@@ -170,7 +167,6 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     };
 
-    // 👉 Xử lý cleanup khi user thay đổi hoặc component unmount
     useEffect(() => {
         if (user?.id) {
             connectSocketNotification();
