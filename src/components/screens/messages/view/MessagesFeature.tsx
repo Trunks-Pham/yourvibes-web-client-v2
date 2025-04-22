@@ -879,6 +879,7 @@ const MessagesFeature: React.FC = () => {
     markConversationAsRead,
     addConversationMembers,
     leaveConversation,
+    resetUnreadCount,
   } = useMessagesViewModel();
 
   const [isMobile, setIsMobile] = useState(false);
@@ -894,6 +895,28 @@ const MessagesFeature: React.FC = () => {
   useEffect(() => {
     fetchConversations();
   }, []);
+
+  useEffect(() => {
+    if (currentConversation?.id) {
+      markConversationAsRead(currentConversation.id);
+      resetUnreadCount(currentConversation.id);
+    }
+  }, [currentConversation?.id]);
+  
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && currentConversation?.id) {
+        markConversationAsRead(currentConversation.id);
+        resetUnreadCount(currentConversation.id);
+      }
+    };
+  
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [currentConversation?.id]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -914,20 +937,22 @@ const MessagesFeature: React.FC = () => {
     }
   }, [currentConversation, isMobile]);
   
-  const handleSelectConversation = useCallback((conversation: ConversationResponseModel) => {
+  const handleSelectConversation = (conversation: ConversationResponseModel) => {
     if (currentConversation?.id === conversation.id) {
       return;
     }
-
+  
     setCurrentConversation(conversation);
-
+  
     setTimeout(() => {
       if (conversation.id) {
         fetchMessages(conversation.id);
         markConversationAsRead(conversation.id);
+        resetUnreadCount(conversation.id);
       }
     }, 200);
-  }, [currentConversation?.id, fetchMessages, setCurrentConversation, markConversationAsRead]);
+  };
+  
   useEffect(() => {
     if (conversationIdFromUrl && conversations.length > 0) {
       const selectedConversation = conversations.find(conv => conv.id === conversationIdFromUrl);

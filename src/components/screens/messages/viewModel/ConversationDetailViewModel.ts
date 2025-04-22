@@ -20,8 +20,11 @@ export const useConversationDetailViewModel = () => {
         conversation_id: conversationId,
         user_id: user.id
       });
+      
+      return true;
     } catch (error) {
-      // Silent error handling
+      console.error("Error marking conversation as read:", error);
+      return false;
     }
   };
 

@@ -72,10 +72,12 @@ export const useMessagesViewModel = () => {
   
     if (currentConversation?.id === latestMessage.conversation_id) {
       setTimeout(() => messageViewModel.scrollToBottom(), 100);
+      markConversationAsRead(latestMessage.conversation_id);
+      resetUnreadCount(latestMessage.conversation_id);
     } else {
-      updateUnreadCount(latestMessage.conversation_id);
+      conversationViewModel.incrementUnreadCount(latestMessage.conversation_id);
     }
-  }, [socketMessages.map(m => m.id).join(',')]);
+  }, [socketMessages, currentConversation?.id]);
 
   useEffect(() => {
     const handleNewConversation = (event: CustomEvent) => {
@@ -92,7 +94,8 @@ export const useMessagesViewModel = () => {
   }, []);
 
   const updateUnreadCount = useCallback((conversationId: string) => {
-  }, []);
+    conversationViewModel.incrementUnreadCount(conversationId);
+  }, [conversationViewModel.incrementUnreadCount]);
 
   const fetchExistingMembers = async (conversationId: string) => {
     const members = await fetchConversationMembers(conversationId);
@@ -132,7 +135,13 @@ export const useMessagesViewModel = () => {
 
   const handleScrollMessages = (e: React.UIEvent<HTMLDivElement>) => {
     if (!currentConversation?.id) return;
-    return handleScroll(e, currentConversation.id);
+    
+    handleScroll(e, currentConversation.id);
+    
+    if (!messagesLoading) {
+      markConversationAsRead(currentConversation.id);
+      resetUnreadCount(currentConversation.id);
+    }
   };
 
   return {
@@ -172,5 +181,6 @@ export const useMessagesViewModel = () => {
     fetchExistingMembers,
     getMessagesForConversation,
     handleSelectConversation,
+    resetUnreadCount,
   };
 };
