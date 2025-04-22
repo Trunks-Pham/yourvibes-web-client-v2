@@ -28,7 +28,8 @@ export const useMessagesViewModel = () => {
     conversations, currentConversation, conversationsLoading, 
     searchText, setSearchText, setCurrentConversation,
     fetchConversations, createConversation, updateConversation, 
-    deleteConversation, addNewConversation, updateConversationOrder
+    deleteConversation, addNewConversation, updateConversationOrder,
+    unreadMessageCounts, incrementUnreadCount, resetUnreadCount
   } = conversationViewModel;
 
   const {
@@ -79,6 +80,7 @@ export const useMessagesViewModel = () => {
       }, 100);
     } else {
       conversationViewModel.markNewMessageUnread(latestMessage.conversation_id);
+      incrementUnreadCount(latestMessage.conversation_id);
     }
   }, [socketMessages, currentConversation?.id]);
 
@@ -122,6 +124,7 @@ export const useMessagesViewModel = () => {
     if (conversation.id) {
       markConversationAsRead(conversation.id);
       conversationViewModel.updateConversationReadStatus(conversation.id);
+      resetUnreadCount(conversation.id);
       
       fetchMessages(conversation.id);
     }
@@ -185,5 +188,7 @@ export const useMessagesViewModel = () => {
     handleSelectConversation,
     hasUnreadMessages: conversationViewModel.hasUnreadMessages,
     updateConversationReadStatus: conversationViewModel.updateConversationReadStatus,
+    unreadMessageCounts,
+    resetUnreadCount,
   };
 };

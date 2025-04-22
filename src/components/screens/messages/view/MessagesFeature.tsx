@@ -880,6 +880,8 @@ const MessagesFeature: React.FC = () => {
     leaveConversation,
     hasUnreadMessages,
     updateConversationReadStatus,
+    unreadMessageCounts,
+    resetUnreadCount,
   } = useMessagesViewModel();
 
   const [isMobile, setIsMobile] = useState(false);
@@ -949,6 +951,7 @@ const MessagesFeature: React.FC = () => {
       if (conversation.id) {
         fetchMessages(conversation.id);
         markConversationAsRead(conversation.id);
+        resetUnreadCount(conversation.id);
       }
     }, 200);
   };
@@ -1290,7 +1293,14 @@ const MessagesFeature: React.FC = () => {
                         >
                           <List.Item.Meta
                             avatar={
-                              <Badge dot={hasUnread} color={brandPrimary} offset={[-5, 5]}>
+                              <Badge 
+                                count={unreadMessageCounts[item.id || ''] || 0} 
+                                offset={[-5, 5]}
+                                size="small"
+                                style={{ 
+                                  display: unreadMessageCounts[item.id || ''] ? 'block' : 'none' 
+                                }}
+                              >
                                 <Avatar
                                   src={avatarUrl}
                                   size={48}
@@ -1322,9 +1332,10 @@ const MessagesFeature: React.FC = () => {
                                 {lastMessageTime}
                               </Text>
                               
-                              {hasUnread && (
+                              {unreadMessageCounts[item.id || ''] > 0 && (
                                 <Badge
-                                  dot
+                                  count={unreadMessageCounts[item.id || '']}
+                                  size="small"
                                   style={{ 
                                     marginTop: 4,
                                     backgroundColor: brandPrimary 
