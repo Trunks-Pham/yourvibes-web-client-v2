@@ -84,12 +84,10 @@ const Post: React.FC<IPost> = React.memo(
       likedPost,
       setLikedPost,
       sharePost,
-      shareLoading,
-      deletePost,
+      shareLoading, 
       fetchUserLikePosts,
       userLikePost,
-    } = EditPostViewModel(defaultPostRepo, post?.id || "", post?.id || "");
-    const { deleteNewFeed } = HomeViewModel(defaultNewFeedRepo, defaultFriendRepo);
+    } = EditPostViewModel(defaultPostRepo, post?.id || "", post?.id || ""); 
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
     const [sharePostPrivacy, setSharePostPrivacy] = useState(Privacy.PUBLIC);
     const [shareContent, setShareContent] = useState("");
