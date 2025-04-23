@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { message } from "antd";
 
 import { useAuth } from "@/context/auth/useAuth";
@@ -12,7 +12,7 @@ export const useConversationDetailViewModel = () => {
   const [existingMembersLoading, setExistingMembersLoading] = useState(false);
   const [conversationMembersMap, setConversationMembersMap] = useState<Record<string, FriendResponseModel[]>>({});
 
-  const markConversationAsRead = async (conversationId: string) => {
+  const markConversationAsRead = useCallback(async (conversationId: string) => {
     if (!user?.id || !conversationId) return;
     
     try {
@@ -21,12 +21,12 @@ export const useConversationDetailViewModel = () => {
         user_id: user.id
       });
     } catch (error) {
-      // Silent error handling
+      console.error("Error marking conversation as read:", error);
     }
-  };
+  }, [user?.id]);
 
-  const addConversationMembers = async (conversationId: string, userIds: string[]) => {
-    if (!user?.id || !conversationId) return null;
+  const addConversationMembers = useCallback(async (conversationId: string, userIds: string[]) => {
+    if (!user?.id || !conversationId || !userIds.length) return null;
     
     try {
       const createPromises = userIds.map(userId => 
@@ -38,7 +38,6 @@ export const useConversationDetailViewModel = () => {
       
       await Promise.all(createPromises);
       
-      // Refresh members list
       await fetchConversationMembers(conversationId);
       
       return true;
@@ -46,9 +45,9 @@ export const useConversationDetailViewModel = () => {
       console.error("Error adding members to conversation:", error);
       throw error;
     }
-  };
+  }, [user?.id]);
 
-  const leaveConversation = async (conversationId: string) => {
+  const leaveConversation = useCallback(async (conversationId: string) => {
     if (!user?.id || !conversationId) return;
     
     try {
@@ -62,10 +61,13 @@ export const useConversationDetailViewModel = () => {
       console.error("Error leaving conversation:", error);
       throw error;
     }
-  };
+  }, [user?.id]);
 
-  const fetchConversationMembers = async (conversationId: string): Promise<FriendResponseModel[]> => {
+  const fetchConversationMembers = useCallback(async (conversationId: string): Promise<FriendResponseModel[]> => {
+    if (!conversationId) return [];
+    
     setExistingMembersLoading(true);
+    
     try {
       const response = await defaultMessagesRepo.getConversationDetailByUserID({
         conversation_id: conversationId
@@ -86,7 +88,6 @@ export const useConversationDetailViewModel = () => {
           
           const membersList = memberProfiles as FriendResponseModel[];
           
-          // Cache the result
           setConversationMembersMap(prev => ({
             ...prev,
             [conversationId]: membersList
@@ -102,11 +103,11 @@ export const useConversationDetailViewModel = () => {
     } finally {
       setExistingMembersLoading(false);
     }
-  };
+  }, []);
 
-  const getMembersForConversation = (conversationId: string): FriendResponseModel[] => {
+  const getMembersForConversation = useCallback((conversationId: string): FriendResponseModel[] => {
     return conversationMembersMap[conversationId] || [];
-  };
+  }, [conversationMembersMap]);
 
   return {
     // State

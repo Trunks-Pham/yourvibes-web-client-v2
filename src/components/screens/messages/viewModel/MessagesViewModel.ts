@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { ConversationResponseModel } from "@/api/features/messages/models/ConversationModel";
 import { FriendResponseModel } from "@/api/features/profile/model/FriendReponseModel";
 import { MessageResponseModel } from "@/api/features/messages/models/MessageModel";
@@ -14,6 +14,8 @@ export const useMessagesViewModel = () => {
   const conversationViewModel = useConversationViewModel();
   const conversationDetailViewModel = useConversationDetailViewModel();
   const { socketMessages } = useWebSocket();
+  
+  const processedSocketMessagesRef = useRef<Set<string>>(new Set());
 
   const { 
     messages, messagesLoading, messageText, setMessageText,
@@ -44,27 +46,51 @@ export const useMessagesViewModel = () => {
     if (currentConversation?.id) {
       fetchMessages(currentConversation.id, 1, false);
     }
-  }, [currentConversation?.id]);
+  }, [currentConversation?.id, fetchMessages]);
 
   useEffect(() => {
     const unsubscribe = addMessageListener((conversationId, updatedMessages) => {
+      if (currentConversation?.id === conversationId) {
+      }
     });
     
     return unsubscribe;
-  }, [currentConversation?.id]);
+  }, [currentConversation?.id, addMessageListener]);
 
   useEffect(() => {
     if (!socketMessages.length) return;
   
     const latestMessage = socketMessages[0];
     if (!latestMessage || !latestMessage.conversation_id) return;
-  
-    const isDuplicate = messages.some(m => m.id === latestMessage.id);
-    if (isDuplicate) return;
+    
+    const messageUniqueId = `${latestMessage.conversation_id}-${latestMessage.user_id}-${latestMessage.content}-${latestMessage.created_at}`;
+    
+    if (processedSocketMessagesRef.current.has(messageUniqueId)) {
+      return;
+    }
+    
+    processedSocketMessagesRef.current.add(messageUniqueId);
+    
+    if (processedSocketMessagesRef.current.size > 300) {
+      const oldestEntries = Array.from(processedSocketMessagesRef.current).slice(0, 100);
+      oldestEntries.forEach(id => processedSocketMessagesRef.current.delete(id));
+    }
+    
+    const isDuplicate = messages.some(m => 
+      (m.id && m.id === latestMessage.id) || 
+      (m.content === latestMessage.content && 
+       m.user_id === latestMessage.user_id && 
+       Math.abs(new Date(m.created_at || "").getTime() - 
+             new Date(latestMessage.created_at || "").getTime()) < 5000)
+    );
+    
+    if (isDuplicate) {
+      return;
+    }
   
     const messageModel: MessageResponseModel = {
       ...latestMessage,
-      id: latestMessage.id || `ws-${Date.now()}`,
+      id: latestMessage.id || `ws-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       fromServer: true
     };
   
@@ -80,7 +106,7 @@ export const useMessagesViewModel = () => {
     } else {
       incrementUnreadCount(latestMessage.conversation_id);
     }
-  }, [socketMessages, currentConversation?.id]);
+  }, [socketMessages, currentConversation?.id, messages, markConversationAsRead, addNewMessage, updateConversationOrder, incrementUnreadCount, messageViewModel.scrollToBottom]);
 
   useEffect(() => {
     const handleNewConversation = (event: CustomEvent) => {
@@ -94,15 +120,16 @@ export const useMessagesViewModel = () => {
     return () => {
       window.removeEventListener('new_conversation', handleNewConversation as EventListener);
     };
-  }, []);
+  }, [addNewConversation]);
 
   useEffect(() => {
     if (currentConversation?.id) {
       markConversationAsRead(currentConversation.id);
+      resetUnreadCount(currentConversation.id);
     }
-  }, [currentConversation?.id]);
+  }, [currentConversation?.id, markConversationAsRead, resetUnreadCount]);
 
-  const fetchExistingMembers = async (conversationId: string) => {
+  const fetchExistingMembers = useCallback(async (conversationId: string) => {
     const members = await fetchConversationMembers(conversationId);
     const memberIds = members.map(member => member.id || '');
     
@@ -110,9 +137,9 @@ export const useMessagesViewModel = () => {
     setExistingMemberIds(memberIds);
     
     return { members, memberIds };
-  };
+  }, [fetchConversationMembers]);
 
-  const handleSelectConversation = (conversation: ConversationResponseModel) => {
+  const handleSelectConversation = useCallback((conversation: ConversationResponseModel) => {
     if (currentConversation?.id === conversation.id) {
       return;
     }
@@ -125,65 +152,73 @@ export const useMessagesViewModel = () => {
       
       fetchMessages(conversation.id);
     }
-  };
+  }, [currentConversation?.id, setCurrentConversation, markConversationAsRead, resetUnreadCount, fetchMessages]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = useCallback(() => {
     if (!currentConversation?.id) return;
-    return sendMessage(currentConversation.id);
-  };
+    return sendMessage();
+  }, [currentConversation?.id, sendMessage]);
 
-  const handleLoadMoreMessages = () => {
-    if (!currentConversation?.id) return;
-    return loadMoreMessages(currentConversation.id);
-  };
+const handleLoadMoreMessages = useCallback(() => {
+  if (!currentConversation?.id) return;
+  return loadMoreMessages();
+}, [currentConversation?.id, loadMoreMessages]);
 
-  const handleScrollMessages = (e: React.UIEvent<HTMLDivElement>) => {
-    if (!currentConversation?.id) return;
-    
-    handleScroll(e, currentConversation.id);
-    
-    if (!messagesLoading) {
-      markConversationAsRead(currentConversation.id);
-    }
-  };
-
-  return {
-    // State
-    messages,
-    messagesLoading,
-    messageText,
-    isMessagesEnd,
-    messageListRef,
-    initialMessagesLoaded,
-    conversations,
-    currentConversation,
-    conversationsLoading,
-    searchText,
-    existingMembers,
-    existingMemberIds,
-    
-    // Setters
-    setSearchText,
-    setMessageText,
-    setCurrentConversation,
+const handleScrollMessages = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+  if (!currentConversation?.id) return;
   
-    // Actions
-    fetchConversations,
-    fetchMessages,
-    sendMessage: handleSendMessage,
-    deleteMessage,
-    createConversation,
-    updateConversation,
-    deleteConversation,
-    markConversationAsRead,
-    loadMoreMessages: handleLoadMoreMessages,
-    handleScroll: handleScrollMessages,
-    addConversationMembers,
-    leaveConversation,
-    fetchExistingMembers,
-    getMessagesForConversation,
-    handleSelectConversation,
-    unreadMessageCounts,
-    resetUnreadCount,
+  handleScroll(e);
+  
+  if (!messagesLoading) {
+    markConversationAsRead(currentConversation.id);
+  }
+}, [currentConversation?.id, handleScroll, messagesLoading, markConversationAsRead]);
+
+useEffect(() => {
+  return () => {
+    processedSocketMessagesRef.current.clear();
+    setExistingMembers([]);
+    setExistingMemberIds([]);
   };
+}, []);
+
+return {
+  // State
+  messages,
+  messagesLoading,
+  messageText,
+  isMessagesEnd,
+  messageListRef,
+  initialMessagesLoaded,
+  conversations,
+  currentConversation,
+  conversationsLoading,
+  searchText,
+  existingMembers,
+  existingMemberIds,
+  
+  // Setters
+  setSearchText,
+  setMessageText,
+  setCurrentConversation,
+
+  // Actions
+  fetchConversations,
+  fetchMessages,
+  sendMessage: handleSendMessage,
+  deleteMessage,
+  createConversation,
+  updateConversation,
+  deleteConversation,
+  markConversationAsRead,
+  loadMoreMessages: handleLoadMoreMessages,
+  handleScroll: handleScrollMessages,
+  addConversationMembers,
+  leaveConversation,
+  fetchExistingMembers,
+  getMessagesForConversation,
+  handleSelectConversation,
+  unreadMessageCounts,
+  resetUnreadCount,
+};
 };

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { message } from "antd";
 
 import { useAuth } from "@/context/auth/useAuth";
@@ -16,8 +16,18 @@ export const useConversationViewModel = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [conversationDetails, setConversationDetails] = useState<Record<string, ConversationDetailResponseModel>>({});
   const [unreadMessageCounts, setUnreadMessageCounts] = useState<Record<string, number>>({});
+  
+  const processedConversationsRef = useRef<Set<string>>(new Set());
 
   const addNewConversation = useCallback((conversation: ConversationResponseModel) => {
+    if (!conversation || !conversation.id) return;
+    
+    if (processedConversationsRef.current.has(conversation.id)) {
+      return;
+    }
+    
+    processedConversationsRef.current.add(conversation.id);
+    
     setConversations(prev => {
       const exists = prev.some(c => c.id === conversation.id);
       if (exists) return prev;
@@ -27,6 +37,8 @@ export const useConversationViewModel = () => {
   }, []);
 
   const updateConversationOrder = useCallback((conversationId: string) => {
+    if (!conversationId) return;
+    
     setConversations(prev => {
       const conversationIndex = prev.findIndex(c => c.id === conversationId);
       if (conversationIndex < 0) return prev;
@@ -43,8 +55,7 @@ export const useConversationViewModel = () => {
     });
   }, []);
 
-
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     if (!user?.id) return;
     
     setConversationsLoading(true);
@@ -58,6 +69,10 @@ export const useConversationViewModel = () => {
         const conversationsList = Array.isArray(response.data) 
           ? response.data 
           : [response.data];
+        
+        conversationsList.forEach(conv => {
+          if (conv.id) processedConversationsRef.current.add(conv.id);
+        });
         
         setConversations(conversationsList);
         
@@ -91,38 +106,51 @@ export const useConversationViewModel = () => {
         setConversationDetails(detailsMap);
       }
     } catch (error) {
+      console.error("Error fetching conversations:", error);
       message.error(localStrings.Messages.ErrorFetchingConversations);
     } finally {
       setConversationsLoading(false);
     }
-  };
+  }, [user?.id, localStrings.Messages.ErrorFetchingConversations]);
 
-  const createConversation = async (name: string, image?: File | string, userIds?: string[]) => {
+  const createConversation = useCallback(async (name: string, image?: File | string, userIds?: string[]) => {
     if (!user?.id) return null;
+    
     try {
-      const filteredUserIds = (userIds || []).filter(id => id !== user.id);
+      const uniqueUserIds = [...new Set(userIds || [])];
+      
+      const filteredUserIds = uniqueUserIds.filter(id => id !== user.id);
+      
+      if (filteredUserIds.length === 0) {
+        message.error("Need one more another user!");
+        return null;
+      }
       
       const createResponse = await defaultMessagesRepo.createConversation({
         name: name,
         image: image, 
-        user_ids: filteredUserIds
+        user_ids: filteredUserIds 
       });
+      
+      if (createResponse.data) {
+        const newConversation = createResponse.data;
         
-        if (createResponse.data) {
-          const newConversation = createResponse.data;
-          
-          addNewConversation(newConversation);
-          await fetchConversations();
-          return newConversation;
-        }
-        return null;
+        // Cập nhật UI
+        addNewConversation(newConversation);
+        await fetchConversations();
+        
+        return newConversation;
+      }
+      
+      return null;
     } catch (error) {
-        message.error(localStrings.Messages.GroupCreationFailed);
-        return null;
+      console.error("Error creating conversation:", error);
+      message.error(localStrings.Messages.GroupCreationFailed);
+      return null;
     }
-  };
+  }, [user?.id, addNewConversation, fetchConversations]);
 
-  const updateConversation = async (conversationId: string, name?: string, image?: File | string) => {
+  const updateConversation = useCallback(async (conversationId: string, name?: string, image?: File | string) => {
     if (!conversationId) return null;
     
     try {
@@ -156,13 +184,15 @@ export const useConversationViewModel = () => {
       message.error(localStrings.Public.Error);
       return null;
     }
-  };
+  }, [currentConversation?.id, localStrings.Public.Error]);
 
-  const deleteConversation = async (conversationId: string) => {
-    if (!user?.id) return;
+  const deleteConversation = useCallback(async (conversationId: string) => {
+    if (!user?.id || !conversationId) return;
     
     try {
       await defaultMessagesRepo.deleteConversation({ conversation_id: conversationId });
+      
+      processedConversationsRef.current.delete(conversationId);
       
       await fetchConversations();
       
@@ -170,18 +200,19 @@ export const useConversationViewModel = () => {
         setCurrentConversation(null);
       }
     } catch (error) {
+      console.error("Error deleting conversation:", error);
       message.error(localStrings.Public.Error);
     }
-  };
+  }, [user?.id, currentConversation?.id, fetchConversations, localStrings.Public.Error]);
 
-  const hasUnreadMessages = (conversationId: string): boolean => {
+  const hasUnreadMessages = useCallback((conversationId: string): boolean => {
     if (!conversationId) return false;
     
     const detail = conversationDetails[conversationId];
     return detail && detail.last_mess_status === false;
-  };
+  }, [conversationDetails]);
 
-  const updateConversationReadStatus = (conversationId: string) => {
+  const updateConversationReadStatus = useCallback((conversationId: string) => {
     if (!conversationId) return;
     
     setConversationDetails(prev => {
@@ -196,9 +227,9 @@ export const useConversationViewModel = () => {
         }
       };
     });
-  };
+  }, []);
 
-  const markNewMessageUnread = (conversationId: string) => {
+  const markNewMessageUnread = useCallback((conversationId: string) => {
     if (!conversationId || conversationId === currentConversation?.id) return;
     
     setConversationDetails(prev => {
@@ -213,7 +244,25 @@ export const useConversationViewModel = () => {
         }
       };
     });
-  };
+  }, [currentConversation?.id]);
+
+  const incrementUnreadCount = useCallback((conversationId: string) => {
+    if (!conversationId || conversationId === currentConversation?.id) return;
+    
+    setUnreadMessageCounts(prev => ({
+      ...prev,
+      [conversationId]: (prev[conversationId] || 0) + 1
+    }));
+  }, [currentConversation?.id]);
+
+  const resetUnreadCount = useCallback((conversationId: string) => {
+    if (!conversationId) return;
+    
+    setUnreadMessageCounts(prev => ({
+      ...prev,
+      [conversationId]: 0
+    }));
+  }, []);
 
   return {
     // State
@@ -222,24 +271,12 @@ export const useConversationViewModel = () => {
     conversationsLoading,
     searchText,
     conversationDetails,
+    unreadMessageCounts,
     
     // Setters
     setSearchText,
     setCurrentConversation,
-    unreadMessageCounts,
     setUnreadMessageCounts,
-    incrementUnreadCount: (conversationId: string) => {
-      setUnreadMessageCounts(prev => ({
-        ...prev,
-        [conversationId]: (prev[conversationId] || 0) + 1
-      }));
-    },
-    resetUnreadCount: (conversationId: string) => {
-      setUnreadMessageCounts(prev => ({
-        ...prev,
-        [conversationId]: 0
-      }));
-    },
     
     // Actions
     fetchConversations,
@@ -248,5 +285,10 @@ export const useConversationViewModel = () => {
     deleteConversation,
     addNewConversation,
     updateConversationOrder,
+    hasUnreadMessages,
+    updateConversationReadStatus,
+    markNewMessageUnread,
+    incrementUnreadCount,
+    resetUnreadCount,
   };
 };

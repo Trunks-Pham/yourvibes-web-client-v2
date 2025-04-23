@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { message } from "antd";
 
 import { useAuth } from "@/context/auth/useAuth";
@@ -29,16 +29,60 @@ export const useMessageViewModel = () => {
   const messageListRef = useRef<HTMLDivElement>(null);
   const isFirstLoad = useRef<boolean>(true);
   const scrollPositionRef = useRef<number>(0);
+  const processedMessagesRef = useRef<Set<string>>(new Set());
   const messageListenersRef = useRef<Set<(conversationId: string, messages: MessageResponseModel[]) => void>>(new Set());
 
-  const addMessageListener = (callback: (conversationId: string, messages: MessageResponseModel[]) => void) => {
+  const isDuplicateMessage = useCallback((
+    conversationId: string, 
+    message: MessageResponseModel, 
+    existingMessages: MessageResponseModel[]
+  ): boolean => {
+    if (message.id) {
+      const isDuplicateById = existingMessages.some(msg => msg.id === message.id);
+      if (isDuplicateById) return true;
+      
+      const messageUniqueId = `${conversationId}-${message.id}`;
+      if (processedMessagesRef.current.has(messageUniqueId)) return true;
+    }
+    
+    const contentBasedId = `${conversationId}-${message.user_id}-${message.content}-${message.created_at}`;
+    if (processedMessagesRef.current.has(contentBasedId)) return true;
+    
+    const isDuplicateByContent = existingMessages.some(msg => 
+      msg.user_id === message.user_id && 
+      msg.content === message.content && 
+      Math.abs(new Date(msg.created_at || "").getTime() - 
+            new Date(message.created_at || "").getTime()) < 5000
+    );
+    
+    return isDuplicateByContent;
+  }, []);
+
+  const markMessageAsProcessed = useCallback((conversationId: string, message: MessageResponseModel) => {
+    if (!message) return;
+    
+    if (message.id) {
+      const messageUniqueId = `${conversationId}-${message.id}`;
+      processedMessagesRef.current.add(messageUniqueId);
+    }
+    
+    const contentBasedId = `${conversationId}-${message.user_id}-${message.content}-${message.created_at}`;
+    processedMessagesRef.current.add(contentBasedId);
+    
+    if (processedMessagesRef.current.size > 1000) {
+      const oldestEntries = Array.from(processedMessagesRef.current).slice(0, 300);
+      oldestEntries.forEach(id => processedMessagesRef.current.delete(id));
+    }
+  }, []);
+
+  const addMessageListener = useCallback((callback: (conversationId: string, messages: MessageResponseModel[]) => void) => {
     messageListenersRef.current.add(callback);
     return () => {
       messageListenersRef.current.delete(callback);
     };
-  };
+  }, []);
 
-  const notifyMessageListeners = (conversationId: string, messages: MessageResponseModel[]) => {
+  const notifyMessageListeners = useCallback((conversationId: string, messages: MessageResponseModel[]) => {
     messageListenersRef.current.forEach(callback => {
       try {
         callback(conversationId, messages);
@@ -46,61 +90,55 @@ export const useMessageViewModel = () => {
         console.error("Error in message listener callback:", error);
       }
     });
-  };
+  }, []);
 
-const addNewMessage = (conversationId: string, message: MessageResponseModel) => {
-  if (!conversationId || !message) {
-      return;
-  }
-  
-  setMessagesByConversation(prev => {
-      const conversationMessages = prev[conversationId] || [];
-      
-      const isDuplicate = message.id 
-          ? conversationMessages.some(msg => msg.id === message.id)
-          : conversationMessages.some(
-              msg => 
-                  msg.content === message.content && 
-                  msg.user_id === message.user_id &&
-                  Math.abs(new Date(msg.created_at || "").getTime() - 
-                        new Date(message.created_at || "").getTime()) < 2000
-            );
-      
-      if (isDuplicate) {
-          return prev;
-      }
-      
-      const formattedMessage = {
-          ...message,
-          isTemporary: false,
-          fromServer: true
-      };
-      
-      const updatedMessages = [...conversationMessages, formattedMessage].sort(
-          (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
-      );
-      
-      notifyMessageListeners(conversationId, updatedMessages);
-      
-      if (conversationId === currentConversationId) {
-          setMessages(processMessagesWithDateSeparators(updatedMessages));
-      }
-      
-      return {
-          ...prev,
-          [conversationId]: updatedMessages
-      };
-  });
-};
-
-  const getMessagesForConversation = (conversationId: string): MessageResponseModel[] => {
-    return messagesByConversation[conversationId] || [];
-  };
-
-  const updateMessagesForConversation = (conversationId: string, messages: MessageResponseModel[]) => {
-    if (!conversationId || !messages || messages.length === 0) return;
+  const addNewMessage = useCallback((conversationId: string, message: MessageResponseModel) => {
+    if (!conversationId || !message) {
+        return;
+    }
     
-    const formattedMessages = messages.map(msg => ({
+    const currentMessages = messagesByConversation[conversationId] || [];
+    
+    if (isDuplicateMessage(conversationId, message, currentMessages)) {
+        return;
+    }
+    
+    markMessageAsProcessed(conversationId, message);
+    
+    setMessagesByConversation(prev => {
+        const conversationMessages = prev[conversationId] || [];
+        
+        const formattedMessage = {
+            ...message,
+            isTemporary: false,
+            fromServer: true
+        };
+        
+        const updatedMessages = [...conversationMessages, formattedMessage].sort(
+            (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
+        );
+        
+        notifyMessageListeners(conversationId, updatedMessages);
+        
+        if (conversationId === currentConversationId) {
+            setMessages(processMessagesWithDateSeparators(updatedMessages));
+        }
+        
+        return {
+            ...prev,
+            [conversationId]: updatedMessages
+        };
+    });
+  }, [messagesByConversation, currentConversationId, isDuplicateMessage, markMessageAsProcessed, notifyMessageListeners]);
+
+  const getMessagesForConversation = useCallback((conversationId: string): MessageResponseModel[] => {
+    return messagesByConversation[conversationId] || [];
+  }, [messagesByConversation]);
+
+  const updateMessagesForConversation = useCallback((conversationId: string, newMessages: MessageResponseModel[]) => {
+    if (!conversationId || !newMessages || newMessages.length === 0) return;
+    
+    const formattedMessages = newMessages.map(msg => ({
       ...msg,
       isTemporary: false,
       fromServer: true
@@ -109,11 +147,14 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
     setMessagesByConversation(prev => {
       const existingMessages = prev[conversationId] || [];
       
-      const messageMap = new Map();
+      const messageMap = new Map<string, MessageResponseModel>();
       
       existingMessages.forEach(msg => {
         if (msg.id) {
           messageMap.set(msg.id, msg);
+        } else {
+          const key = `temp-${msg.user_id}-${msg.content}-${msg.created_at}`;
+          messageMap.set(key, msg);
         }
       });
       
@@ -121,40 +162,27 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
         if (msg.id) {
           messageMap.set(msg.id, msg);
         } else {
-          existingMessages.push(msg);
+          const key = `temp-${msg.user_id}-${msg.content}-${msg.created_at}`;
+          if (!messageMap.has(key)) {
+            messageMap.set(key, msg);
+          }
         }
       });
-    
-      const uniqueMessages = Array.from(messageMap.values());
       
-      const allMessages = [...uniqueMessages, ...existingMessages.filter(msg => !msg.id)];
-      
-      const finalMessages = allMessages.filter((msg, index, self) => {
-        if (!msg.id) {
-          return index === self.findIndex(m => 
-            m.content === msg.content && 
-            m.user_id === msg.user_id &&
-            Math.abs(new Date(m.created_at || "").getTime() - 
-                    new Date(msg.created_at || "").getTime()) < 2000
-          );
-        }
-        return true; 
-      });
-      
-      const sortedMessages = finalMessages.sort(
+      const uniqueMessages = Array.from(messageMap.values()).sort(
         (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
       );
       
-      notifyMessageListeners(conversationId, sortedMessages);
+      notifyMessageListeners(conversationId, uniqueMessages);
       
       return {
         ...prev,
-        [conversationId]: sortedMessages
+        [conversationId]: uniqueMessages
       };
     });
-  };
+  }, [notifyMessageListeners]);
 
-  const formatDateForDisplay = (date: Date): string => {
+  const formatDateForDisplay = useCallback((date: Date): string => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
@@ -179,9 +207,9 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
       
       return `${day}/${month}/${year}`;
     }
-  };
+  }, []);
   
-  const processMessagesWithDateSeparators = (messages: MessageResponseModel[]): MessageWithDate[] => {
+  const processMessagesWithDateSeparators = useCallback((messages: MessageResponseModel[]): MessageWithDate[] => {
     if (!messages || messages.length === 0) return [];
   
     const sortedMessages = [...messages].sort((a, b) => {
@@ -223,13 +251,17 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
     });
   
     return processedMessages;
-  };
+  }, [formatDateForDisplay]);
 
-  const fetchMessages = async (conversationId: string, page: number = 1, shouldAppend: boolean = false) => {
+  const fetchMessages = useCallback(async (conversationId: string, page: number = 1, shouldAppend: boolean = false) => {
     if (!user?.id || !conversationId) return;
     
     setCurrentConversationId(conversationId);
     setMessagesLoading(true);
+    
+    if (!shouldAppend && !isFirstLoad.current) {
+      setMessages([]);
+    }
     
     if (shouldAppend && messageListRef.current) {
       scrollPositionRef.current = messageListRef.current.scrollHeight - messageListRef.current.scrollTop;
@@ -261,39 +293,67 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
           return dateA.getTime() - dateB.getTime();
         });
         
-        let existingMessages = shouldAppend ? [...messages] : [];
-        
         if (shouldAppend) {
-          const existingMessagesWithoutSeparators = existingMessages.filter(msg => !msg.isDateSeparator);
-          
-          const allMessages = [...sortedApiMessages, ...existingMessagesWithoutSeparators];
-          
-          const sortedMessages = allMessages.sort((a, b) => {
-            const dateA = new Date(a.created_at || "");
-            const dateB = new Date(b.created_at || "");
-            return dateA.getTime() - dateB.getTime();
+          setMessagesByConversation(prev => {
+            const existingMessages = prev[conversationId] || [];
+            
+            const messageMap = new Map<string, MessageResponseModel>();
+            
+            existingMessages.forEach(msg => {
+              if (msg.id) {
+                messageMap.set(msg.id, msg);
+              } else {
+                const key = `temp-${msg.user_id}-${msg.content}-${msg.created_at}`;
+                messageMap.set(key, msg);
+              }
+            });
+            
+            sortedApiMessages.forEach(msg => {
+              if (msg.id) {
+                messageMap.set(msg.id, msg);
+              } else {
+                const key = `temp-${msg.user_id}-${msg.content}-${msg.created_at}`;
+                messageMap.set(key, msg);
+              }
+            });
+            
+            const combinedMessages = Array.from(messageMap.values()).sort(
+              (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
+            );
+            
+            const messagesWithDateSeparators = processMessagesWithDateSeparators(combinedMessages);
+            setMessages(messagesWithDateSeparators);
+            
+            sortedApiMessages.forEach(msg => {
+              if (msg.id) markMessageAsProcessed(conversationId, msg);
+            });
+            
+            setTimeout(() => {
+              if (messageListRef.current) {
+                messageListRef.current.scrollTop = messageListRef.current.scrollHeight - scrollPositionRef.current;
+              }
+            }, 50);
+            
+            return {
+              ...prev,
+              [conversationId]: combinedMessages
+            };
           });
-          
-          const messagesWithDateSeparators = processMessagesWithDateSeparators(sortedMessages);
-          
-          setMessages(messagesWithDateSeparators);
-
-          updateMessagesForConversation(conversationId, sortedMessages);
-          
-          setTimeout(() => {
-            if (messageListRef.current) {
-              messageListRef.current.scrollTop = 
-                messageListRef.current.scrollHeight - scrollPositionRef.current;
-            }
-          }, 50);
         } else {
           const messagesWithDateSeparators = processMessagesWithDateSeparators(sortedApiMessages);
-          
           setMessages(messagesWithDateSeparators);
           
-          updateMessagesForConversation(conversationId, sortedApiMessages);
+          sortedApiMessages.forEach(msg => {
+            if (msg.id) markMessageAsProcessed(conversationId, msg);
+          });
+          
+          setMessagesByConversation(prev => ({
+            ...prev,
+            [conversationId]: sortedApiMessages
+          }));
           
           setInitialMessagesLoaded(true);
+          isFirstLoad.current = false;
           
           setTimeout(scrollToBottom, 100);
         }
@@ -303,26 +363,28 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
     } finally {
       setMessagesLoading(false);
     }
-  };
+  }, [user?.id, pageSize, processMessagesWithDateSeparators, markMessageAsProcessed]);
 
-  const loadMoreMessages = async (conversationId: string) => {
-    if (conversationId && !messagesLoading && !isMessagesEnd) {
+  const loadMoreMessages = useCallback(async () => {
+    if (currentConversationId && !messagesLoading && !isMessagesEnd) {
       const nextPage = currentPage + 1;
       setCurrentPage(nextPage);
-      await fetchMessages(conversationId, nextPage, true);
+      await fetchMessages(currentConversationId, nextPage, true);
     }
-  };
+  }, [currentConversationId, messagesLoading, isMessagesEnd, currentPage, fetchMessages]);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>, conversationId: string) => {
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (!currentConversationId) return;
+    
     const { scrollTop } = e.currentTarget;
     
-    if (scrollTop < 100 && !messagesLoading && !isMessagesEnd && conversationId) {
-      loadMoreMessages(conversationId);
+    if (scrollTop < 100 && !messagesLoading && !isMessagesEnd) {
+      loadMoreMessages();
     }
-  };
+  }, [currentConversationId, messagesLoading, isMessagesEnd, loadMoreMessages]);
 
-  const sendMessage = async (conversationId: string) => {
-    if (!user?.id || !conversationId || !messageText.trim()) {
+  const sendMessage = useCallback(async () => {
+    if (!user?.id || !currentConversationId || !messageText.trim()) {
         return;
     }
     
@@ -331,8 +393,21 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
         return;
     }
     
-    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const messageContent = messageText.trim();
+    setMessageText("");
+    
+    const currentMessages = messagesByConversation[currentConversationId] || [];
+    const hasDuplicateContent = currentMessages.some(msg => 
+        msg.user_id === user.id && 
+        msg.content === messageContent &&
+        Math.abs(Date.now() - new Date(msg.created_at || "").getTime()) < 10000
+    );
+    
+    if (hasDuplicateContent) {
+        return;
+    }
+    
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     
     const tempMessage: MessageResponseModel = {
         id: tempId,
@@ -343,21 +418,19 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
             family_name: user.family_name,
             avatar_url: user.avatar_url
         },
-        conversation_id: conversationId,
+        conversation_id: currentConversationId,
         content: messageContent,
         created_at: new Date().toISOString(),
         isTemporary: true
     };
     
-    // setMessages(prev => [...prev, tempMessage]);
-    // addNewMessage(conversationId, tempMessage);
+    // addNewMessage(currentConversationId, tempMessage);
     
-    setMessageText("");
     scrollToBottom();
     
     const messageData = {
         content: messageContent,
-        conversation_id: conversationId,
+        conversation_id: currentConversationId,
         user_id: user.id,
         user: {
             id: user.id,
@@ -371,7 +444,7 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
     try {
         const createMessageData = {
             content: messageContent,
-            conversation_id: conversationId,
+            conversation_id: currentConversationId,
             user: {
                 id: user.id,
                 name: user.name,
@@ -383,71 +456,89 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
         const response = await defaultMessagesRepo.createMessage(createMessageData);
         
         if (response.data) {
-            const serverMessage = { ...response.data, fromServer: true, isTemporary: false };
+            const serverMessage = { 
+                ...response.data, 
+                fromServer: true, 
+                isTemporary: false 
+            };
             
-            setMessages(prev => 
-                prev.map(msg => 
-                    msg.id === tempId ? serverMessage : msg
-                )
-            );
+            markMessageAsProcessed(currentConversationId, serverMessage);
             
             setMessagesByConversation(prev => {
-                const conversationMessages = prev[conversationId] || [];
-                const updatedMessages = conversationMessages.map(msg => 
-                    msg.id === tempId ? serverMessage : msg
+                const conversationMessages = prev[currentConversationId] || [];
+                
+                const filteredMessages = conversationMessages.filter(msg => 
+                    !(msg.isTemporary && msg.content === messageContent && msg.user_id === user.id)
                 );
+                
+                const updatedMessages = [...filteredMessages, serverMessage].sort(
+                    (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
+                );
+                
+                if (currentConversationId === currentConversationId) {
+                    const processedMessages = processMessagesWithDateSeparators(updatedMessages);
+                    setMessages(processedMessages);
+                }
+                
+                notifyMessageListeners(currentConversationId, updatedMessages);
                 
                 return {
                     ...prev,
-                    [conversationId]: updatedMessages
+                    [currentConversationId]: updatedMessages
                 };
             });
         }
     } catch (error) {
-        setMessages(prev => 
-            prev.map(msg => 
-                msg.id === tempId ? { ...msg, sendFailed: true } : msg
-            )
-        );
-        
+        console.error("Error sending message:", error);
         message.error(localStrings.Public.Error);
     }
-};
+}, [
+    user, currentConversationId, messageText, messagesByConversation,
+    markMessageAsProcessed, processMessagesWithDateSeparators, notifyMessageListeners
+]);
 
-  const deleteMessage = async (messageId: string) => {
+const deleteMessage = useCallback(async (messageId: string) => {
     if (!user?.id || !currentConversationId) return;
     
     try {
-      setMessages(prev => prev.filter(msg => msg.id !== messageId));
-      
-      setMessagesByConversation(prev => {
-        if (!prev[currentConversationId]) return prev;
+        setMessages(prev => prev.filter(msg => msg.id !== messageId));
         
-        const updatedMessages = prev[currentConversationId].filter(msg => msg.id !== messageId);
+        setMessagesByConversation(prev => {
+            if (!prev[currentConversationId]) return prev;
+            
+            const updatedMessages = prev[currentConversationId].filter(msg => msg.id !== messageId);
+            
+            return {
+                ...prev,
+                [currentConversationId]: updatedMessages
+            };
+        });
         
-        return {
-          ...prev,
-          [currentConversationId]: updatedMessages
-        };
-      });
-      
-      await defaultMessagesRepo.deleteMessage({ message_id: messageId });
+        await defaultMessagesRepo.deleteMessage({ message_id: messageId });
     } catch (error) {
-      message.error(localStrings.Public.Error);
-      
-      if (currentConversationId) {
-        fetchMessages(currentConversationId);
-      }
+        console.error("Error deleting message:", error);
+        message.error(localStrings.Public.Error);
+        
+        if (currentConversationId) {
+            fetchMessages(currentConversationId);
+        }
     }
-  };
+}, [user?.id, currentConversationId, fetchMessages]);
 
-  const scrollToBottom = () => {
+const scrollToBottom = useCallback(() => {
     if (messageListRef.current) {
-      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+        messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
     }
-  };
+}, []);
 
-  return {
+useEffect(() => {
+    return () => {
+        processedMessagesRef.current.clear();
+        messageListenersRef.current.clear();
+    };
+}, []);
+
+return {
     // State
     messages,
     messagesLoading,
@@ -473,5 +564,5 @@ const addNewMessage = (conversationId: string, message: MessageResponseModel) =>
     addMessageListener,
     updateMessagesForConversation,
     addNewMessage,
-  };
+};
 };

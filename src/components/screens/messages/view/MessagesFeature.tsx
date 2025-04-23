@@ -899,6 +899,7 @@ const MessagesFeature: React.FC = () => {
   useEffect(() => {
     if (currentConversation?.id) {
       markConversationAsRead(currentConversation.id);
+      resetUnreadCount(currentConversation.id);
     }
   }, [currentConversation?.id]);
   
@@ -948,6 +949,7 @@ const MessagesFeature: React.FC = () => {
       if (conversation.id) {
         fetchMessages(conversation.id);
         markConversationAsRead(conversation.id);
+        resetUnreadCount(conversation.id); 
       }
     }, 200);
   };
@@ -1288,14 +1290,14 @@ const MessagesFeature: React.FC = () => {
                         >
                           <List.Item.Meta
                             avatar={
-                              <Badge 
-                                count={unreadMessageCounts[item.id || ''] || 0} 
-                                offset={[-5, 5]}
-                                size="small"
-                                style={{ 
-                                  display: unreadMessageCounts[item.id || ''] ? 'block' : 'none' 
-                                }}
-                              >
+                              // <Badge 
+                              //   count={unreadMessageCounts[item.id || ''] || 0} 
+                              //   offset={[-5, 5]}
+                              //   size="small"
+                              //   style={{ 
+                              //     display: unreadMessageCounts[item.id || ''] ? 'block' : 'none' 
+                              //   }}
+                              // >
                                 <Avatar
                                   src={avatarUrl}
                                   size={48}
@@ -1305,7 +1307,7 @@ const MessagesFeature: React.FC = () => {
                                 >
                                   {!avatarUrl && avatarInitial}
                                 </Avatar>
-                              </Badge>
+                              // </Badge>
                             }
                             title={<Text strong>{item.name}</Text>}
                             description={
@@ -1326,16 +1328,16 @@ const MessagesFeature: React.FC = () => {
                                 {lastMessageTime}
                               </Text>
                               
-                              {unreadMessageCounts[item.id || ''] > 0 && (
-                                <Badge
-                                  count={unreadMessageCounts[item.id || '']}
-                                  size="small"
-                                  style={{ 
-                                    marginTop: 4,
-                                    backgroundColor: brandPrimary 
-                                  }}
-                                />
-                              )}
+                              {/* {unreadMessageCounts[item.id || ''] > 0 && (
+                                // <Badge
+                                //   count={unreadMessageCounts[item.id || '']}
+                                //   size="small"
+                                //   style={{ 
+                                //     marginTop: 4,
+                                //     backgroundColor: brandPrimary 
+                                //   }}
+                                // />
+                              )} */}
                             </div>
                           )}
                         </List.Item>
@@ -1649,7 +1651,7 @@ const MessagesFeature: React.FC = () => {
                               />
                             ) : (
                               <MessageItem
-                                key={msg.id || `temp-${msg.created_at}`}
+                                key={`${msg.id || `temp-${msg.created_at}`}-${Date.now()}`}
                                 message={msg}
                                 onDelete={deleteMessage}
                               />
