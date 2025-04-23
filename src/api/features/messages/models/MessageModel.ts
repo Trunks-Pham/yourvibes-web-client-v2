@@ -11,6 +11,7 @@ export interface CreateMessageRequestModel {
     }
 }
 export interface MessageWebSocketResponseModel {
+    id?: string;
     content?: string;
     user_id?: string;
     conversation_id: string;
