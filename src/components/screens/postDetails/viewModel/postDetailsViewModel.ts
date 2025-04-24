@@ -88,6 +88,21 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
           ...prevReplyMap,
           [parentId]: replies.data,
         }));
+  
+        // Khởi tạo trạng thái cho replies
+        const replyLikeCount: { [key: string]: number } = {};
+        const replyIsLiked: { [key: string]: boolean } = {};
+        const replyHeartColors: { [key: string]: string } = {};
+  
+        replies.data.forEach((reply) => {
+          replyLikeCount[reply.id] = reply.like_count || 0;
+          replyIsLiked[reply.id] = reply.is_liked || false;
+          replyHeartColors[reply.id] = reply.is_liked ? "red" : "gray";
+        });
+  
+        setLikeCount((prev) => ({ ...prev, ...replyLikeCount }));
+        setIsLiked((prev) => ({ ...prev, ...replyIsLiked }));
+        setHeartColors((prev) => ({ ...prev, ...replyHeartColors }));
       }
     } catch (error) {
       message.error(localStrings.PostDetails.CommentFailed);
@@ -101,25 +116,27 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
   const handleLike = async (commentId: string) => {
     const currentIsLiked = isLiked[commentId] ?? false;
     const newIsLiked = !currentIsLiked;
-
+  
     try {
       const response = await defaultLikeCommentRepo.postLikeComment({
         commentId,
         isLike: newIsLiked,
       });
-
+  
+      console.log("API response:", response); // Log toàn bộ response để kiểm tra
+  
       if (response && response.data) {
-        // Kiểm tra xem response.data có phải là mảng và có phần tử đầu tiên không
         const likeCommentResponse = Array.isArray(response.data) && response.data[0] ? response.data[0] : null;
         if (likeCommentResponse && typeof likeCommentResponse.like_count === "number") {
           const newLikeCount = likeCommentResponse.like_count;
-
+  
           setIsLiked((prev) => ({ ...prev, [commentId]: newIsLiked }));
           setLikeCount((prev) => ({ ...prev, [commentId]: newLikeCount }));
           setHeartColors((prev) => ({ ...prev, [commentId]: newIsLiked ? "red" : "gray" }));
           setLikedComment({ is_liked: newIsLiked });
         } else {
-          // Fallback: Tăng/giảm thủ công nếu API không trả về like_count
+          console.warn("API response missing like_count, using fallback logic", response.data);
+          // Fallback logic
           setLikeCount((prev) => ({
             ...prev,
             [commentId]: newIsLiked ? (prev[commentId] || 0) + 1 : (prev[commentId] || 0) - 1,
@@ -127,8 +144,10 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
           setIsLiked((prev) => ({ ...prev, [commentId]: newIsLiked }));
           setHeartColors((prev) => ({ ...prev, [commentId]: newIsLiked ? "red" : "gray" }));
           setLikedComment({ is_liked: newIsLiked });
-          console.warn("API response missing like_count, using fallback logic");
         }
+      } else {
+        console.error("Invalid API response:", response);
+        message.error("Failed to like/unlike comment");
       }
     } catch (error) {
       console.error("Error liking comment:", error);
