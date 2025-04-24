@@ -195,29 +195,29 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
           >
             {comments.map((comment) => (
               <CommentItem
-                key={comment.id}
-                comment={comment}
-                replyMap={replyMap}
-                heartColors={heartColors}
-                handleLike={handleLike}
-                handleDelete={handleDelete}
-                handleShowEditModal={(commentId, content) => {
-                  handleShowEditModal(commentId, content);
-                  setEditCommentId(commentId);
-                }}
-                handleReplyClick={handleReplyClick}
-                fetchReplies={fetchReplies}
-                fetchComments={fetchComments}
-                toggleRepliesVisibility={toggleRepliesVisibility}
-                visibleReplies={visibleReplies}
-                setLikedComment={setLikedComment}
-                likedComment={likedComment}
-                reportComment={reportComment}
-                setReplyModalVisible={setReplyModalVisible}
-                setSelectedCommentId={setSelectedCommentId}
-                postId={postId || ""}
-                likeCount={likeCount[comment.id] || 0}
-              />
+  key={comment.id}
+  comment={comment}
+  replyMap={replyMap}
+  heartColors={heartColors}
+  handleLike={handleLike}
+  handleDelete={handleDelete}
+  handleShowEditModal={(commentId, content) => {
+    handleShowEditModal(commentId, content);
+    setEditCommentId(commentId);
+  }}
+  handleReplyClick={handleReplyClick}
+  fetchReplies={fetchReplies}
+  fetchComments={fetchComments}
+  toggleRepliesVisibility={toggleRepliesVisibility}
+  visibleReplies={visibleReplies}
+  setLikedComment={setLikedComment}
+  likedComment={likedComment}
+  reportComment={reportComment}
+  setReplyModalVisible={setReplyModalVisible}
+  setSelectedCommentId={setSelectedCommentId}
+  postId={postId || ""}
+  likeCount={likeCount} // Truyền toàn bộ object likeCount
+/>
             ))}
           </div>
           <div className="add-comment mt-2">
@@ -291,7 +291,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
               cancelText={localStrings.Public.Cancel}
               okText={localStrings.Public.Reply}
               okButtonProps={{ disabled: !isContentLengthValid(replyContent) }}
-              styles={{ body: { padding: "16px" } }} 
+              styles={{ body: { padding: "16px" } }}
             >
               <div className="relative">
                 <textarea
@@ -392,7 +392,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
             open={showModal}
             onCancel={() => setShowModal(false)}
             footer={null}
-            styles={{ body: { padding: "16px" } }} 
+            styles={{ body: { padding: "16px" } }}
           >
             <ReportScreen commentId={currentCommentId} setShowModal={setShowModal} />
           </Modal>

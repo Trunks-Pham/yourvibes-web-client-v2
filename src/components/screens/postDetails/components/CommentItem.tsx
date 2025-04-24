@@ -23,7 +23,7 @@ interface CommentItemProps {
   setReplyModalVisible: (visible: boolean) => void;
   setSelectedCommentId: (id: string) => void;
   postId: string;
-  likeCount: number;
+  likeCount: { [key: string]: number }; // Thay đổi thành object
 }
 
 const CommentItem: React.FC<CommentItemProps> = ({
@@ -103,7 +103,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   opacity: 0.5,
                 }}
               >
-                {likeCount}
+                {likeCount[comment.id]}
               </span>
             </Col>
             {userId === comment.user?.id ? (
@@ -206,7 +206,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
               setReplyModalVisible={setReplyModalVisible}
               setSelectedCommentId={setSelectedCommentId}
               postId={postId}
-              likeCount={likeCount} // Truyền lại likeCount cho reply
+              likeCount={{ [reply.id]: likeCount[reply.id] || 0 }}
             />
           ))}
       </div>
