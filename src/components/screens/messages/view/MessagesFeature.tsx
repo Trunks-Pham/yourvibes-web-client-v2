@@ -587,7 +587,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
             <div
               style={{
                 position: "absolute",
-                left: "-28px", // Position it to the right of the message bubble
+                left: "-28px",
                 top: "50%", 
                 transform: "translateY(-50%)",
                 cursor: "pointer",
