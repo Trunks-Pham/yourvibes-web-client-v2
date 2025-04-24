@@ -592,7 +592,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
               padding: 4,
               borderRadius: "50%",
               background: "#f0f0f0",
-              zIndex: 1
+              zIndex: 1             
             }}
           >
             <EllipsisOutlined style={{ fontSize: 16 }} />
