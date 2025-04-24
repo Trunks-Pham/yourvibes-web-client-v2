@@ -139,7 +139,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
             wsMessageRef.current = null;
             setConnectionAttempts(prevAttempts => {
                 console.log("newAttempts", prevAttempts);
-
+                
                 
                 const newAttempts = prevAttempts + 1;
                 if (newAttempts < MAX_CONNECTION_ATTEMPTS) {
