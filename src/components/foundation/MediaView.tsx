@@ -64,6 +64,8 @@ const MediaView: React.FC<MediaViewProps> = React.memo(({ mediaItems }) => {
                   alt={`media-${index}`}
                   style={{ width: "100%", objectFit: "cover" }}
                   width="100%"
+                  preview={{ mask: null }}
+                  className="hover:cursor-pointer"
                 />
               ) }
             </div>

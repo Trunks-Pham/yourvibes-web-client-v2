@@ -157,7 +157,7 @@ const Homepage = () => {
       >
         <span
           style={{
-            fontWeight: "700",
+            fontWeight: "750",
             fontSize: 16,
             color: brandPrimary || "#1890ff",
             letterSpacing: "0.5px",
@@ -181,7 +181,7 @@ const Homepage = () => {
                       display: "flex",
                       alignItems: "center",
                       padding: "12px",
-                      margin: "6px 0",
+                      margin: "6px 0 10px 0",
                       cursor: "pointer",
                       borderRadius: "10px",
                       backgroundColor: "#ffffff",
@@ -189,8 +189,8 @@ const Homepage = () => {
                       background:
                         "linear-gradient(135deg, #e6f0ff 0%, #fff1f5 100%)",
                       animation: "fadeIn 0.5s ease-in-out",
-                      boxShadow:
-                        "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
+
                     }}
                     onClick={() => router.push(`/user/${friend.id}`)}
                     onMouseEnter={(e) => {
@@ -300,8 +300,7 @@ const Homepage = () => {
                     cursor: "pointer",
                     transition: "background-color 0.3s ease",
                     backgroundColor: "white",
-                    boxShadow:
-                      "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
                     borderRadius: 10,
                     marginBottom: 8,
                     padding: "12px",

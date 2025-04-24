@@ -138,9 +138,12 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
             console.log("❌ WebSocket Message disconnected:", e.reason, e.code);
             wsMessageRef.current = null;
             setConnectionAttempts(prevAttempts => {
+                console.log("newAttempts", prevAttempts);
+                
+                
                 const newAttempts = prevAttempts + 1;
                 if (newAttempts < MAX_CONNECTION_ATTEMPTS) {
-                    setTimeout(() => connectSocketMessage(), 2000); 
+                    setTimeout(() => connectSocketMessage(), 5000); 
                 }
                 return newAttempts;
             });
