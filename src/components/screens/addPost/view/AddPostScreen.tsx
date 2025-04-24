@@ -10,8 +10,9 @@ import {
   Image,
   Select,
 } from "antd";
-import { 
-  PlusOutlined, 
+import {
+  LoadingOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth/useAuth";
@@ -19,7 +20,6 @@ import { usePostContext } from "@/context/post/usePostContext";
 import AddPostViewModel from "../viewModel/AddpostViewModel";
 import { defaultPostRepo } from "@/api/features/post/PostRepo";
 import { Privacy } from "@/api/baseApiResponseModel/baseApiResponseModel";
-import { UploadFile, UploadProps } from "antd/es/upload";
 import { useEffect } from "react";
 
 const { TextArea } = Input;
@@ -37,7 +37,7 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
   const router = useRouter();
   const viewModel = AddPostViewModel(defaultPostRepo);
   const pathname = usePathname();
-
+  const whiteSpinner = <LoadingOutlined style={{ fontSize: 24, color: "white" }} />;
   const PostUpdateObserver = {
     update: () => {
       if (pathname === "/home" && fetchNewFeeds) {
@@ -52,8 +52,8 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
   };
 
   useEffect(() => {
-    viewModel.registerObserver(PostUpdateObserver); 
-  }, [viewModel]);  
+    viewModel.registerObserver(PostUpdateObserver);
+  }, [viewModel]);
 
   const uploadButton = (
     <button style={{ border: 0, background: "none" }} type="button">
@@ -165,11 +165,8 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
           type="primary"
           onClick={handleSubmit}
           disabled={!isContentLengthValid() && viewModel.selectedMediaFiles.length === 0}
-          loading={viewModel.createLoading}
         >
-          {viewModel.createLoading
-            ? viewModel.createLoading && <Spin style={{ color: "white" }} />
-            : localStrings.AddPost.PostNow}
+          {viewModel.createLoading ? <Spin indicator={whiteSpinner} /> : localStrings.AddPost.PostNow}
         </Button>
       </div>
     </div>
