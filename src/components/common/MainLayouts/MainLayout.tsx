@@ -153,7 +153,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             overflow: "auto",
             height: "100vh",
             position: "fixed",
-            // zIndex: 100,
+            zIndex: 100,
             insetInlineStart: 0,
             top: 0,
             bottom: 0,

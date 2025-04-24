@@ -148,7 +148,7 @@ const Homepage = () => {
           marginInline: "10px",
           position: "fixed",
           width: "300px",
-          maxHeight: "650px",
+          maxHeight: "100vh",
           overflowY: "auto",
           padding: "16px",
           display: "flex",
@@ -165,7 +165,7 @@ const Homepage = () => {
         >
           {localStrings.Public.Birtday}
         </span>
-        <div style={{ flex: 1, maxHeight: "50%", overflowY: "auto", scrollbarWidth: "none" }}>
+        <div style={{ maxHeight: "40%", overflowY: "auto", scrollbarWidth: "none" }}>
           {/* Phần hiển thị bạn bè có sinh nhật */}
           {loadingBirthday ? (
             <div style={{ textAlign: "center", padding: "12px" }}>
@@ -287,9 +287,7 @@ const Homepage = () => {
         >
           {localStrings.Public.Friend}
         </span>
-        <div style={{ flex: 1, maxHeight: "50%", overflowY: "auto", scrollbarWidth: "none" }}>
-          {/* Danh sách bạn bè thông thường */}
-          <hr className="border-t-1 border-gray-300 my-3" />
+        <div style={{ maxHeight: "60%", overflowY: "auto", scrollbarWidth: "none" }}>
           {friends.length > 0 ? (
             friends.map((user) => (
               <div key={user.id}>
