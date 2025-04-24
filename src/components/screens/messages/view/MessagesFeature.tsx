@@ -537,68 +537,71 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
           {!message.user?.avatar_url && message.user?.name?.charAt(0)}
         </Avatar>
       )}
-      <div 
-        style={{
-          maxWidth: "70%",
-          padding: "8px 12px",
-          borderRadius: 12,
-          background: isMyMessage ? brandPrimary : lightGray,
-          color: isMyMessage ? "#fff" : "inherit",
-          position: "relative",
-          border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
-        }}
-      >
-        {!isMyMessage && (
-          <div style={{ fontSize: 12, marginBottom: 2, fontWeight: "bold", color: isMyMessage ? "#fff" : "inherit" }}>
-            {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
-          </div>
-        )}
-        
-        <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", color: isMyMessage ? "#fff" : "inherit" }}>
-          {message.content}
-        </div>
-        
-        <div style={{ fontSize: 10, textAlign: "right", marginTop: 4, opacity: 0.7 }}>
-          {message.isTemporary ? (
-            <span style={{ color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit" }}>
-            </span>
-          ) : (
-            <span style={{ 
-              color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end"
-            }}>
-              {formatMessageTime(message.created_at || '')}
-            </span>
-          )}
-        </div>
-      </div>
       
-      {/* Message Options Dropdown (only for the user's own messages) */}
-      {isMyMessage && hovering && !message.isTemporary && (
-        <Dropdown 
-          menu={{ items: menuItems }} 
-          trigger={["click"]}
-          placement="bottomRight"
+      <div style={{ position: "relative" }}>
+        <div 
+          style={{
+            maxWidth: "100%",
+            padding: "8px 12px",
+            borderRadius: 12,
+            background: isMyMessage ? brandPrimary : lightGray,
+            color: isMyMessage ? "#fff" : "inherit",
+            position: "relative",
+            border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
+          }}
         >
-          <div
-            style={{
-              position: "absolute",
-              right: "calc(15% + 3px)", 
-              top: "50%", 
-              transform: "translateY(-50%)",
-              cursor: "pointer",
-              padding: 4,
-              borderRadius: "50%",
-              background: "#f0f0f0",
-              zIndex: 1             
-            }}
-          >
-            <EllipsisOutlined style={{ fontSize: 16 }} />
+          {!isMyMessage && (
+            <div style={{ fontSize: 12, marginBottom: 2, fontWeight: "bold", color: isMyMessage ? "#fff" : "inherit" }}>
+              {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
+            </div>
+          )}
+          
+          <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", color: isMyMessage ? "#fff" : "inherit" }}>
+            {message.content}
           </div>
-        </Dropdown>
-      )}
+          
+          <div style={{ fontSize: 10, textAlign: "right", marginTop: 4, opacity: 0.7 }}>
+            {message.isTemporary ? (
+              <span style={{ color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit" }}>
+              </span>
+            ) : (
+              <span style={{ 
+                color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end"
+              }}>
+                {formatMessageTime(message.created_at || '')}
+              </span>
+            )}
+          </div>
+        </div>
+        
+        {/* Message Options Dropdown - now positioned relative to the message */}
+        {isMyMessage && hovering && !message.isTemporary && (
+          <Dropdown 
+            menu={{ items: menuItems }} 
+            trigger={["click"]}
+            placement="bottomRight"
+          >
+            <div
+              style={{
+                position: "absolute",
+                left: "-28px", // Position it to the right of the message bubble
+                top: "50%", 
+                transform: "translateY(-50%)",
+                cursor: "pointer",
+                padding: 4,
+                borderRadius: "50%",
+                background: "#f0f0f0",
+                zIndex: 1             
+              }}
+            >
+              <EllipsisOutlined style={{ fontSize: 16 }} />
+            </div>
+          </Dropdown>
+        )}
+      </div>
     </div>
   );
 };
