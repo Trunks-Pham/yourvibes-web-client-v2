@@ -1227,9 +1227,9 @@ const MessagesFeature: React.FC = () => {
       message.error("Không thể mở cửa sổ video call. Vui lòng kiểm tra trình chặn popup.");
       if (socketRef.current) {
         socketRef.current.emit('call-declined', {
-          to: incomingCall.from,
+          to: incomingCall?.from,
           from: user?.id,
-          reason: 'Không thể mở cửa sổ video call'
+          reason: 'Người dùng từ chối cuộc gọi'
         });
       }
       setIncomingCall(null);
@@ -2214,7 +2214,7 @@ const MessagesFeature: React.FC = () => {
         }
       });
       
-      socketRef.current.on('disconnect', (reason) => {
+      socketRef.current.on('disconnect', (reason: string) => {
         setSocketInitialized(false);
         
         if (!inCall && reason !== 'io client disconnect') {
@@ -2225,7 +2225,7 @@ const MessagesFeature: React.FC = () => {
         }
       });
       
-      socketRef.current.on('connect_error', (error) => {
+      socketRef.current.on('connect_error', (error: unknown) => {
         console.error('Socket connection error in main window:', error);
       });
       
@@ -2240,12 +2240,12 @@ const MessagesFeature: React.FC = () => {
     
     socketRef.current.off('call-incoming');
     
-    socketRef.current.on('call-incoming', async ({ from, signalData, callType }) => {
+    socketRef.current.on('call-incoming', ({ from, signalData, callType }: SocketCallPayload) => {
       
       if (inCall) {
         socketRef.current.emit('call-declined', {
           to: from,
-          from: user.id,
+          from: user?.id,
           reason: 'Người dùng đang trong một cuộc gọi khác'
         });
         return;
