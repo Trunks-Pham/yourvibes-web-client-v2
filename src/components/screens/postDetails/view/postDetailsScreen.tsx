@@ -108,8 +108,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
       if (!post.error) {
         setPost(post.data);
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error) { 
     } finally {
       setLoading(false);
     }
@@ -195,29 +194,29 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
           >
             {comments.map((comment) => (
               <CommentItem
-  key={comment.id}
-  comment={comment}
-  replyMap={replyMap}
-  heartColors={heartColors}
-  handleLike={handleLike}
-  handleDelete={handleDelete}
-  handleShowEditModal={(commentId, content) => {
-    handleShowEditModal(commentId, content);
-    setEditCommentId(commentId);
-  }}
-  handleReplyClick={handleReplyClick}
-  fetchReplies={fetchReplies}
-  fetchComments={fetchComments}
-  toggleRepliesVisibility={toggleRepliesVisibility}
-  visibleReplies={visibleReplies}
-  setLikedComment={setLikedComment}
-  likedComment={likedComment}
-  reportComment={reportComment}
-  setReplyModalVisible={setReplyModalVisible}
-  setSelectedCommentId={setSelectedCommentId}
-  postId={postId || ""}
-  likeCount={likeCount} // Truyền toàn bộ object likeCount
-/>
+                key={comment.id}
+                comment={comment}
+                replyMap={replyMap}
+                heartColors={heartColors}
+                handleLike={handleLike}
+                handleDelete={handleDelete}
+                handleShowEditModal={(commentId, content) => {
+                  handleShowEditModal(commentId, content);
+                  setEditCommentId(commentId);
+                }}
+                handleReplyClick={handleReplyClick}
+                fetchReplies={fetchReplies}
+                fetchComments={fetchComments}
+                toggleRepliesVisibility={toggleRepliesVisibility}
+                visibleReplies={visibleReplies}
+                setLikedComment={setLikedComment}
+                likedComment={likedComment}
+                reportComment={reportComment}
+                setReplyModalVisible={setReplyModalVisible}
+                setSelectedCommentId={setSelectedCommentId}
+                postId={postId || ""}
+                likeCount={likeCount} // Truyền toàn bộ object likeCount
+              />
             ))}
           </div>
           <div className="add-comment mt-2">

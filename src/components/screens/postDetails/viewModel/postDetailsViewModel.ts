@@ -123,8 +123,6 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
         isLike: newIsLiked,
       });
   
-      console.log("API response:", response); // Log toàn bộ response để kiểm tra
-  
       if (response && response.data) {
         const likeCommentResponse = Array.isArray(response.data) && response.data[0] ? response.data[0] : null;
         if (likeCommentResponse && typeof likeCommentResponse.like_count === "number") {
@@ -134,8 +132,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
           setLikeCount((prev) => ({ ...prev, [commentId]: newLikeCount }));
           setHeartColors((prev) => ({ ...prev, [commentId]: newIsLiked ? "red" : "gray" }));
           setLikedComment({ is_liked: newIsLiked });
-        } else {
-          console.warn("API response missing like_count, using fallback logic", response.data);
+        } else { 
           // Fallback logic
           setLikeCount((prev) => ({
             ...prev,
@@ -145,19 +142,16 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
           setHeartColors((prev) => ({ ...prev, [commentId]: newIsLiked ? "red" : "gray" }));
           setLikedComment({ is_liked: newIsLiked });
         }
-      } else {
-        console.error("Invalid API response:", response);
+      } else { 
         message.error("Failed to like/unlike comment");
       }
-    } catch (error) {
-      console.error("Error liking comment:", error);
+    } catch (error) { 
       message.error("Failed to like/unlike comment");
     }
   };
 
   const handleEditComment = async (commentId: string) => {
-    if (!currentCommentId || !editCommentContent) {
-      console.error("Invalid comment ID or content");
+    if (!currentCommentId || !editCommentContent) { 
       return;
     }
     await handleUpdate(currentCommentId, editCommentContent, commentId);
@@ -226,8 +220,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
           await fetchComments();
           message.success({ content: localStrings.PostDetails.DeleteCommentSusesfully });
         } catch (error) {
-          message.error({ content: localStrings.PostDetails.DeleteCommentFailed });
-          console.error(error);
+          message.error({ content: localStrings.PostDetails.DeleteCommentFailed }); 
         }
       },
     });
@@ -249,8 +242,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
         } else {
           message.error({ content: localStrings.PostDetails.CommentFailed });
         }
-      } catch (error) {
-        console.error("Error adding comment:", error);
+      } catch (error) { 
         message.error({ content: localStrings.PostDetails.CommentFailed });
       } finally {
         setNewComment("");
@@ -282,8 +274,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
         } else {
           message.error({ content: localStrings.PostDetails.ReplyFailed });
         }
-      } catch (error) {
-        console.error("Error adding comment:", error);
+      } catch (error) { 
         message.error({ content: localStrings.PostDetails.ReplyFailed });
       } finally {
         setNewComment("");
