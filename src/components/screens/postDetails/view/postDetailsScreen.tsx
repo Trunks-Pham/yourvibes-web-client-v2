@@ -108,8 +108,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
       if (!post.error) {
         setPost(post.data);
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error) { 
     } finally {
       setLoading(false);
     }
@@ -216,7 +215,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 setReplyModalVisible={setReplyModalVisible}
                 setSelectedCommentId={setSelectedCommentId}
                 postId={postId || ""}
-                likeCount={likeCount[comment.id] || 0}
+                likeCount={likeCount} // Truyền toàn bộ object likeCount
               />
             ))}
           </div>
@@ -291,7 +290,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
               cancelText={localStrings.Public.Cancel}
               okText={localStrings.Public.Reply}
               okButtonProps={{ disabled: !isContentLengthValid(replyContent) }}
-              styles={{ body: { padding: "16px" } }} 
+              styles={{ body: { padding: "16px" } }}
             >
               <div className="relative">
                 <textarea
@@ -392,7 +391,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
             open={showModal}
             onCancel={() => setShowModal(false)}
             footer={null}
-            styles={{ body: { padding: "16px" } }} 
+            styles={{ body: { padding: "16px" } }}
           >
             <ReportScreen commentId={currentCommentId} setShowModal={setShowModal} />
           </Modal>
