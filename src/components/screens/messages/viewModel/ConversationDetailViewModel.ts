@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { message } from "antd";
 
 import { useAuth } from "@/context/auth/useAuth";
@@ -11,19 +11,34 @@ export const useConversationDetailViewModel = () => {
 
   const [existingMembersLoading, setExistingMembersLoading] = useState(false);
   const [conversationMembersMap, setConversationMembersMap] = useState<Record<string, FriendResponseModel[]>>({});
+  const markAsReadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const markConversationAsRead = useCallback(async (conversationId: string) => {
     if (!user?.id || !conversationId) return;
     
-    try {
-      await defaultMessagesRepo.updateConversationDetail({
-        conversation_id: conversationId,
-        user_id: user.id
-      });
-    } catch (error) {
-      console.error("Error marking conversation as read:", error);
+    if (markAsReadTimeoutRef.current) {
+      clearTimeout(markAsReadTimeoutRef.current);
     }
+    
+    markAsReadTimeoutRef.current = setTimeout(async () => {
+      try {
+        await defaultMessagesRepo.updateConversationDetail({
+          conversation_id: conversationId,
+          user_id: user.id
+        });
+      } catch (error) {
+        console.error("Error marking conversation as read:", error);
+      }
+    }, 1000); 
   }, [user?.id]);
+  
+  useEffect(() => {
+    return () => {
+      if (markAsReadTimeoutRef.current) {
+        clearTimeout(markAsReadTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const addConversationMembers = useCallback(async (conversationId: string, userIds: string[]) => {
     if (!user?.id || !conversationId || !userIds.length) return null;
