@@ -65,7 +65,7 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
 
   const renderDropdown = () => {
     const inputRect = inputRef.current?.getBoundingClientRect();
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
 
     const dropdownStyle: React.CSSProperties = {
       position: "fixed",
@@ -152,7 +152,7 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
         width: "100%",
         maxWidth: "600px",
         minWidth: "280px",
-        position: "relative",
+        position: "relative", 
       }}
     >
       <AutoComplete
@@ -162,12 +162,20 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
         size="large"
         dropdownRender={renderDropdown}
         className="w-full"
-        style={{ width: "100%" }}
+        style={{ width: "100%"}}
         popupMatchSelectWidth={false}
       >
         <Input
           placeholder={localStrings.Search.Search}
           aria-label={localStrings.Search.Search}
+          style={{
+
+            borderRadius: 8,
+            backgroundColor: backgroundColor,
+            color: brandPrimary,
+            fontSize: 16,
+            padding: "10px 15px",
+          }}
         />
       </AutoComplete>
     </div>

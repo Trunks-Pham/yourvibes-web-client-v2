@@ -103,7 +103,7 @@ const ProfileHeader = ({
     try { 
       const createConversationData: CreateConversationRequestModel = {
         name: `${currentUser.name} - ${user.name}`,
-        user_ids: [currentUser.id, user.id],
+        user_ids: [currentUser.id],
       };
 
       const createResponse = await defaultMessagesRepo.createConversation(createConversationData);
