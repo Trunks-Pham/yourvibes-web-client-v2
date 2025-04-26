@@ -14,7 +14,6 @@ import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useSearchParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState, useRef  } from 'react';
 import io from 'socket.io-client';
-import { useWebSocket } from '@/context/socket/useSocket';
 
 interface AddMemberModalProps {
   visible: boolean;
@@ -904,43 +903,19 @@ const MessagesFeature: React.FC = () => {
   const [editConversationModalVisible, setEditConversationModalVisible] = useState(false);
   const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
   const [existingMemberIds, setExistingMemberIds] = useState<string[]>([]);
-  const { socketMessages, onlineUsers, updateOnlineStatus  } = useWebSocket();
-  const [localOnlineUsers, setLocalOnlineUsers] = useState<Set<string>>(new Set());
 
   interface SocketCallPayload {
     from: string;
     signalData: any; 
     callType: 'video' | 'audio';
   }
+  
+  interface SocketEndCallPayload {
+    from: string;
+    reason?: string;
+  }
 
   const conversationIdFromUrl = searchParams.get("conversation_id");
-
-  useEffect(() => {
-    if (user?.id) {
-      setLocalOnlineUsers(new Set([user.id]));
-    }
-    
-    if (conversations.length > 0) {
-      setLocalOnlineUsers(prev => {
-        const newSet = new Set(prev);
-        
-        conversations.forEach(conv => {
-          if (conv.id) {
-            const messages = getMessagesForConversation(conv.id);
-            messages.forEach(msg => {
-              if (msg.user_id) newSet.add(msg.user_id);
-            });
-          }
-        });
-        
-        existingMembers.forEach(member => {
-          if (member.id) newSet.add(member.id);
-        });
-        
-        return newSet;
-      });
-    }
-  }, [user?.id, conversations, existingMembers]);
 
   useEffect(() => {
     if (user?.id) {
@@ -2508,15 +2483,14 @@ const MessagesFeature: React.FC = () => {
                         >
                           <List.Item.Meta
                             avatar={
-                              <Badge
-                                dot={Boolean(
-                                  isOneOnOneChat
-                                    ? (otherUser?.id && localOnlineUsers.has(otherUser.id))
-                                    : existingMembers.some(member => member.id && localOnlineUsers.has(member.id))
-                                )}
-                                offset={[-2, 0]}
-                                color="#52c41a"
-                              >
+                              // <Badge 
+                              //   count={unreadMessageCounts[item.id || ''] || 0} 
+                              //   offset={[-5, 5]}
+                              //   size="small"
+                              //   style={{ 
+                              //     display: unreadMessageCounts[item.id || ''] ? 'block' : 'none' 
+                              //   }}
+                              // >
                                 <Avatar
                                   src={avatarUrl}
                                   size={48}
@@ -2526,7 +2500,7 @@ const MessagesFeature: React.FC = () => {
                                 >
                                   {!avatarUrl && avatarInitial}
                                 </Avatar>
-                              </Badge>
+                              // </Badge>
                             }
                             title={<Text strong>{item.name}</Text>}
                             description={
@@ -2621,49 +2595,21 @@ const MessagesFeature: React.FC = () => {
                     : currentConversation.name?.charAt(0).toUpperCase();
 
                   return (
-                    <Badge
-                    dot={Boolean(
-                      isOneOnOneChat
-                        ? (otherUser?.id && localOnlineUsers.has(otherUser.id))
-                        : existingMembers.some(member => member.id && localOnlineUsers.has(member.id))
-                    )}
-                      offset={[-2, 0]}
-                      color="#52c41a"
+                    <Avatar
+                      src={avatarUrl}
+                      size={40}
+                      style={{
+                        backgroundColor: !avatarUrl ? brandPrimary : undefined
+                      }}
                     >
-                      <Avatar
-                        src={avatarUrl}
-                        size={40}
-                        style={{
-                          backgroundColor: !avatarUrl ? brandPrimary : undefined
-                        }}
-                      >
-                        {!avatarUrl && avatarInitial}
-                      </Avatar>
-                    </Badge>
+                      {!avatarUrl && avatarInitial}
+                    </Avatar>
                   );
                 })()}
                 <div style={{ marginLeft: 12 }}>
                   <Text strong style={{ fontSize: 16 }}>
                     {currentConversation.name}
                   </Text>
-                  {(() => {
-                    const conversationMessages = getMessagesForConversation(currentConversation.id || '');
-                    const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
-                    
-                    const isOneOnOneChat = currentConversation.name?.includes(" & ") ||
-                      (actualMessages.some(msg => msg.user_id !== user?.id) &&
-                        new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
-                    
-                    const otherUser = isOneOnOneChat && actualMessages.length > 0
-                      ? actualMessages.find(msg => msg.user_id !== user?.id)?.user
-                      : null;
-                      
-                    return isOneOnOneChat && otherUser && localOnlineUsers.has(otherUser.id || '') && (
-                      <div style={{ fontSize: 12, color: '#52c41a', }}>
-                        {localStrings.Messages.ActiveNow || 'Active now'}
-                      </div>
-                    );
-                  })()}
                 </div>
                 <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
                 {currentConversation && (
