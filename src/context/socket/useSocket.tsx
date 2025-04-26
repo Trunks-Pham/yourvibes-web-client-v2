@@ -13,6 +13,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
     const { user, localStrings } = useAuth();
     const [socketMessages, setSocketMessages] = useState<MessageWebSocketResponseModel[]>([]);
     const processedMessagesRef = useRef<Set<string>>(new Set());
+    const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
     const MAX_CONNECTION_ATTEMPTS = 3;
     const [connectionAttempts, setConnectionAttempts] = useState(0);
@@ -40,6 +41,18 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
             case notificationType.ACTIVACE_COMMENT: return localStrings.Notification.Items.ActivaceCommentContent;
             default: return localStrings.Notification.Notification;
         }
+    };
+
+    const updateOnlineStatus = (userId: string, isOnline: boolean) => {
+        setOnlineUsers(prev => {
+            const newSet = new Set(prev);
+            if (isOnline) {
+                newSet.add(userId);
+            } else {
+                newSet.delete(userId);
+            }
+            return newSet;
+        });
     };
 
     const isMessageProcessed = (message: MessageWebSocketResponseModel): boolean => {
@@ -71,13 +84,23 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         ws.onopen = () => {
             console.log("🔗 WebSocket Message connected");
-            setSocketMessages([]); 
+            setSocketMessages([]);
+            
+            if (user?.id) {
+                updateOnlineStatus(user.id, true);
+            }
         };
 
         ws.onmessage = (e) => {
             try {
                 console.log("📩 WebSocket Message received:", e.data);
                 const message = JSON.parse(e.data);
+                const data = JSON.parse(e.data);
+
+                if (data.type === 'status_update') {
+                    updateOnlineStatus(data.user_id, data.status === 'online');
+                    return;
+                }
                 
                 if (message.id && isMessageProcessed(message)) {
                     return;
@@ -137,6 +160,10 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
         ws.onclose = (e) => {
             console.log("❌ WebSocket Message disconnected:", e.reason, e.code);
             wsMessageRef.current = null;
+            
+            if (user?.id) {
+                updateOnlineStatus(user.id, false);
+            }
             setConnectionAttempts(prevAttempts => {
                 console.log("newAttempts", prevAttempts);
                 
@@ -257,7 +284,9 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
             setSocketMessages, 
             connectSocketMessage, 
             connectSocketNotification, 
-            sendSocketMessage 
+            sendSocketMessage,
+            onlineUsers,
+            updateOnlineStatus,
         }}>
             {children}
         </WebSocketContext.Provider>

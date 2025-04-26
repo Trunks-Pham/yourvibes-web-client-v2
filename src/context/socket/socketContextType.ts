@@ -8,4 +8,6 @@ export interface SocketContextType {
     connectSocketNotification: () => void;
     socketMessages: MessageWebSocketResponseModel[];
     setSocketMessages: (messages: MessageWebSocketResponseModel[]) => void;
+    onlineUsers: Set<string>;
+    updateOnlineStatus: (userId: string, isOnline: boolean) => void;
 }

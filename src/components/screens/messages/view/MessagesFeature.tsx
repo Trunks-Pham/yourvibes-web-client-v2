@@ -14,6 +14,7 @@ import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useSearchParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState, useRef  } from 'react';
 import io from 'socket.io-client';
+import { useWebSocket } from '@/context/socket/useSocket';
 
 interface AddMemberModalProps {
   visible: boolean;
@@ -903,6 +904,7 @@ const MessagesFeature: React.FC = () => {
   const [editConversationModalVisible, setEditConversationModalVisible] = useState(false);
   const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
   const [existingMemberIds, setExistingMemberIds] = useState<string[]>([]);
+  const { socketMessages, onlineUsers } = useWebSocket();
 
   interface SocketCallPayload {
     from: string;
@@ -2483,14 +2485,15 @@ const MessagesFeature: React.FC = () => {
                         >
                           <List.Item.Meta
                             avatar={
-                              // <Badge 
-                              //   count={unreadMessageCounts[item.id || ''] || 0} 
-                              //   offset={[-5, 5]}
-                              //   size="small"
-                              //   style={{ 
-                              //     display: unreadMessageCounts[item.id || ''] ? 'block' : 'none' 
-                              //   }}
-                              // >
+                              <Badge
+                                dot={
+                                  isOneOnOneChat
+                                    ? onlineUsers.has(otherUser?.id || '')
+                                    : existingMembers.some(member => onlineUsers.has(member.id || ''))
+                                }
+                                offset={[-2, 0]}
+                                color="#52c41a"
+                              >
                                 <Avatar
                                   src={avatarUrl}
                                   size={48}
@@ -2500,7 +2503,7 @@ const MessagesFeature: React.FC = () => {
                                 >
                                   {!avatarUrl && avatarInitial}
                                 </Avatar>
-                              // </Badge>
+                              </Badge>
                             }
                             title={<Text strong>{item.name}</Text>}
                             description={
@@ -2595,21 +2598,49 @@ const MessagesFeature: React.FC = () => {
                     : currentConversation.name?.charAt(0).toUpperCase();
 
                   return (
-                    <Avatar
-                      src={avatarUrl}
-                      size={40}
-                      style={{
-                        backgroundColor: !avatarUrl ? brandPrimary : undefined
-                      }}
+                    <Badge
+                      dot={
+                        isOneOnOneChat
+                          ? onlineUsers.has(otherUser?.id || '')
+                          : existingMembers.some(member => onlineUsers.has(member.id || ''))
+                      }
+                      offset={[-2, 0]}
+                      color="#52c41a"
                     >
-                      {!avatarUrl && avatarInitial}
-                    </Avatar>
+                      <Avatar
+                        src={avatarUrl}
+                        size={40}
+                        style={{
+                          backgroundColor: !avatarUrl ? brandPrimary : undefined
+                        }}
+                      >
+                        {!avatarUrl && avatarInitial}
+                      </Avatar>
+                    </Badge>
                   );
                 })()}
                 <div style={{ marginLeft: 12 }}>
                   <Text strong style={{ fontSize: 16 }}>
                     {currentConversation.name}
                   </Text>
+                  {(() => {
+                    const conversationMessages = getMessagesForConversation(currentConversation.id || '');
+                    const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
+                    
+                    const isOneOnOneChat = currentConversation.name?.includes(" & ") ||
+                      (actualMessages.some(msg => msg.user_id !== user?.id) &&
+                        new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
+                    
+                    const otherUser = isOneOnOneChat && actualMessages.length > 0
+                      ? actualMessages.find(msg => msg.user_id !== user?.id)?.user
+                      : null;
+                      
+                    return isOneOnOneChat && otherUser && onlineUsers.has(otherUser.id || '') && (
+                      <div style={{ fontSize: 12, color: '#52c41a' }}>
+                        {localStrings.Messages.ActiveNow || 'Active now'}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
                 {currentConversation && (
