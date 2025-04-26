@@ -156,6 +156,16 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                     <span style={{ marginLeft: 12 }}>
                       {`${friend.family_name || ''} ${friend.name || ''}`}
                     </span>
+                    {/* Thêm biểu thị trạng thái online/offline */}
+                    {friend.active_status && (
+                      <span style={{ 
+                        width: 8, 
+                        height: 8, 
+                        borderRadius: '50%', 
+                        backgroundColor: '#52c41a', 
+                        marginLeft: 8 
+                      }} />
+                    )}
                   </div>
                 </List.Item>
               )}
@@ -664,44 +674,6 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
     }
   };
 
-  const handleImageUpload = (info: any) => {
-    const file = info.file;
-    
-    if (!file) {
-      console.error("Không tìm thấy file:", info);
-      return false;
-    }
-    
-    const isImage = file.type.startsWith('image/');
-    const isLt5M = file.size / 1024 / 1024 < 5;
-    
-    if (!isImage) {
-      message.error(localStrings.Messages.OnlyImageFiles);
-      return false;
-    }
-    
-    if (!isLt5M) {
-      message.error(localStrings.Messages.ImageMustSmallerThan5M);
-      return false;
-    }
-    
-    
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const previewUrl = reader.result as string;
-      setImagePreview(previewUrl);
-    };
-    reader.readAsDataURL(file);
-    
-    setConversationImage(file);
-    return false; 
-  };
-
-  const removeImage = () => {
-    setConversationImage(null);
-    setImagePreview(null);
-  };
-
   const handleCreateConversation = async () => {
     try {
       await form.validateFields();
@@ -903,6 +875,7 @@ const MessagesFeature: React.FC = () => {
   const [editConversationModalVisible, setEditConversationModalVisible] = useState(false);
   const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
   const [existingMemberIds, setExistingMemberIds] = useState<string[]>([]);
+  
 
   interface SocketCallPayload {
     from: string;
@@ -1127,7 +1100,8 @@ const MessagesFeature: React.FC = () => {
             id: member.user?.id,
             name: member.user?.name,
             family_name: member.user?.family_name,
-            avatar_url: member.user?.avatar_url
+            avatar_url: member.user?.avatar_url,
+            active_status: member.user?.active_status || false
           }));
           
           setExistingMembers(memberProfiles as FriendResponseModel[]);
@@ -2483,14 +2457,6 @@ const MessagesFeature: React.FC = () => {
                         >
                           <List.Item.Meta
                             avatar={
-                              // <Badge 
-                              //   count={unreadMessageCounts[item.id || ''] || 0} 
-                              //   offset={[-5, 5]}
-                              //   size="small"
-                              //   style={{ 
-                              //     display: unreadMessageCounts[item.id || ''] ? 'block' : 'none' 
-                              //   }}
-                              // >
                                 <Avatar
                                   src={avatarUrl}
                                   size={48}
@@ -2498,9 +2464,9 @@ const MessagesFeature: React.FC = () => {
                                     backgroundColor: !avatarUrl ? brandPrimary : undefined
                                   }}
                                 >
+                                  
                                   {!avatarUrl && avatarInitial}
                                 </Avatar>
-                              // </Badge>
                             }
                             title={<Text strong>{item.name}</Text>}
                             description={

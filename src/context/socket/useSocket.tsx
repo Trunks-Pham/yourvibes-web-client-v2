@@ -258,7 +258,6 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
             connectSocketMessage, 
             connectSocketNotification, 
             sendSocketMessage,
-            
         }}>
             {children}
         </WebSocketContext.Provider>
