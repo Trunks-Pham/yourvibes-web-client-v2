@@ -159,20 +159,20 @@ export const useMessagesViewModel = () => {
     return sendMessage();
   }, [currentConversation?.id, sendMessage]);
 
-  const handleLoadMoreMessages = useCallback(() => {
-    if (!currentConversation?.id) return;
-    return loadMoreMessages();
-  }, [currentConversation?.id, loadMoreMessages]);
+const handleLoadMoreMessages = useCallback(() => {
+  if (!currentConversation?.id) return;
+  return loadMoreMessages();
+}, [currentConversation?.id, loadMoreMessages]);
 
-  const handleScrollMessages = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    if (!currentConversation?.id) return;
-    
-    handleScroll(e);
-    
-    if (!messagesLoading) {
-      markConversationAsRead(currentConversation.id);
-    }
-  }, [currentConversation?.id, handleScroll, messagesLoading, markConversationAsRead]);
+const handleScrollMessages = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+  if (!currentConversation?.id) return;
+  
+  handleScroll(e);
+  
+  if (!messagesLoading) {
+    markConversationAsRead(currentConversation.id);
+  }
+}, [currentConversation?.id, handleScroll, messagesLoading, markConversationAsRead]);
 
 useEffect(() => {
   return () => {
@@ -181,16 +181,6 @@ useEffect(() => {
     setExistingMemberIds([]);
   };
 }, []);
-
-useEffect(() => {
-  if (conversations.length > 0) {
-    conversations.forEach(async (conversation) => {
-      if (conversation.id) {
-        await fetchExistingMembers(conversation.id);
-      }
-    });
-  }
-}, [conversations, fetchExistingMembers]);
 
 return {
   // State
