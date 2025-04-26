@@ -2659,7 +2659,7 @@ const MessagesFeature: React.FC = () => {
                       : null;
                       
                     return isOneOnOneChat && otherUser && localOnlineUsers.has(otherUser.id || '') && (
-                      <div style={{ fontSize: 12, color: '#52c41a' }}>
+                      <div style={{ fontSize: 12, color: '#52c41a', }}>
                         {localStrings.Messages.ActiveNow || 'Active now'}
                       </div>
                     );
