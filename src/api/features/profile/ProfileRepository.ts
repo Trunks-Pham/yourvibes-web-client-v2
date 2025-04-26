@@ -16,7 +16,7 @@ interface IProfileRepo {
   acceptFriendRequest(userId: string): Promise<BaseApiResponseModel<any>>;
   refuseFriendRequest(userId: string): Promise<BaseApiResponseModel<any>>;
   unfriend(userId: string): Promise<BaseApiResponseModel<any>>;
-  getListFriends(data: GetFriendRequestModel): Promise<BaseApiResponseModel<FriendResponseModel>>; 
+  getListFriends(data: GetFriendRequestModel): Promise<BaseApiResponseModel<FriendResponseModel[]>>; 
   changePassword(data: ChangePasswordRequestModel): Promise<BaseApiResponseModel<any>>; 
   getListFriendsRequest(data: GetFriendRequestModel): Promise<BaseApiResponseModel<FriendResponseModel>>; 
 }
@@ -44,7 +44,7 @@ export class ProfileRepo implements IProfileRepo {
   async unfriend(userId: string): Promise<BaseApiResponseModel<any>> {
     return client.delete(ApiPath.UNFRIEND + userId);
   }
-  async getListFriends(data: GetFriendRequestModel): Promise<BaseApiResponseModel<FriendResponseModel>> {
+  async getListFriends(data: GetFriendRequestModel): Promise<BaseApiResponseModel<FriendResponseModel[]>> {
     return client.get(ApiPath.LIST_FRIENDS + data.user_id, data);
   } 
   async changePassword(data: ChangePasswordRequestModel): Promise<BaseApiResponseModel<any>> {

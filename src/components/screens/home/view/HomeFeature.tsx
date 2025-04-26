@@ -8,7 +8,7 @@ import { defaultNewFeedRepo } from "@/api/features/newFeed/NewFeedRepo";
 import { defaultFriendRepo } from "@/api/features/friends/FriendRepo";
 import { useAuth } from "@/context/auth/useAuth";
 import { useRouter } from "next/navigation";
-import { Avatar, Empty, Modal, Spin } from "antd";
+import { Avatar, Empty, Modal, Skeleton, Spin } from "antd";
 import AddPostScreen from "../../addPost/view/AddPostScreen";
 import ProfileViewModel from "../../profile/viewModel/ProfileViewModel";
 import { LoadingOutlined } from "@ant-design/icons";
@@ -17,10 +17,10 @@ import FriendSuggestions from "@/components/common/Suggestions/friendSuggestions
 import dayjs from "dayjs";
 import EditPostViewModel from "@/components/features/editpost/viewModel/EditPostViewModel";
 import { defaultPostRepo } from "@/api/features/post/PostRepo";
-import { PostResponseModel } from '@/api/features/post/models/PostResponseModel';
+import { PostResponseModel } from "@/api/features/post/models/PostResponseModel";
 
 const Homepage = () => {
-  const { brandPrimary, backgroundColor, lightGray, pink } = useColor();
+  const { brandPrimary, backgroundColor, lightGray, pink, colorOnl } = useColor();
   const {
     loading,
     newFeeds,
@@ -36,12 +36,13 @@ const Homepage = () => {
   const { user, localStrings } = useAuth();
   const router = useRouter();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const { friends, fetchMyFriends, page } = ProfileViewModel();
+  const { friends, fetchMyFriends, page, loadMoreFriends, hasMoreFriends  } = ProfileViewModel();
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [posts, setPosts] = useState<PostResponseModel[]>([]);
   const { deletePost } = EditPostViewModel(defaultPostRepo, user?.id || "", "");
+  console.log("friends", friends);
 
   useEffect(() => {
     if (user) {
@@ -148,7 +149,7 @@ const Homepage = () => {
           marginInline: "10px",
           position: "fixed",
           width: "300px",
-          maxHeight: "650px",
+          maxHeight: "100vh",
           overflowY: "auto",
           padding: "16px",
           display: "flex",
@@ -165,7 +166,13 @@ const Homepage = () => {
         >
           {localStrings.Public.Birtday}
         </span>
-        <div style={{ flex: 1, maxHeight: "50%", overflowY: "auto", scrollbarWidth: "none" }}>
+        <div
+          style={{
+            maxHeight: "40%",
+            overflowY: "auto",
+            scrollbarWidth: "none",
+          }}
+        >
           {/* Phần hiển thị bạn bè có sinh nhật */}
           {loadingBirthday ? (
             <div style={{ textAlign: "center", padding: "12px" }}>
@@ -180,17 +187,15 @@ const Homepage = () => {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      padding: "12px",
+                      padding: "8px 12px",
                       margin: "6px 0 10px 0",
                       cursor: "pointer",
                       borderRadius: "10px",
                       backgroundColor: "#ffffff",
                       transition: "all 0.3s ease",
-                      background:
-                        "linear-gradient(135deg, #e6f0ff 0%, #fff1f5 100%)",
                       animation: "fadeIn 0.5s ease-in-out",
-                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
-
+                      boxShadow:
+                        "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
                     }}
                     onClick={() => router.push(`/user/${friend.id}`)}
                     onMouseEnter={(e) => {
@@ -209,7 +214,7 @@ const Homepage = () => {
                       alt={friend.name}
                       size={44}
                       style={{
-                        border: `2px solid ${pink || "#FF6699"}`,
+                        border: `3px solid ${pink || "#FF6699"}`,
                         boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
                       }}
                     />
@@ -287,11 +292,20 @@ const Homepage = () => {
         >
           {localStrings.Public.Friend}
         </span>
-        <div style={{ flex: 1, maxHeight: "50%", overflowY: "auto", scrollbarWidth: "none" }}>
-          {/* Danh sách bạn bè thông thường */}
-          <hr className="border-t-1 border-gray-300 my-3" />
+        <div
+          style={{
+            maxHeight: "60%",
+            overflowY: "auto",
+            scrollbarWidth: "none",
+          }}
+        >
           {friends.length > 0 ? (
-            friends.map((user) => (
+            <InfiniteScroll
+            dataLength={friends.length}
+            next={loadMoreFriends}
+            hasMore={hasMoreFriends}
+            loader={ <Skeleton avatar paragraph={{ rows: 4 }} />}>
+              {     friends.map((user) => (
               <div key={user.id}>
                 <div
                   style={{
@@ -300,29 +314,48 @@ const Homepage = () => {
                     cursor: "pointer",
                     transition: "background-color 0.3s ease",
                     backgroundColor: "white",
-                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
+                    boxShadow:
+                      "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
                     borderRadius: 10,
                     marginBottom: 8,
                     padding: "12px",
                   }}
                   onClick={() => router.push(`/user/${user?.id}`)}
                   onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor =
-                    "rgba(0, 0, 0, 0.03)")
+                    (e.currentTarget.style.backgroundColor =
+                      "rgba(0, 0, 0, 0.03)")
                   }
                   onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
+                    (e.currentTarget.style.backgroundColor = "white")
                   }
                 >
-                  <Avatar
-                    src={user.avatar_url}
-                    alt={user.name}
-                    size={36}
-                    style={{
-                      boxShadow:
-                        "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
-                    }}
-                  />
+                  <div
+                    style={{ position: "relative", display: "inline-block" }}
+                  >
+                    <Avatar
+                      src={user.avatar_url}
+                      alt={user.name}
+                      size={40}
+                      style={{
+                        boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
+                      }}
+                    />
+                    {user.active_status && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          bottom: 0,
+                          right: 0,
+                          width: 12,
+                          height: 12,
+                          backgroundColor: colorOnl || "#00CED1",
+                          border: "2px solid white", 
+                          borderRadius: "50%",
+                        }}
+                      />
+                    )}
+                  </div>
+
                   <span
                     style={{
                       marginLeft: 12,
@@ -335,7 +368,9 @@ const Homepage = () => {
                   </span>
                 </div>
               </div>
-            ))
+            ))}
+              
+            </InfiniteScroll>
           ) : (
             <div
               style={{
@@ -435,8 +470,11 @@ const Homepage = () => {
                       key={item?.id}
                       style={{ width: "100%", maxWidth: "600px" }}
                     >
-                      <Post post={item} onDeleteNewFeed={handleDeleteNewFeed}
-                        onDeletePost={deletePost}>
+                      <Post
+                        post={item}
+                        onDeleteNewFeed={handleDeleteNewFeed}
+                        onDeletePost={deletePost}
+                      >
                         {item?.parent_post && (
                           <Post post={item?.parent_post} isParentPost />
                         )}

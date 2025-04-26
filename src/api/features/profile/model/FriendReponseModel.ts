@@ -4,4 +4,5 @@ export interface FriendResponseModel {
   name?: string;
   avatar_url?: string;
   data?: string;
+  active_status?: boolean;
 }

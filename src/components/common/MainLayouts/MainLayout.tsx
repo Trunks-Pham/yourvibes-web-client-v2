@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { use, useEffect, useRef, useState } from "react";
 import { Layout, Menu, Grid, ConfigProvider, Modal, Avatar, Button } from "antd";
 import { createElement } from "react";
 import {
@@ -34,7 +34,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [settingModal, setSettingModal] = useState(false);
   const [notificationModal, setNotificationModal] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [logoutModal, setLogoutModal] = useState(false);  
+  const [logoutModal, setLogoutModal] = useState(false); 
+  const siderRef = useRef<HTMLDivElement>(null); 
 
   const content = {
     nav: [
@@ -121,6 +122,23 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     { label: `${localStrings.Public.Trending}`, link: "/trending" },
   ];
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        siderRef.current &&
+        !siderRef.current.contains(event.target as Node) &&
+        collapsed === false
+      ) {
+        setCollapsed(true); // đóng sider nếu đang mở và click ra ngoài
+      }
+    }
+  
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [collapsed]);
+
   return (
     <Layout>
       <ConfigProvider
@@ -143,6 +161,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         }}
       >
         <Sider
+  ref={screens.lg ? null : siderRef}
           trigger={null}
           collapsedWidth={0}
           width={250}
@@ -153,7 +172,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             overflow: "auto",
             height: "100vh",
             position: "fixed",
-            // zIndex: 100,
+            zIndex: 100,
             insetInlineStart: 0,
             top: 0,
             bottom: 0,
@@ -400,6 +419,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             </span>
           }
           bodyStyle={{ maxHeight: "70vh", overflow: "auto" }}
+          style={{maxHeight: "70vh", overflowY: "scroll", scrollbarWidth: "none", msOverflowStyle: "none"}}
         >
           <NotificationScreen
             setNotificationModal={setNotificationModal}

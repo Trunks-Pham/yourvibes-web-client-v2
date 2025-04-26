@@ -11,6 +11,10 @@ const ProfileViewModel = () => {
   const [posts, setPosts] = useState<PostResponseModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [loadingFriends, setLoadingFriends] = useState(false);
+  const [pageFriend, setPageFriend] = useState(1);
+  const [totalFriends, setTotalFriends] = useState(0);
+  const [hasMoreFriends, setHasMoreFriends] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -65,33 +69,44 @@ const ProfileViewModel = () => {
 
   const fetchMyFriends = async (page: number) => {
     try {
+      setLoadingFriends(true);
       const response = await defaultProfileRepo.getListFriends({
         page: page,
         limit: 10,
         user_id: user?.id,
       });
-      if (response?.data) {
-        if (Array.isArray(response?.data)) {
-          const friends = response?.data.map(
-            (friendResponse: FriendResponseModel) => ({
-              id: friendResponse.id,
-              family_name: friendResponse.family_name,
-              name: friendResponse.name,
-              avatar_url: friendResponse.avatar_url,
-            })
-          ) as FriendResponseModel[];
-          setFriends(friends);
-          setFriendCount(friends.length); //Đếm số lượng bạn bè
-          return friends;
-        } 
-    else{
-      console.error("response.data is null");
-      setFriends([]);
-    }}
+      if (!response?.error) {
+        
+        if (page === 1) {
+          setFriends(response?.data);
+        } else {
+          setFriends((prevFriends) => [...prevFriends, ...response?.data]);
+        }
+        const {
+          page: currentPage,
+          limit: currentLimit,
+          total: totalRecords,
+        } = response?.paging;
+
+        setTotalFriends(totalRecords);
+        setPageFriend(currentPage);
+        setHasMoreFriends(currentPage * currentLimit < totalRecords);
+      }
+      
     return friends;
   }
   catch (error: any) {
     console.error(error);
+  }finally {
+    setLoadingFriends(false);
+  }
+}
+
+const loadMoreFriends = () => {
+  
+  if (!loadingFriends && hasMoreFriends) {
+    setPageFriend((prevPage) => prevPage + 1);
+    fetchMyFriends(pageFriend + 1);
   }
 }
 
@@ -132,6 +147,8 @@ const fetchUserProfile = async (id: string) => {
     profileLoading,
     setProfileLoading,
     setPosts,
+    hasMoreFriends,
+    loadMoreFriends
   };
 };
 
