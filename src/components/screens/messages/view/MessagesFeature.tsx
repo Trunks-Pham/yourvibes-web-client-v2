@@ -875,7 +875,7 @@ const MessagesFeature: React.FC = () => {
   const [editConversationModalVisible, setEditConversationModalVisible] = useState(false);
   const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
   const [existingMemberIds, setExistingMemberIds] = useState<string[]>([]);
-  
+  const conversationIdFromUrl = searchParams.get("conversation_id");
 
   interface SocketCallPayload {
     from: string;
@@ -888,7 +888,15 @@ const MessagesFeature: React.FC = () => {
     reason?: string;
   }
 
-  const conversationIdFromUrl = searchParams.get("conversation_id");
+  const handleStatusUpdate = (userId: string, active_status: boolean) => {
+    setExistingMembers((prev) =>
+      prev.map((member) =>
+        member.id === userId ? { ...member, active_status } : member
+      )
+    );
+
+    fetchConversations(); 
+  };
 
   useEffect(() => {
     if (user?.id) {
