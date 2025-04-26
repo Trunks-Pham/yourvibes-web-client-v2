@@ -497,6 +497,7 @@ export const VnLocalizedStrings = {
     IsCallingYou: "Đang gọi bạn",
     Decline: "Từ chối",
     Accept: "Chấp nhận",
+    Active: "Đang hoạt động",
   },
   People: {
     FetchUsersFailed: "Tải danh sách người dùng thất bại",

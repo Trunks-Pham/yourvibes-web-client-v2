@@ -502,6 +502,7 @@ export const ENGLocalizedStrings = {
     IsCallingYou: "Is Calling You",
     Decline: "Decline",
     Accept: "Accept",
+    Active: "Active",
   },
   People: {
     FetchUsersFailed: "Failed to fetch users!",

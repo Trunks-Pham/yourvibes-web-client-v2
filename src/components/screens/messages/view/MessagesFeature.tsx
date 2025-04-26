@@ -889,13 +889,54 @@ const MessagesFeature: React.FC = () => {
   }
 
   const handleStatusUpdate = (userId: string, active_status: boolean) => {
+    // Cập nhật trong danh sách thành viên
     setExistingMembers((prev) =>
       prev.map((member) =>
         member.id === userId ? { ...member, active_status } : member
       )
     );
-
-    fetchConversations(); 
+  
+    // Cập nhật trong danh sách cuộc trò chuyện
+    const updatedConversations = conversations.map(conv => {
+      const conversationMessages = getMessagesForConversation(conv.id || '');
+      const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
+      
+      const isOneOnOneChat = conv.name?.includes(" & ") ||
+        (actualMessages.some(msg => msg.user_id !== user?.id) &&
+          new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
+      
+      // Nếu là chat 1-1 và người dùng trong cuộc trò chuyện có userId trùng với userId đang cập nhật
+      if (isOneOnOneChat) {
+        const otherUserMessage = actualMessages.find(msg => msg.user_id === userId);
+        if (otherUserMessage) {
+          return { ...conv, active_status };
+        }
+      }
+      
+      return conv;
+    });
+    
+    // Cập nhật current conversation nếu cần
+    if (currentConversation) {
+      const conversationMessages = getMessagesForConversation(currentConversation.id || '');
+      const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
+      
+      const isOneOnOneChat = currentConversation.name?.includes(" & ") ||
+        (actualMessages.some(msg => msg.user_id !== user?.id) &&
+          new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
+      
+      if (isOneOnOneChat) {
+        const otherUserMessage = actualMessages.find(msg => msg.user_id === userId);
+        if (otherUserMessage) {
+          setCurrentConversation({
+            ...currentConversation,
+            active_status
+          });
+        }
+      }
+    }
+    
+    fetchConversations();
   };
 
   useEffect(() => {
@@ -2401,6 +2442,9 @@ const MessagesFeature: React.FC = () => {
                   <List
                     dataSource={filteredConversations}
                     renderItem={(item) => {
+
+                      const isOnline = item.active_status;
+
                       const conversationMessages = getMessagesForConversation(item.id || '');
 
                       const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
@@ -2465,6 +2509,7 @@ const MessagesFeature: React.FC = () => {
                         >
                           <List.Item.Meta
                             avatar={
+                              <div style={{ position: 'relative' }}>
                                 <Avatar
                                   src={avatarUrl}
                                   size={48}
@@ -2472,9 +2517,21 @@ const MessagesFeature: React.FC = () => {
                                     backgroundColor: !avatarUrl ? brandPrimary : undefined
                                   }}
                                 >
-                                  
                                   {!avatarUrl && avatarInitial}
                                 </Avatar>
+                                {isOnline && (
+                                  <span style={{
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    right: 0,
+                                    width: 12,
+                                    height: 12,
+                                    borderRadius: '50%',
+                                    backgroundColor: '#52c41a',
+                                    border: '2px solid white'
+                                  }} />
+                                )}
+                              </div>
                             }
                             title={<Text strong>{item.name}</Text>}
                             description={
@@ -2495,16 +2552,6 @@ const MessagesFeature: React.FC = () => {
                                 {lastMessageTime}
                               </Text>
                               
-                              {/* {unreadMessageCounts[item.id || ''] > 0 && (
-                                // <Badge
-                                //   count={unreadMessageCounts[item.id || '']}
-                                //   size="small"
-                                //   style={{ 
-                                //     marginTop: 4,
-                                //     backgroundColor: brandPrimary 
-                                //   }}
-                                // />
-                              )} */}
                             </div>
                           )}
                         </List.Item>
@@ -2580,10 +2627,29 @@ const MessagesFeature: React.FC = () => {
                     </Avatar>
                   );
                 })()}
-                <div style={{ marginLeft: 12 }}>
-                  <Text strong style={{ fontSize: 16 }}>
+                <div style={{ marginLeft: 12, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Text strong style={{ fontSize: 16, marginBottom: 2 }}>
                     {currentConversation.name}
                   </Text>
+                  {currentConversation.active_status && (
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      fontSize: 12, 
+                      color: '#52c41a',
+                      lineHeight: '1'
+                    }}>
+                      <span style={{
+                        display: 'inline-block',
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        backgroundColor: '#52c41a',
+                        marginRight: 4
+                      }} />
+                      <span>{localStrings.Messages.Active}</span>
+                    </div>
+                  )}
                 </div>
                 <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
                 {currentConversation && (
