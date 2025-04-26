@@ -16,7 +16,7 @@ import dayjs from "dayjs";
 import { DateTransfer } from "@/utils/helper/DateTransfer";
 
 const TrendingScreen = () => {
-  const { brandPrimary, pink } = useColor();
+  const { brandPrimary, pink, colorOnl } = useColor();
   const { localStrings, user } = useAuth();
   const router = useRouter();
   const {
@@ -231,18 +231,33 @@ const TrendingScreen = () => {
                       "rgba(0, 0, 0, 0.03)")
                   }
                   onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
+                    (e.currentTarget.style.backgroundColor = "white")
                   }
                 >
-                  <Avatar
-                    src={user.avatar_url}
-                    alt={user.name}
-                    size={36}
-                    style={{
-                      boxShadow:
-                        "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
-                    }}
-                  />
+              <div style={{ position: "relative", display: "inline-block" }}>
+               <Avatar
+                 src={user.avatar_url}
+                 alt={user.name}
+                 size={36}
+                 style={{
+                   boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
+                 }}
+               />
+               {user.active_status && (
+                 <span
+                   style={{
+                     position: "absolute",
+                     bottom: 0,
+                     right: 0,
+                     width: 12,
+                     height: 12,
+                     backgroundColor: colorOnl || "#00CED1",
+                     border: "2px solid white", // để tạo viền trắng giống Messenger
+                     borderRadius: "50%",
+                   }}
+                 />
+               )}
+             </div>
                   <span
                     style={{
                       marginLeft: 12,

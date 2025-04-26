@@ -49,7 +49,7 @@ const AboutTab = ({
   setPosts: React.Dispatch<React.SetStateAction<PostResponseModel[]>>;
 }) => {
   const router = useRouter();
-  const { brandPrimaryTap, backgroundColor } = useColor();
+  const { brandPrimaryTap, backgroundColor, colorOnl } = useColor();
   const { isLoginUser, localStrings } = useAuth();
   const [showObject, setShowObject] = useState(false);
   const [showFriend, setShowFriend] = useState(false);
@@ -210,12 +210,30 @@ const AboutTab = ({
                        className="mb-2 mx-1 flex flex-col items-center text-center"
                        onClick={() => router.push(`/user/${friend?.id}`)}
                      >
-                       <Avatar
-                         src={friend?.avatar_url}
-                         alt={`${friend?.family_name} ${friend?.name}`}
-                         shape="circle"
-                         size={50}
-                       />
+                       <div style={{ position: "relative", display: "inline-block" }}>
+                        <Avatar
+                          src={friend.avatar_url}
+                          alt={friend.name}
+                          size={50}
+                          style={{
+                            boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
+                          }}
+                        />
+                        {friend.active_status && (
+                          <span
+                            style={{
+                              position: "absolute",
+                              bottom: 0,
+                              right: 0,
+                              width: 12,
+                              height: 12,
+                              backgroundColor: colorOnl || "#00CED1",
+                              border: "2px solid white", // để tạo viền trắng giống Messenger
+                              borderRadius: "50%",
+                            }}
+                          />
+                        )}
+                      </div>
                        <div
                          className="mt-2 truncate w-full"
                          style={{ whiteSpace: "nowrap" }}
