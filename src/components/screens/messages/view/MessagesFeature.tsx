@@ -888,56 +888,52 @@ const MessagesFeature: React.FC = () => {
     reason?: string;
   }
 
-  const handleStatusUpdate = (userId: string, active_status: boolean) => {
-    // Cập nhật trong danh sách thành viên
-    setExistingMembers((prev) =>
-      prev.map((member) =>
-        member.id === userId ? { ...member, active_status } : member
-      )
-    );
+  // const handleStatusUpdate = (userId: string, active_status: boolean) => {
+  //   setExistingMembers((prev) =>
+  //     prev.map((member) =>
+  //       member.id === userId ? { ...member, active_status } : member
+  //     )
+  //   );
   
-    // Cập nhật trong danh sách cuộc trò chuyện
-    const updatedConversations = conversations.map(conv => {
-      const conversationMessages = getMessagesForConversation(conv.id || '');
-      const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
+  //   const updatedConversations = conversations.map(conv => {
+  //     const conversationMessages = getMessagesForConversation(conv.id || '');
+  //     const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
       
-      const isOneOnOneChat = conv.name?.includes(" & ") ||
-        (actualMessages.some(msg => msg.user_id !== user?.id) &&
-          new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
+  //     const isOneOnOneChat = conv.name?.includes(" & ") ||
+  //       (actualMessages.some(msg => msg.user_id !== user?.id) &&
+  //         new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
       
-      // Nếu là chat 1-1 và người dùng trong cuộc trò chuyện có userId trùng với userId đang cập nhật
-      if (isOneOnOneChat) {
-        const otherUserMessage = actualMessages.find(msg => msg.user_id === userId);
-        if (otherUserMessage) {
-          return { ...conv, active_status };
-        }
-      }
+  //     if (isOneOnOneChat) {
+  //       const otherUserMessage = actualMessages.find(msg => msg.user_id === userId);
+  //       if (otherUserMessage) {
+  //         return { ...conv, active_status };
+  //       }
+  //     }
       
-      return conv;
-    });
+  //     return conv;
+  //   });
     
-    // Cập nhật current conversation nếu cần
-    if (currentConversation) {
-      const conversationMessages = getMessagesForConversation(currentConversation.id || '');
-      const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
+  //   if (currentConversation) {
+  //     const conversationMessages = getMessagesForConversation(currentConversation.id || '');
+  //     const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
       
-      const isOneOnOneChat = currentConversation.name?.includes(" & ") ||
-        (actualMessages.some(msg => msg.user_id !== user?.id) &&
-          new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
+  //     const isOneOnOneChat = currentConversation.name?.includes(" & ") ||
+  //       (actualMessages.some(msg => msg.user_id !== user?.id) &&
+  //         new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
       
-      if (isOneOnOneChat) {
-        const otherUserMessage = actualMessages.find(msg => msg.user_id === userId);
-        if (otherUserMessage) {
-          setCurrentConversation({
-            ...currentConversation,
-            active_status
-          });
-        }
-      }
-    }
+  //     if (isOneOnOneChat) {
+  //       const otherUserMessage = actualMessages.find(msg => msg.user_id === userId);
+  //       if (otherUserMessage) {
+  //         setCurrentConversation({
+  //           ...currentConversation,
+  //           active_status
+  //         });
+  //       }
+  //     }
+  //   }
     
-    fetchConversations();
-  };
+  //   fetchConversations();
+  // };
 
   useEffect(() => {
     if (user?.id) {
