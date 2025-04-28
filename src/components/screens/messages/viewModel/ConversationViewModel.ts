@@ -135,7 +135,6 @@ export const useConversationViewModel = () => {
       if (createResponse.data) {
         const newConversation = createResponse.data;
         
-        // Cập nhật UI
         addNewConversation(newConversation);
         await fetchConversations();
         
