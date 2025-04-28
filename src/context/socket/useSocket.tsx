@@ -161,7 +161,7 @@ export const WebSocketProvider: React.FC<{
 
         const newAttempts = prevAttempts + 1;
         if (newAttempts < MAX_CONNECTION_ATTEMPTS) {
-          setTimeout(() => connectSocketMessage(), 5000);
+          setTimeout(() => connectSocketMessage(), 100);
         }
         return newAttempts;
       });
