@@ -9,6 +9,7 @@ import {
   Avatar,
   Button,
   Col,
+  ConfigProvider,
   Dropdown,
   Image,
   MenuProps,
@@ -43,7 +44,7 @@ const ProfileHeader = ({
   friendCount: number;
   fetchUserProfile: (id: string) => void;
 }) => {
-  const { lightGray, brandPrimary, backgroundColor } = useColor();
+  const { lightGray, brandPrimary, backgroundColor, brandPrimaryTap} = useColor();
   const { localStrings, language, isLoginUser, user: currentUser } = useAuth();
   const router = useRouter();
   const { showModal, setShowModal } = ReportViewModel();
@@ -346,14 +347,14 @@ const ProfileHeader = ({
               </Col>
               <Col xs={24} md={14} xl={16} className="md:mt-[60px] mt-0 pl-4">
                 <div className="md:text-left text-center mt-2">
-                  <text className="text-lg font-bold">
+                  <text className="text-lg font-bold" style={{ color: brandPrimary }}>
                     {`${user?.family_name} ${user?.name}` ||
                       localStrings.Public.Username}
                   </text>
-                  <p className="text-gray-500 mt-1 md:text-left text-center">
+                  <p className="mt-1 md:text-left text-center" style={{ color: brandPrimaryTap }}>
                     {user?.biography || localStrings.Public.Biography}
                   </p>
-                  <div className="flex md:justify-start justify-center mt-2">
+                  <div className="flex md:justify-start justify-center mt-2" style={{ color: brandPrimary }}>
                     <text className="font-bold md:text-left text-center">
                       {total || user?.post_count} {localStrings.Public.Post}
                       {language === "en" &&
@@ -373,19 +374,20 @@ const ProfileHeader = ({
           </Col>
           {/* User Information */}
           <Col xs={24} md={6} className="md:mt-[60px] mt-0 pt-2 flex items-end">
-            <div className="w-full flex justify-center md:justify-end flex-row">
+            <div className="w-full flex justify-center md:justify-end flex-row gap-2">
               {/* Friend Button */}
               {!isLoginUser(user?.id as string) ? (
                 <>
-                  <span className="mr-4">{renderFriendButton()}</span>
+                  {renderFriendButton()}
 
+              <ConfigProvider theme={{ token: { colorPrimary: brandPrimary } }}>
                   {/* Message Button */}
                   <Button
-                    type="default"
+                    type="primary"
+                    ghost
                     onClick={handleMessageClick}
                     icon={<MessageOutlined />}
                     loading={isLoadingMessage}
-                    style={{ marginRight: 8, border: "1px solid #ccc" }}
                   >
                     <span className="font-bold text-base">
                       {localStrings.Public.Message || "Message"}
@@ -402,8 +404,10 @@ const ProfileHeader = ({
                       {localStrings.Public.ReportFriend}
                     </span>
                   </Button>
+                  </ConfigProvider>
                 </>
               ) : (
+                <ConfigProvider theme={{ token: { colorPrimary: brandPrimary } }}>
                 <Button
                   type="primary"
                   ghost
@@ -413,6 +417,7 @@ const ProfileHeader = ({
                     {localStrings.Public.EditProfile}
                   </span>
                 </Button>
+                </ConfigProvider>
               )}
             </div>
           </Col>

@@ -20,7 +20,7 @@ import { defaultPostRepo } from "@/api/features/post/PostRepo";
 import { PostResponseModel } from "@/api/features/post/models/PostResponseModel";
 
 const Homepage = () => {
-  const { brandPrimary, backgroundColor, lightGray, pink, colorOnl } = useColor();
+  const { brandPrimary, backgroundColor, lightGray, borderBirth, colorOnl, brandPrimaryTap} = useColor();
   const {
     loading,
     newFeeds,
@@ -42,7 +42,6 @@ const Homepage = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [posts, setPosts] = useState<PostResponseModel[]>([]);
   const { deletePost } = EditPostViewModel(defaultPostRepo, user?.id || "", "");
-  console.log("friends", friends);
 
   useEffect(() => {
     if (user) {
@@ -88,12 +87,10 @@ const Homepage = () => {
             size={{ xs: 40, sm: 40, md: 50, lg: 50, xl: 50, xxl: 50 }}
           />
           <div style={{ marginLeft: "10px", flex: 1 }}>
-            <p>
-              <b>
+              <b style={{color: brandPrimary}}>
                 {user?.family_name + " " + user?.name ||
                   localStrings.Public.Username}
               </b>
-            </p>
             <p style={{ color: "gray" }}>{localStrings.Public.Today}</p>
           </div>
           <span
@@ -191,7 +188,7 @@ const Homepage = () => {
                       margin: "6px 0 10px 0",
                       cursor: "pointer",
                       borderRadius: "10px",
-                      backgroundColor: "#ffffff",
+                      backgroundColor: backgroundColor,
                       transition: "all 0.3s ease",
                       animation: "fadeIn 0.5s ease-in-out",
                       boxShadow:
@@ -214,7 +211,7 @@ const Homepage = () => {
                       alt={friend.name}
                       size={44}
                       style={{
-                        border: `3px solid ${pink || "#FF6699"}`,
+                        border: `3px solid ${borderBirth || "#FF6699"}`,
                         boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
                       }}
                     />
@@ -223,7 +220,8 @@ const Homepage = () => {
                         style={{
                           fontWeight: "600",
                           fontSize: 15,
-                          color: "#1f2937",
+                          // color: "#1f2937",
+                          color: brandPrimary,
                           display: "block",
                         }}
                       >
@@ -233,7 +231,8 @@ const Homepage = () => {
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          color: "#4b5563",
+                          // color: "#4b5563",
+                          color: brandPrimaryTap,
                           fontSize: 13,
                           fontWeight: "500",
                           marginTop: 4,
@@ -271,10 +270,10 @@ const Homepage = () => {
             <div
               style={{
                 fontSize: 13,
-                color: "#6b7280",
+                // color: "#6b7280",
                 padding: "12px",
                 textAlign: "center",
-                backgroundColor: "#ffffff",
+                backgroundColor: backgroundColor,
                 borderRadius: "8px",
               }}
             >
@@ -313,12 +312,13 @@ const Homepage = () => {
                     alignItems: "center",
                     cursor: "pointer",
                     transition: "background-color 0.3s ease",
-                    backgroundColor: "white",
+                    backgroundColor: backgroundColor,
                     boxShadow:
                       "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
                     borderRadius: 10,
                     marginBottom: 8,
                     padding: "12px",
+                    color: brandPrimary,
                   }}
                   onClick={() => router.push(`/user/${user?.id}`)}
                   onMouseEnter={(e) =>
@@ -361,7 +361,7 @@ const Homepage = () => {
                       marginLeft: 12,
                       fontWeight: "600",
                       fontSize: 14,
-                      color: "#1f2937",
+                      // color: "#1f2937",
                     }}
                   >
                     {user.family_name + " " + user.name}
@@ -375,7 +375,7 @@ const Homepage = () => {
             <div
               style={{
                 textAlign: "center",
-                color: "#6b7280",
+                // color: "#6b7280",
                 fontSize: 12,
                 padding: "12px",
               }}

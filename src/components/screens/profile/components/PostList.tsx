@@ -20,7 +20,7 @@ const PostList = ({ loading, posts, loadMorePosts, user, fetchUserPosts, hasMore
   hasMore: boolean; // Biến để kiểm tra có còn dữ liệu hay không
   setPosts: React.Dispatch<React.SetStateAction<PostResponseModel[]>>;
 }) => {
-  const { backgroundColor, lightGray } = useColor();
+  const { backgroundColor, lightGray, brandPrimary } = useColor();
   const { isLoginUser, localStrings } = useAuth();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const {deletePost} = EditPostViewModel(defaultPostRepo, user?.id || "", "");
@@ -58,7 +58,7 @@ const PostList = ({ loading, posts, loadMorePosts, user, fetchUserPosts, hasMore
             alt="User Avatar"
             size={{ xs: 40, sm: 40, md: 50, lg: 50, xl: 50, xxl: 50 }}
           />
-          <div style={{ marginLeft: "10px", flex: 1 }}>
+          <div style={{ marginLeft: "10px", flex: 1, color: brandPrimary }}>
             <p>
               {user?.family_name + " " + user?.name ||
                 localStrings.Public.Username}
