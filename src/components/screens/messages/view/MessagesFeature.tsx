@@ -890,51 +890,20 @@ const MessagesFeature: React.FC = () => {
 
   useEffect(() => {
     if (user?.id) {
-      const socketUrl = process.env.NEXT_PUBLIC_VIDEO_CHAT_SERVER || 'http://localhost:5000';
+      const socketUrl = process.env.NEXT_PUBLIC_VIDEO_CHAT_SERVER;
       socketRef.current = io(socketUrl);
-      initializeSocket();
       
       socketRef.current.emit('register', user.id);
       
-      socketRef.current.on('call-incoming', async ({ from, signalData, callType }: SocketCallPayload) => {
-        if (callType === 'video') {
-          try {
-            let fromUser: FriendResponseModel | undefined;
-            
-            if (conversations.length > 0) {
-              for (const conv of conversations) {
-                if (!conv.id) continue;
-                
-                const messages = getMessagesForConversation(conv.id);
-                const fromMessage = messages.find(m => m.user_id === from && !m.isDateSeparator);
-                
-                if (fromMessage && fromMessage.user) {
-                  fromUser = {
-                    id: fromMessage.user.id,
-                    name: fromMessage.user.name,
-                    family_name: fromMessage.user.family_name,
-                    avatar_url: fromMessage.user.avatar_url
-                  } as FriendResponseModel;
-                  break;
-                }
-              }
-            }
-            
-            setIncomingCall({
-              from,
-              signalData,
-              fromUser
-            });
-          } catch (error) {
-            console.error('Error handling incoming call:', error);
-            setIncomingCall({
-              from,
-              signalData
-            });
-          }
+      socketRef.current.on('call-ended', ({ from }: SocketEndCallPayload) => {
+        console.log('Call ended by caller:', from);
+        if (incomingCall && incomingCall.from === from) {
+          console.log('Closing incoming call modal for caller:', from);
+          setIncomingCall(null);
         }
       });
       
+      initializeSocket();
       
       return () => {
         if (socketRef.current) {
@@ -943,7 +912,7 @@ const MessagesFeature: React.FC = () => {
         }
       };
     }
-  }, [user?.id]);
+  }, [user?.id, incomingCall]);
 
   useEffect(() => {
     fetchConversations();
@@ -1166,6 +1135,51 @@ const MessagesFeature: React.FC = () => {
         }
       }
     });
+  };
+
+  const findUserById = async (userId: string): Promise<FriendResponseModel | undefined> => {
+    // Trước tiên kiểm tra thông tin người dùng trong các cuộc trò chuyện
+    if (conversations.length > 0) {
+      for (const conv of conversations) {
+        if (!conv.id) continue;
+        
+        const messages = getMessagesForConversation(conv.id);
+        const fromMessage = messages.find(m => m.user_id === userId && !m.isDateSeparator);
+        
+        if (fromMessage && fromMessage.user) {
+          return {
+            id: fromMessage.user.id,
+            name: fromMessage.user.name,
+            family_name: fromMessage.user.family_name,
+            avatar_url: fromMessage.user.avatar_url
+          } as FriendResponseModel;
+        }
+      }
+    }
+    
+    // Nếu không tìm thấy trong cuộc trò chuyện, kiểm tra danh sách bạn bè
+    try {
+      if (user?.id) {
+        const response = await defaultProfileRepo.getListFriends({
+          user_id: user.id,
+          limit: 50,
+          page: 1
+        });
+        
+        if (response.data) {
+          const friends = response.data as FriendResponseModel[];
+          const friend = friends.find(f => f.id === userId);
+          
+          if (friend) {
+            return friend;
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching friends for caller ID:", error);
+    }
+    
+    return undefined;
   };
 
   const handleVideoCall = (conversation: ConversationResponseModel) => {
@@ -2171,11 +2185,11 @@ const MessagesFeature: React.FC = () => {
     try {
       const socketUrl = process.env.NEXT_PUBLIC_VIDEO_CHAT_SERVER ;
       socketRef.current = io(socketUrl, {
+        autoConnect: true,
         reconnection: true,
         reconnectionAttempts: 3, 
         reconnectionDelay: 1000,
         timeout: 10000,  
-        autoConnect: true
       });
       
       socketRef.current.on('connect', () => {
@@ -2215,9 +2229,10 @@ const MessagesFeature: React.FC = () => {
     if (!socketRef.current) return;
     
     socketRef.current.off('call-incoming');
+    socketRef.current.off('call-ended'); 
     
     socketRef.current.on('call-incoming', ({ from, signalData, callType }: SocketCallPayload) => {
-      
+      // Logic hiện tại được giữ nguyên
       if (inCall) {
         socketRef.current.emit('call-declined', {
           to: from,
@@ -2228,31 +2243,12 @@ const MessagesFeature: React.FC = () => {
       }
       
       try {
-        let fromUser: FriendResponseModel | undefined;
-        
-        if (conversations.length > 0) {
-          for (const conv of conversations) {
-            if (!conv.id) continue;
-            
-            const messages = getMessagesForConversation(conv.id);
-            const fromMessage = messages.find(m => m.user_id === from && !m.isDateSeparator);
-            
-            if (fromMessage && fromMessage.user) {
-              fromUser = {
-                id: fromMessage.user.id,
-                name: fromMessage.user.name,
-                family_name: fromMessage.user.family_name,
-                avatar_url: fromMessage.user.avatar_url
-              } as FriendResponseModel;
-              break;
-            }
-          }
-        }
-        
-        setIncomingCall({
-          from,
-          signalData,
-          fromUser
+        findUserById(from).then(fromUser => {
+          setIncomingCall({
+            from,
+            signalData,
+            fromUser
+          });
         });
       } catch (error) {
         console.error('Error handling incoming call:', error);
@@ -2260,6 +2256,15 @@ const MessagesFeature: React.FC = () => {
           from,
           signalData
         });
+      }
+    });
+    
+    // Thêm mới: Xử lý khi người gọi kết thúc cuộc gọi trước khi người nhận trả lời
+    socketRef.current.on('call-ended', ({ from }: SocketEndCallPayload) => {
+      // Kiểm tra nếu đang có cuộc gọi đến từ người gọi này
+      if (incomingCall && incomingCall.from === from) {
+        // Đóng cửa sổ thông báo cuộc gọi đến
+        setIncomingCall(null);
       }
     });
   };

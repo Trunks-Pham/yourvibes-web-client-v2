@@ -43,4 +43,5 @@ export interface ConversationDetailResponseModel {
     }
     last_mess_status?: boolean,
     last_mess?: string,
+    conversation_role?: number,
 }
