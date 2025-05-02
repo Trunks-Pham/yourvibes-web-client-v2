@@ -49,7 +49,7 @@ const AboutTab = ({
   setPosts: React.Dispatch<React.SetStateAction<PostResponseModel[]>>;
 }) => {
   const router = useRouter();
-  const { brandPrimaryTap, backgroundColor, colorOnl } = useColor();
+  const { brandPrimaryTap, backgroundColor, colorOnl, brandPrimary, borderColor } = useColor();
   const { isLoginUser, localStrings } = useAuth();
   const [showObject, setShowObject] = useState(false);
   const [showFriend, setShowFriend] = useState(false);
@@ -94,14 +94,14 @@ const AboutTab = ({
           <Skeleton active />
         ) : (
               <div
-                className="w-full mx-auto max-w-[600px] flex flex-col px-5 border rounded-md "
-                style={{ backgroundColor: backgroundColor }}
+                className="w-full mx-auto max-w-[600px] flex flex-col px-5 rounded-md "
+                style={{ backgroundColor: backgroundColor, border: `1px solid ${borderColor} ` }}
               >
                 {/* // detail */}
-                <div className="py-2">
+                <div className="py-2" style={{ color: brandPrimary }}>
                   <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="font-bold text-lg">
+                    <div className="flex justify-between mb-2" >
+                      <span className="font-bold text-lg" >
                         {localStrings.Public.Detail}
                       </span>
                       {isLoginUser(user?.id as string) && (
@@ -129,7 +129,7 @@ const AboutTab = ({
                     {resultCode === CustomStatusCode.Success ? (
                       <div>
                         {/* // email */}
-                        <div className="flex flex-row mb-2">
+                        <div className="flex flex-row mb-2" >
                           <MailFilled />
                           <span className="ml-2">
                             {localStrings.Public.Mail}:{""}{" "}
@@ -185,10 +185,10 @@ const AboutTab = ({
                 <div className="py-2 flex-1">
                   <div className="flex mb-2">
                     <div className="flex flex-col flex-1">
-                      <span className="font-bold text-lg">
+                      <span className="font-bold text-lg" style={{ color: brandPrimary }}>
                         {localStrings.Public.Friend}
                       </span>
-                      <span className="text-gray-500">
+                      <span className="text-sm" style={{ color: brandPrimary }}>
                         {/* {user?.friend_count}  */}
                         {friendCount}
                         <span className="ml-1">{localStrings.Public.Friend}</span>
@@ -208,6 +208,7 @@ const AboutTab = ({
                        <div
                        key={index}
                        className="mb-2 mx-1 flex flex-col items-center text-center"
+                       style={{ color: brandPrimary }}
                        onClick={() => router.push(`/user/${friend?.id}`)}
                      >
                        <div style={{ position: "relative", display: "inline-block" }}>
@@ -246,6 +247,9 @@ const AboutTab = ({
                   <div
                     className="flex justify-center cursor-pointer"
                     onClick={() => setShowFriend(true)}
+                    style={{
+                      color: brandPrimaryTap,
+                    }}
                   >
                     {localStrings.Public.FriendView}
                   </div>

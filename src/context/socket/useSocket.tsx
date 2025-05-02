@@ -162,7 +162,6 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         ws.onopen = () => {
             console.log("🔗 WebSocket Notification connected");
-            setConnectionAttemptsNotification(0); 
         };
 
         ws.onmessage = (e) => {

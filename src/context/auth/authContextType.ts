@@ -1,6 +1,7 @@
 import { VnLocalizedStrings } from "@/utils/localizedStrings/vietnam";
 import { ENGLocalizedStrings } from "@/utils/localizedStrings/english";
 import { UserModel } from "../../api/features/authenticate/model/LoginModel";
+import { Dispatch, SetStateAction } from "react";
 
 export interface AuthContextType {
   onLogin: (user: any) => void;
@@ -13,4 +14,6 @@ export interface AuthContextType {
   user: UserModel | null;
   isAuthenticated: boolean;
   isLoginUser: (userId: string) => boolean;
+  theme?: "light" | "dark";
+  changeTheme?: (theme: "light" | "dark") => void;
 }

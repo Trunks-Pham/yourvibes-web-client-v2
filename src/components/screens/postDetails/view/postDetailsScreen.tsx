@@ -26,8 +26,6 @@ interface CommentsScreenProps {
   postId?: string;
   isModal?: boolean;
 }
-
-const { brandPrimaryTap } = useColor();
 const { Text } = Typography;
 
 const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) => {
@@ -62,7 +60,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
     likedComment,
     setNewComment,
   } = PostDetailsViewModel(postId || "", defaultPostRepo);
-
+const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
   const [post, setPost] = useState<PostResponseModel | null>(null);
   const [loading, setLoading] = useState(false);
   const { localStrings } = useAuth();
@@ -172,20 +170,26 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
     <div className="p-2.5">
       {isModal === false && (
         <div className="mb-2 flex items-center">
-          <Button icon={<FaArrowLeft />} type="text" onClick={() => router.back()} />
-          <Text strong style={{ fontSize: "18px", marginLeft: "10px" }}>
+          <FaArrowLeft
+            style={{
+              fontSize: "20px",
+              color: brandPrimary,
+              cursor: "pointer",
+              marginRight: "10px",
+            }}
+            onClick={() => router.back()}
+          />
+          <Text style={{ fontSize: "18px", marginLeft: "10px", color: brandPrimary }}>
             {localStrings.Public.Post}
           </Text>
         </div>
       )}
       <div className="container mx-auto flex flex-col xl:flex-row gap-6">
-        <div className="post-container flex-1 bg-white p-6 rounded-lg shadow-md">
           <Post noComment={true} post={post || undefined}>
             {post?.parent_post && <Post post={post?.parent_post} isParentPost />}
           </Post>
-        </div>
-        <div className="comments-container flex-1 bg-white p-6 rounded-lg shadow-md">
-          <span className="text-lg font-semibold text-gray-800">
+        <div className="mt-[15px] comments-container flex-1 p-6 rounded-lg shadow-md"style={{ backgroundColor: backgroundColor }}>
+          <span className="text-lg font-semibold" style={{ color: brandPrimary }}>
             {localStrings.Public.Comment}
           </span>
           <div
@@ -261,8 +265,9 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
             )}
             <button
               onClick={handlePostAction}
-              className="post-btn mt-4 w-full bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-800"
+              className="post-btn mt-4 w-full py-2 rounded-lg hover:bg-gray-200 transition duration-300"
               disabled={!isContentLengthValid(newComment)}
+              style={{backgroundColor: brandPrimary, color: backgroundColor}}
             >
               {localStrings.Public.Comment ||
                 (replyToCommentId || replyToReplyId ? "Reply" : "Post")}

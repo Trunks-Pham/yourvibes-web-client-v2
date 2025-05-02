@@ -4,7 +4,6 @@ import { Metadata } from "next";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "./globals.css";
 import { ConfigProvider } from "antd";
-import useColor from "@/hooks/useColor";
 import { WebSocketProvider } from "@/context/socket/useSocket";
 
 
@@ -18,13 +17,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { brandPrimary } = useColor();
+  // const { brandPrimary } = useColor();
   return (
     <html lang="en">
       <AntdRegistry>
         <ConfigProvider
           theme={{
-            token: { colorPrimary: brandPrimary },
+            token: { colorPrimary: "#000000" },
             components: {
               Select: {
                 optionSelectedColor: "#fff",
