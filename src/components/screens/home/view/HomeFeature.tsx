@@ -100,7 +100,7 @@ const Homepage = () => {
               fontSize: "24px",
               fontWeight: "bold",
               color: brandPrimary || "#1890ff",
-              backgroundColor: "rgba(255, 255, 255, 0.9)",
+              backgroundColor: backgroundColor,
               padding: "5px",
               borderRadius: "50%",
               display: "flex",
