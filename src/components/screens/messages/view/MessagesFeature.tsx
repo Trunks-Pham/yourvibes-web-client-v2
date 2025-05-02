@@ -888,53 +888,6 @@ const MessagesFeature: React.FC = () => {
     reason?: string;
   }
 
-  // const handleStatusUpdate = (userId: string, active_status: boolean) => {
-  //   setExistingMembers((prev) =>
-  //     prev.map((member) =>
-  //       member.id === userId ? { ...member, active_status } : member
-  //     )
-  //   );
-  
-  //   const updatedConversations = conversations.map(conv => {
-  //     const conversationMessages = getMessagesForConversation(conv.id || '');
-  //     const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
-      
-  //     const isOneOnOneChat = conv.name?.includes(" & ") ||
-  //       (actualMessages.some(msg => msg.user_id !== user?.id) &&
-  //         new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
-      
-  //     if (isOneOnOneChat) {
-  //       const otherUserMessage = actualMessages.find(msg => msg.user_id === userId);
-  //       if (otherUserMessage) {
-  //         return { ...conv, active_status };
-  //       }
-  //     }
-      
-  //     return conv;
-  //   });
-    
-  //   if (currentConversation) {
-  //     const conversationMessages = getMessagesForConversation(currentConversation.id || '');
-  //     const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
-      
-  //     const isOneOnOneChat = currentConversation.name?.includes(" & ") ||
-  //       (actualMessages.some(msg => msg.user_id !== user?.id) &&
-  //         new Set(actualMessages.map(msg => msg.user_id)).size <= 2);
-      
-  //     if (isOneOnOneChat) {
-  //       const otherUserMessage = actualMessages.find(msg => msg.user_id === userId);
-  //       if (otherUserMessage) {
-  //         setCurrentConversation({
-  //           ...currentConversation,
-  //           active_status
-  //         });
-  //       }
-  //     }
-  //   }
-    
-  //   fetchConversations();
-  // };
-
   useEffect(() => {
     if (user?.id) {
       const socketUrl = process.env.NEXT_PUBLIC_VIDEO_CHAT_SERVER || 'http://localhost:5000';
@@ -2216,7 +2169,7 @@ const MessagesFeature: React.FC = () => {
     }
     
     try {
-      const socketUrl = process.env.NEXT_PUBLIC_VIDEO_CHAT_SERVER || 'http://localhost:5000';
+      const socketUrl = process.env.NEXT_PUBLIC_VIDEO_CHAT_SERVER ;
       socketRef.current = io(socketUrl, {
         reconnection: true,
         reconnectionAttempts: 3, 
