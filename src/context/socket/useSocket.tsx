@@ -178,10 +178,9 @@ export const WebSocketProvider: React.FC<{
     const ws = new WebSocket(`${ApiPath.GET_WS_PATH_NOTIFICATION}${user.id}`);
     wsNotificationRef.current = ws;
 
-    ws.onopen = () => {
-      console.log("🔗 WebSocket Notification connected");
-      setConnectionAttemptsNotification(0);
-    };
+        ws.onopen = () => {
+            console.log("🔗 WebSocket Notification connected");
+        };
 
     ws.onmessage = (e) => {
       try {

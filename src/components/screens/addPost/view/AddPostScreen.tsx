@@ -9,6 +9,7 @@ import {
   Spin,
   Image,
   Select,
+  ConfigProvider,
 } from "antd";
 import {
   LoadingOutlined,
@@ -21,6 +22,7 @@ import AddPostViewModel from "../viewModel/AddpostViewModel";
 import { defaultPostRepo } from "@/api/features/post/PostRepo";
 import { Privacy } from "@/api/baseApiResponseModel/baseApiResponseModel";
 import { useEffect } from "react";
+import useColor from "@/hooks/useColor";
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -35,6 +37,7 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
   const { user, localStrings } = useAuth();
   const savedPost = usePostContext();
   const router = useRouter();
+  const {backgroundColor, brandPrimary, brandPrimaryTap} = useColor();
   const viewModel = AddPostViewModel(defaultPostRepo);
   const pathname = usePathname();
   const whiteSpinner = <LoadingOutlined style={{ fontSize: 24, color: "white" }} />;
@@ -97,13 +100,26 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
             {user?.family_name + " " + user?.name ||
               localStrings.Public.UnknownUser}
           </Text>
-          <Form.Item>
-            <TextArea
-              placeholder={localStrings.AddPost.WhatDoYouThink}
-              autoSize={{ minRows: 3, maxRows: 5 }}
-              value={viewModel.postContent}
-              onChange={(e) => viewModel.setPostContent(e.target.value)}
-            />
+          <Form.Item style={{ marginTop: "5px", marginBottom: 0 }}>
+          <>
+  <style>
+    {`
+      textarea.ant-input::placeholder {
+        color: gray;
+      }
+    `}
+  </style>
+
+  <TextArea
+    placeholder={localStrings.AddPost.WhatDoYouThink}
+    autoSize={{ minRows: 3, maxRows: 5 }}
+    value={viewModel.postContent}
+    onChange={(e) => viewModel.setPostContent(e.target.value)}
+    style={{
+      backgroundColor: backgroundColor,
+    }}
+  />
+</>
             <Text type={currentCharCount > 10000 ? "danger" : "secondary"} style={{ float: "right" }}>
               {currentCharCount}/{localStrings.Post.CharacterLimit}
             </Text>
@@ -144,21 +160,36 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
         }}
       >
         <Text>{localStrings.AddPost.PrivacyText}: </Text>
-        <Select
-          value={viewModel.privacy}
-          onChange={(value) => viewModel.setPrivacy(value)}
-          style={{ width: 120, marginLeft: "10px" }}
-        >
-          <Select.Option value={Privacy.PUBLIC}>
-            {localStrings.Public.Everyone}
-          </Select.Option>
-          <Select.Option value={Privacy.FRIEND_ONLY}>
-            {localStrings.Public.Friend}
-          </Select.Option>
-          <Select.Option value={Privacy.PRIVATE}>
-            {localStrings.Public.Private}
-          </Select.Option>
-        </Select>
+        <ConfigProvider
+  theme={{
+    token: {
+      colorBgContainer: backgroundColor,     // màu nền của Select
+      colorText: brandPrimary,               // màu chữ
+      colorPrimary: brandPrimary,            // màu khi focus / hover
+      colorBgElevated: backgroundColor, // Nền của dropdown    
+    },
+  }}
+>
+<Select
+  value={viewModel.privacy}
+  onChange={(value) => viewModel.setPrivacy(value)}
+  style={{
+    width: 120,
+    marginLeft: "10px",  
+  }}
+  dropdownStyle={{
+    backgroundColor: backgroundColor, // nền dropdown
+    color: brandPrimary,              // chữ dropdown
+  }}
+  options={[
+    { label: localStrings.Public.Everyone, value: Privacy.PUBLIC },
+    { label: localStrings.Public.Friend, value: Privacy.FRIEND_ONLY },
+    { label: localStrings.Public.Private, value: Privacy.PRIVATE },
+  ]}
+/>
+
+
+</ConfigProvider>
 
         <Button
           style={{ marginLeft: "auto" }}

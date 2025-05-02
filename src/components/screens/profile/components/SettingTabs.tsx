@@ -7,9 +7,10 @@ import ChangePassword from '../../changePassword/views/changePassword';
 
 const SettingsTab = ({ setSettingModal }: { setSettingModal: React.Dispatch<React.SetStateAction<boolean>> }) => {
   const router = useRouter();
-  const { onLogout, changeLanguage, language, localStrings } = useAuth();
+  const { onLogout, changeLanguage, language, localStrings, theme, changeTheme } = useAuth();
   const [showLogout, setShowLogout] = useState(false);
   const [showLanguage, setShowLanguage] = useState(false);
+  const [showTheme, setShowTheme] = useState(false);
 
   const [showChangePassword, setShowChangePassword] = useState(false);
 
@@ -30,6 +31,14 @@ const SettingsTab = ({ setSettingModal }: { setSettingModal: React.Dispatch<Reac
   const showLanguageOptions = () => {
     setShowLanguage(true);
   };
+
+  const handleThemeChange = () => {
+    setShowTheme(false);
+  }
+  const showThemeOptions = () => {
+    setShowTheme(true);
+  };
+
 
   const handleProfileEdit = () => {
     setSettingModal(false);
@@ -83,6 +92,28 @@ const SettingsTab = ({ setSettingModal }: { setSettingModal: React.Dispatch<Reac
             <Space direction="vertical">
               <Radio value="en">{localStrings.Public.English}</Radio>
               <Radio value="vi">{localStrings.Public.Vietnamese}</Radio>
+            </Space>
+          </Radio.Group>
+        </div>
+      </Modal>
+      <Button
+        className="w-full text-brandPrimary border-none"
+        onClick={showThemeOptions}
+      >
+        {localStrings.Public.Theme}
+      </Button>
+      {/* //modal language  */}
+      <Modal centered title={localStrings.Public.Theme} open={showTheme} onCancel={handleThemeChange} width="250px" footer={[
+        <Button key="cancel" onClick={handleThemeChange}>
+          {localStrings.Public.Close}
+        </Button>,
+      ]}
+      >
+        <div className="space-y-2">
+          <Radio.Group value={theme} onChange={(e) => changeTheme?.(e.target.value)}>
+            <Space direction="vertical">
+              <Radio value="light">{localStrings.Public.LightMode}</Radio>
+              <Radio value="dark">{localStrings.Public.DarkMode}</Radio>
             </Space>
           </Radio.Group>
         </div>

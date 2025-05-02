@@ -1,3 +1,5 @@
+import { Theme } from "emoji-picker-react";
+
 export const ENGLocalizedStrings = {
   Public: {
     All: "All",
@@ -91,6 +93,9 @@ export const ENGLocalizedStrings = {
     ConfirmLogoutMessage: "Are you sure you want to log out?",
     ConfirmLogout: "Confirm Logout",
     Logout: "Logout",
+    Theme: "Theme",
+    DarkMode: "Dark Mode",
+    LightMode: "Light Mode",
   },
 
   Suggested: {

@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { Modal, Spin, Button } from "antd";
+import { Modal, Spin, Button, ConfigProvider } from "antd";
 import { defaultPostRepo, PostRepo } from "@/api/features/post/PostRepo";
 import { AdvertisePostResponseModel } from "@/api/features/post/models/AdvertisePostModel";
 import { useAuth } from "@/context/auth/useAuth";
@@ -22,6 +22,7 @@ import useAdsManagement from "../viewModel/adsManagementViewModel";
 import PostList from "../../profile/components/PostList";
 import { CurrencyFormat } from "@/utils/helper/CurrencyFormat";
 import { GetUsersPostsRequestModel } from "@/api/features/post/models/GetUsersPostsModel";
+import useColor from "@/hooks/useColor";
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -59,6 +60,7 @@ interface MappedAd extends AdvertisePostResponseModel {
 
 const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => void; post?: any }) => {
   const { localStrings } = useAuth();
+  const {backgroundColor, brandPrimary} = useColor();
 
   const chartData = ad;
   const data = {
@@ -115,10 +117,10 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
     ad.bill?.status === true ? localStrings.Ads.PaymentSuccess : localStrings.Ads.PaymentFailed;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-end items-center z-100 pr-12" onClick={onClose}>
       <div
-        className="bg-white p-6 rounded-xl shadow-2xl relative overflow-hidden"
-        style={{ width: "1000px", maxHeight: "1000px" }}
+        className="p-6 rounded-xl shadow-2xl relative overflow-hidden"
+        style={{ width: "1100px", maxHeight: "1000px", backgroundColor: backgroundColor, color: brandPrimary }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -260,6 +262,7 @@ const AdsManagementFeature = () => {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const { localStrings, user } = useAuth();
   const repo: PostRepo = defaultPostRepo;
+  const { backgroundColor, brandPrimary, darkSlate } = useColor();
 
   const debouncedSetSearchTerm = useMemo(
     () => debounce((value: string) => setSearchTerm(value), 300),
@@ -411,16 +414,17 @@ const AdsManagementFeature = () => {
               return (
                 <div
                   key={postId}
-                  className="group p-6 rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 cursor-pointer hover:border-blue-300"
+                  className="group p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 cursor-pointer hover:border-blue-300"
+                  style={{backgroundColor: backgroundColor}}
                 >
                   <div
                     className="w-full max-w-full flex justify-center items-center rounded-lg overflow-hidden bg-gray-50"
                     style={{ height: "180px" }}
                   >
                     {post && (post.is_advertisement === 1 || post.is_advertisement === 2) ? (
-                      <div className="w-full h-full flex flex-col justify-between p-2">
+                      <div className="w-full h-full flex flex-col justify-between p-2" style={{ backgroundColor: backgroundColor, color: brandPrimary }}>
                         {post.content && (
-                          <h3 className="text-sm font-semibold text-gray-800 line-clamp-2">{post.content}</h3>
+                          <h3 className="text-sm font-semibold line-clamp-2">{post.content}</h3>
                         )}
                         {post.media &&
                           post.media.length > 0 &&
@@ -449,7 +453,7 @@ const AdsManagementFeature = () => {
                   </div>
 
                   <div className="mt-3 space-y-2">
-                    <div className="mt-2 text-xs text-gray-700 space-y-1">
+                    <div className="mt-2 text-xs space-y-1" style={{color: brandPrimary}}>
                       {firstAd?.start_date && (
                         <p>
                           <span className="font-semibold">{localStrings.Ads.StartDay}:</span>{" "}
@@ -498,7 +502,9 @@ const AdsManagementFeature = () => {
       {selectedAd && selectedAd.post_id && (
         <AdDetailsModal ad={selectedAd} onClose={closeModal} post={postDetails[selectedAd.post_id]} />
       )}
-
+  <ConfigProvider theme={{ token: {
+   colorText: brandPrimary
+  }, components: { Modal: { contentBg: backgroundColor, headerBg: backgroundColor, titleColor: brandPrimary } } }}>
       <Modal
         title={`${localStrings.Ads.HistoryforPost}: ${
           selectedPostId && postDetails[selectedPostId]?.content
@@ -516,7 +522,7 @@ const AdsManagementFeature = () => {
             groupedAds[selectedPostId].map((ad) => (
               <div
                 key={ad.id}
-                className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                className="p-3 border rounded-lg  hover:border-blue-300 cursor-pointer"
                 onClick={() => openModal(ad)}
               >
                 <p>
@@ -536,6 +542,7 @@ const AdsManagementFeature = () => {
           )}
         </div>
       </Modal>
+      </ConfigProvider>
     </div>
   );
 };
