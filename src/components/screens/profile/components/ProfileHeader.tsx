@@ -156,6 +156,7 @@ const ProfileHeader = ({
             onClick={() => {
               sendFriendRequest(user?.id as string);
             }}
+            style={{backgroundColor: backgroundColor}}
           >
             <div className="flex flex-row items-center">
               <FaUserPlus name="user-plus" size={16} color={brandPrimary} />
@@ -175,16 +176,14 @@ const ProfileHeader = ({
       case FriendStatus.IsFriend:
         return (
           <Dropdown menu={{ items: itemsFriend }} placement="bottom" arrow>
-            <Button type="primary">
-              <div className="flex flex-row items-center">
+            <Button type="primary" style={{backgroundColor: brandPrimary}}>
+              <div className="flex flex-row items-center" style={{ color: backgroundColor}}>
                 <FaUserCheck
                   name="user-check"
                   size={16}
-                  color={backgroundColor}
                 />
                 <text
                   style={{
-                    color: backgroundColor,
                     fontSize: 16,
                     fontWeight: "bold",
                     marginLeft: 5,
@@ -274,7 +273,7 @@ const ProfileHeader = ({
           </Button>
         );
     }
-  }, [newFriendStatus, localStrings, sendRequestLoading]);
+  }, [newFriendStatus, localStrings, sendRequestLoading, brandPrimary, backgroundColor]);
 
   useEffect(() => {
     if (user) setNewFriendStatus(user?.friend_status);
@@ -383,13 +382,13 @@ const ProfileHeader = ({
               <ConfigProvider theme={{ token: { colorPrimary: brandPrimary } }}>
                   {/* Message Button */}
                   <Button
-                    type="primary"
-                    ghost
+                    type="default"
                     onClick={handleMessageClick}
-                    icon={<MessageOutlined />}
+                    icon={<MessageOutlined style={{color: brandPrimary}} />}
                     loading={isLoadingMessage}
+                    style={{backgroundColor: backgroundColor}}
                   >
-                    <span className="font-bold text-base">
+                    <span className="font-bold text-base" style={{ color: brandPrimary }}>
                       {localStrings.Public.Message || "Message"}
                     </span>
                   </Button>

@@ -16,7 +16,7 @@ import dayjs from "dayjs";
 import { DateTransfer } from "@/utils/helper/DateTransfer";
 
 const TrendingScreen = () => {
-  const { brandPrimary, pink, colorOnl } = useColor();
+  const { brandPrimary, borderBirth, colorOnl, backgroundColor, brandPrimaryTap } = useColor();
   const { localStrings, user } = useAuth();
   const router = useRouter();
   const {
@@ -53,16 +53,15 @@ const TrendingScreen = () => {
           marginInline: "10px",
           position: "fixed",
           width: "300px",
-          maxHeight: "650px",
+          maxHeight: "100vh",
           overflowY: "auto",
           padding: "16px",
-          display: "flex",
-          flexDirection: "column",
+          scrollbarWidth: "none",
         }}
       >
         <span
           style={{
-            fontWeight: "700",
+            fontWeight: "750",
             fontSize: 16,
             color: brandPrimary || "#1890ff",
             letterSpacing: "0.5px",
@@ -72,10 +71,9 @@ const TrendingScreen = () => {
         </span>
         <div
           style={{
-            flex: 1,
-            maxHeight: "50%",
             overflowY: "auto",
             scrollbarWidth: "none",
+            maxHeight: "calc(100vh - 200px)",
           }}
         >
           {/* Phần hiển thị bạn bè có sinh nhật */}
@@ -92,17 +90,15 @@ const TrendingScreen = () => {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      padding: "12px",
-                      margin: "6px 0",
+                      padding: "8px 12px",
+                      margin: "6px 0 10px 0",
                       cursor: "pointer",
                       borderRadius: "10px",
-                      backgroundColor: "#ffffff",
+                      backgroundColor: backgroundColor,
                       transition: "all 0.3s ease",
-                      background:
-                        "linear-gradient(135deg, #e6f0ff 0%, #fff1f5 100%)",
                       animation: "fadeIn 0.5s ease-in-out",
                       boxShadow:
-                        "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                        "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
                     }}
                     onClick={() => router.push(`/user/${friend.id}`)}
                     onMouseEnter={(e) => {
@@ -121,7 +117,7 @@ const TrendingScreen = () => {
                       alt={friend.name}
                       size={44}
                       style={{
-                        border: `2px solid ${pink || "#FF6699"}`,
+                        border: `3px solid ${borderBirth || "#FF6699"}`,
                         boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
                       }}
                     />
@@ -130,7 +126,8 @@ const TrendingScreen = () => {
                         style={{
                           fontWeight: "600",
                           fontSize: 15,
-                          color: "#1f2937",
+                          // color: "#1f2937",
+                          color: brandPrimary,
                           display: "block",
                         }}
                       >
@@ -140,7 +137,8 @@ const TrendingScreen = () => {
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          color: "#4b5563",
+                          // color: "#4b5563",
+                          color: brandPrimaryTap,
                           fontSize: 13,
                           fontWeight: "500",
                           marginTop: 4,
@@ -178,10 +176,10 @@ const TrendingScreen = () => {
             <div
               style={{
                 fontSize: 13,
-                color: "#6b7280",
+                // color: "#6b7280",
                 padding: "12px",
                 textAlign: "center",
-                backgroundColor: "#ffffff",
+                backgroundColor: backgroundColor,
                 borderRadius: "8px",
               }}
             >
@@ -201,81 +199,85 @@ const TrendingScreen = () => {
         </span>
         <div
           style={{
-            flex: 1,
-            maxHeight: "50%",
             overflowY: "auto",
             scrollbarWidth: "none",
           }}
         >
-          {/* Danh sách bạn bè thông thường */}
-          <hr className="border-t-1 border-gray-300 my-3" />
           {friends.length > 0 ? (
-            friends.map((user) => (
-              <div key={user.id}>
+                  friends.map((user) => (
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    cursor: "pointer",
-                    transition: "background-color 0.3s ease",
-                    backgroundColor: "white",
-                    boxShadow:
-                      "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
-                    borderRadius: 10,
-                    marginBottom: 8,
-                    padding: "12px",
-                  }}
+                key={user.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "8px 12px",
+                  margin: "6px 0 10px 0",
+                  cursor: "pointer",
+                  borderRadius: "10px",
+                  backgroundColor: backgroundColor,
+                  transition: "all 0.3s ease",
+                  animation: "fadeIn 0.5s ease-in-out",
+                  boxShadow:
+                    "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
+                    color: brandPrimary,
+                }}
                   onClick={() => router.push(`/user/${user?.id}`)}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      "rgba(0, 0, 0, 0.03)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "white")
-                  }
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 6px 12px rgba(0, 0, 0, 0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow =
+                      "0 2px 8px rgba(0, 0, 0, 0.06)";
+                  }}
                 >
-              <div style={{ position: "relative", display: "inline-block" }}>
-               <Avatar
-                 src={user.avatar_url}
-                 alt={user.name}
-                 size={36}
-                 style={{
-                   boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
-                 }}
-               />
-               {user.active_status && (
-                 <span
-                   style={{
-                     position: "absolute",
-                     bottom: 0,
-                     right: 0,
-                     width: 12,
-                     height: 12,
-                     backgroundColor: colorOnl || "#00CED1",
-                     border: "2px solid white", // để tạo viền trắng giống Messenger
-                     borderRadius: "50%",
-                   }}
-                 />
-               )}
-             </div>
+                  <div
+                    style={{ position: "relative", display: "inline-block" }}
+                  >
+                    <Avatar
+                      src={user.avatar_url}
+                      alt={user.name}
+                      size={40}
+                      style={{
+                        boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
+                      }}
+                    />
+                    {user.active_status && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          bottom: 0,
+                          right: 0,
+                          width: 12,
+                          height: 12,
+                          backgroundColor: colorOnl || "#00CED1",
+                          border: "2px solid white", 
+                          borderRadius: "50%",
+                        }}
+                      />
+                    )}
+                  </div>
+
                   <span
                     style={{
                       marginLeft: 12,
                       fontWeight: "600",
                       fontSize: 14,
-                      color: "#1f2937",
+                      // color: "#1f2937",
                     }}
                   >
                     {user.family_name + " " + user.name}
                   </span>
                 </div>
-              </div>
             ))
+              
           ) : (
             <div
               style={{
                 textAlign: "center",
-                color: "#6b7280",
+                // color: "#6b7280",
                 fontSize: 12,
                 padding: "12px",
               }}

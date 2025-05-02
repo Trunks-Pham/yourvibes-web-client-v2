@@ -78,6 +78,15 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   const { nav } = content;
+  // const boxShadowActive = theme === "dark"
+  // ? "0 4px 8px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25)"
+  // : "0 4px 8px rgba(180, 180, 180, 0.4), 0 2px 4px rgba(200, 200, 200, 0.3)";
+  const boxShadowActive = theme === "dark"
+  ? "0 4px 12px rgba(0, 0, 0, 0.35)"
+ : "0 4px 8px rgba(180, 180, 180, 0.4), 0 2px 4px rgba(200, 200, 200, 0.3)";
+
+
+
 
   const isActived = (link: string) => {
     const [basePath, queryString] = link.split("?");
@@ -222,7 +231,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                   paddingBottom: 0,
                   marginBottom: 10,
                   cursor: "pointer",
-                  boxShadow:actived ? "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)" : "none",
+                   boxShadow: actived ? boxShadowActive : "none",
                   borderRadius: actived ? 10 : 0,
                 },
               };

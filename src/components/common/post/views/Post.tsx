@@ -281,20 +281,19 @@ const Post: React.FC<IPost> = React.memo(
     const currentCharCount = shareContent.length;
 
     return (
-        <ConfigProvider theme={{ token: { colorPrimary: brandPrimary },
+        <ConfigProvider theme={{
         components:{
           Card:{
             actionsBg: backgroundColor,
             headerBg: backgroundColor,
             colorBgContainer: backgroundColor,
-            colorBorderSecondary: borderColor,
           },
 
         } }}>
         <Card
           style={{
             marginTop: 15,
-            borderColor: isParentPost ? brandPrimary : "white",
+            borderColor: borderColor,
             maxWidth: 600,
             width: "100%",
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",

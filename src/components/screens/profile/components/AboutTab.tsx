@@ -55,7 +55,6 @@ const AboutTab = ({
   const [showFriend, setShowFriend] = useState(false);
   
   const [friendsToShow, setFriendsToShow] = useState(8);
-  console.log('Light/Dark Mode:', { borderColor, backgroundColor, brandPrimary });
 
   useEffect(() => {
     const updateFriendsToShow = () => {

@@ -149,8 +149,7 @@ const Homepage = () => {
           maxHeight: "100vh",
           overflowY: "auto",
           padding: "16px",
-          display: "flex",
-          flexDirection: "column",
+          scrollbarWidth: "none",
         }}
       >
         <span
@@ -165,9 +164,9 @@ const Homepage = () => {
         </span>
         <div
           style={{
-            maxHeight: "40%",
             overflowY: "auto",
             scrollbarWidth: "none",
+            maxHeight: "calc(100vh - 200px)",
           }}
         >
           {/* Phần hiển thị bạn bè có sinh nhật */}
@@ -293,41 +292,39 @@ const Homepage = () => {
         </span>
         <div
           style={{
-            maxHeight: "60%",
             overflowY: "auto",
             scrollbarWidth: "none",
           }}
         >
           {friends.length > 0 ? (
-            <InfiniteScroll
-            dataLength={friends.length}
-            next={loadMoreFriends}
-            hasMore={hasMoreFriends}
-            loader={ <Skeleton avatar paragraph={{ rows: 4 }} />}>
-              {     friends.map((user) => (
-              <div key={user.id}>
+                  friends.map((user) => (
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    cursor: "pointer",
-                    transition: "background-color 0.3s ease",
-                    backgroundColor: backgroundColor,
-                    boxShadow:
-                      "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
-                    borderRadius: 10,
-                    marginBottom: 8,
-                    padding: "12px",
+                key={user.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "8px 12px",
+                  margin: "6px 0 10px 0",
+                  cursor: "pointer",
+                  borderRadius: "10px",
+                  backgroundColor: backgroundColor,
+                  transition: "all 0.3s ease",
+                  animation: "fadeIn 0.5s ease-in-out",
+                  boxShadow:
+                    "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
                     color: brandPrimary,
-                  }}
+                }}
                   onClick={() => router.push(`/user/${user?.id}`)}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      "rgba(0, 0, 0, 0.03)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "white")
-                  }
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 6px 12px rgba(0, 0, 0, 0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow =
+                      "0 2px 8px rgba(0, 0, 0, 0.06)";
+                  }}
                 >
                   <div
                     style={{ position: "relative", display: "inline-block" }}
@@ -367,10 +364,8 @@ const Homepage = () => {
                     {user.family_name + " " + user.name}
                   </span>
                 </div>
-              </div>
-            ))}
+            ))
               
-            </InfiniteScroll>
           ) : (
             <div
               style={{
