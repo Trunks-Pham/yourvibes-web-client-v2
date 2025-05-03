@@ -23,6 +23,7 @@ interface AddMemberModalProps {
   existingMemberIds: string[];
   existingMembers: FriendResponseModel[];
   userRole?: number | null;
+  onRefreshConversation?: () => void;
 }
 
 interface ConversationMember extends FriendResponseModel {
@@ -37,6 +38,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   existingMemberIds,
   existingMembers,
   userRole,
+  onRefreshConversation
 }) => {
   const { user, localStrings } = useAuth();
   const { brandPrimary } = useColor();
@@ -105,7 +107,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
       title: localStrings.Messages.TransferOwnership,
       content: localStrings.Messages.ConfirmTransferOwnership,
       okText: localStrings.Messages.Confirm,
-      cancelText: localStrings.Messages.Cancel,
+      cancelText: localStrings.Public.Cancel,
       onOk: async () => {
         try {
           setAdding(true);
@@ -114,11 +116,12 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
             user_id: userId
           });
           message.success(localStrings.Messages.OwnershipTransferredSuccessfully);
-          await fetchExistingMembersWithRole(conversationId);
           
-          if (onCancel) {
-            onCancel(); 
+          if (onRefreshConversation) {
+            onRefreshConversation();
           }
+          
+          onCancel(); 
         } catch (error) {
           console.error('Error transferring ownership:', error);
           message.error(localStrings.Messages.FailedToTransferOwnership);
@@ -1061,8 +1064,6 @@ const MessagesFeature: React.FC = () => {
     };
   }, [currentConversation?.id, markConversationAsRead]);
 
-  
-
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -1081,6 +1082,15 @@ const MessagesFeature: React.FC = () => {
       setShowConversation(false);
     }
   }, [currentConversation, isMobile]);
+
+  const handleRefreshAfterRoleChange = useCallback(async () => {
+    await fetchConversations();
+    
+    if (currentConversation?.id) {
+      const role = await getCurrentUserRole(currentConversation.id);
+      setUserRole(role);
+    }
+  }, [currentConversation?.id, fetchConversations, getCurrentUserRole]);
   
   const handleSelectConversation = (conversation: ConversationResponseModel) => {
     if (currentConversation?.id === conversation.id) {
@@ -3111,6 +3121,7 @@ const MessagesFeature: React.FC = () => {
         existingMemberIds={existingMemberIds}
         existingMembers={existingMembers}
         userRole={userRole}
+        onRefreshConversation={handleRefreshAfterRoleChange}
       />
 
       <Modal
