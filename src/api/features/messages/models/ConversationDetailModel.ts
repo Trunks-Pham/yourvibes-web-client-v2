@@ -4,6 +4,11 @@ export interface CreateConversationDetailRequestModel {
     user_id?: string,
 }
 
+export interface CreateManyConversationDetailRequestModel {
+    conversation_id?: string,
+    user_ids: string[],
+}
+
 export interface GetConversationDetailByIDRequestModel {
     userId?: string,
     conversationId?: string,
@@ -21,6 +26,11 @@ export interface DeleteConversationDetailRequestModel {
 }
 
 export interface UpdateConversationDetailRequestModel {
+    conversation_id?: string,
+    user_id?: string,
+}
+
+export interface UpdateConversationDetailRoleRequestModel {
     conversation_id?: string,
     user_id?: string,
 }

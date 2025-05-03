@@ -8,7 +8,7 @@ import {
   GetConversationByIDRequestModel,
   DeleteConversationByIDRequestModel,
   ConversationResponseModel,
-  UpdateConversationRequestModel // Import the existing update model
+  UpdateConversationRequestModel 
 } from "./models/ConversationModel";
 
 import {
@@ -17,7 +17,8 @@ import {
   GetConversationDetailByUserIDRequestModel,
   DeleteConversationDetailRequestModel,
   ConversationDetailResponseModel,
-  UpdateConversationDetailRequestModel // Import the existing update model
+  UpdateConversationDetailRequestModel,
+  UpdateConversationDetailRoleRequestModel, 
 } from "./models/ConversationDetailModel";
 
 import {
@@ -111,7 +112,6 @@ export class MessagesRepo implements IMessagesRepo {
   async updateConversation(
     data: UpdateConversationRequestModel
   ): Promise<BaseApiResponseModel<ConversationResponseModel>> {
-    // Tạo FormData để gửi multipart/form-data
     const formData = new FormData();
     
     if (data.name) {
@@ -176,6 +176,15 @@ export class MessagesRepo implements IMessagesRepo {
     data: UpdateConversationDetailRequestModel
   ): Promise<BaseApiResponseModel<ConversationDetailResponseModel>> {
     return client.patch(ApiPath.UPDATE_CONVERSATION_DETAIL, {
+      conversation_id: data.conversation_id,
+      user_id: data.user_id
+    });
+  }
+
+  async updateConversationDetailRole(
+    data: UpdateConversationDetailRoleRequestModel
+  ): Promise<BaseApiResponseModel<ConversationDetailResponseModel>>{
+    return client.patch(ApiPath.UPDATE_CHANGE_ROLE,{
       conversation_id: data.conversation_id,
       user_id: data.user_id
     });
