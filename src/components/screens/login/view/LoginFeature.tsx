@@ -1,6 +1,15 @@
 "use client";
 import React, { useEffect } from "react";
-import { Form, Input, Button, message, Row, Col, Spin } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  message,
+  Row,
+  Col,
+  Spin,
+  ConfigProvider,
+} from "antd";
 import { GoogleOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import LoginViewModel from "../viewModel/loginViewModel";
@@ -8,12 +17,21 @@ import { AuthenRepo } from "@/api/features/authenticate/AuthenRepo";
 import "antd/dist/reset.css";
 import { useAuth } from "@/context/auth/useAuth";
 import { useState } from "react";
+import useColor from "@/hooks/useColor";
 
 const LoginPage = () => {
-  const { localStrings, changeLanguage } = useAuth();
+  const { localStrings, changeLanguage, theme } = useAuth();
   const router = useRouter();
+  const { backgroundColor, brandPrimary, brandPrimaryTap } = useColor();
   const loginViewModel = LoginViewModel(new AuthenRepo());
-  const { login, loading, getGoogleLoginUrl, googleLoading, addObserver, removeObserver } = loginViewModel;
+  const {
+    login,
+    loading,
+    getGoogleLoginUrl,
+    googleLoading,
+    addObserver,
+    removeObserver,
+  } = loginViewModel;
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleLanguageChange = () => {
@@ -21,14 +39,14 @@ const LoginPage = () => {
   };
 
   const handleGoogleLoginClick = () => {
-    setIsLoggingIn(true); 
+    setIsLoggingIn(true);
     router.push(getGoogleLoginUrl);
   };
 
   useEffect(() => {
     const loginObserver = {
       onLoginStateChanged: (isLoading: boolean, error?: string) => {
-        setIsLoggingIn(isLoading); 
+        setIsLoggingIn(isLoading);
         if (isLoading) {
           message.loading({
             content: `${localStrings.Public.LoginLoading}`,
@@ -43,7 +61,7 @@ const LoginPage = () => {
         }
       },
       onLoginSuccess: (data: any) => {
-        setIsLoggingIn(false); 
+        setIsLoggingIn(false);
       },
     };
 
@@ -74,7 +92,13 @@ const LoginPage = () => {
             style={{ boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}
           >
             <Spin spinning={isLoggingIn} tip={localStrings.Public.LoginLoading}>
-              <Form name="login" layout="vertical" onFinish={onFinish} className="w-full" disabled={isLoggingIn}>
+              <Form
+                name="login"
+                layout="vertical"
+                onFinish={onFinish}
+                className="w-full"
+                disabled={isLoggingIn}
+              >
                 <Col span={24} className="h-fit pb-4">
                   <div className="flex justify-center">
                     <img
@@ -87,8 +111,15 @@ const LoginPage = () => {
                 <Form.Item
                   name="email"
                   rules={[
-                    { required: true, message: localStrings.Form.RequiredMessages.EmailRequiredMessage },
-                    { type: "email", message: localStrings.Form.TypeMessage.EmailTypeMessage },
+                    {
+                      required: true,
+                      message:
+                        localStrings.Form.RequiredMessages.EmailRequiredMessage,
+                    },
+                    {
+                      type: "email",
+                      message: localStrings.Form.TypeMessage.EmailTypeMessage,
+                    },
                   ]}
                 >
                   <Input
@@ -99,7 +130,12 @@ const LoginPage = () => {
                 <Form.Item
                   name="password"
                   rules={[
-                    { required: true, message: localStrings.Form.RequiredMessages.PasswordRequiredMessage },
+                    {
+                      required: true,
+                      message:
+                        localStrings.Form.RequiredMessages
+                          .PasswordRequiredMessage,
+                    },
                   ]}
                 >
                   <Input.Password
@@ -108,36 +144,46 @@ const LoginPage = () => {
                   />
                 </Form.Item>
                 <div className="mb-4 text-center text-xs">
-                  <a href="/forgotPassword" className="text-blue-500 hover:underline">
+                  <a
+                    href="/forgotPassword"
+                    className="text-blue-500 hover:underline"
+                  >
                     {localStrings.Login.ForgotPasswordText}
                   </a>
                 </div>
                 <Form.Item>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800"
-                    loading={loading}
-                    disabled={isLoggingIn} 
-                  >
-                    {localStrings.Login.LoginButton}
-                  </Button>
+                  <ConfigProvider theme={{ token: { colorPrimary: brandPrimary } }}>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      className="w-full py-2 rounded-md"
+                      loading={loading}
+                      disabled={isLoggingIn}
+                    >
+                      <span style={{ color: backgroundColor }}>{localStrings.Login.LoginButton}</span>
+                    </Button>
+                  </ConfigProvider>
                 </Form.Item>
                 <div className="text-center text-sm">
                   <span>
                     {localStrings.Login.DontHaveAccout}{" "}
-                    <a href="/register" className="text-blue-500 hover:underline">
+                    <a
+                      href="/register"
+                      className="text-blue-500 hover:underline"
+                    >
                       {localStrings.Login.SignUpNow}
                     </a>
                   </span>
                 </div>
-                <div className="mt-4 text-center text-sm font-semibold">{localStrings.Login.Or}</div>
+                <div className="mt-4 text-center text-sm font-semibold">
+                  {localStrings.Login.Or}
+                </div>
                 <div className="mt-4 text-center">
                   <Button
                     type="default"
                     icon={<GoogleOutlined />}
                     className="w-full flex items-center justify-center"
-                    onClick={handleGoogleLoginClick} 
+                    onClick={handleGoogleLoginClick}
                     loading={googleLoading}
                     disabled={isLoggingIn}
                   >
@@ -146,13 +192,21 @@ const LoginPage = () => {
                 </div>
               </Form>
             </Spin>
-            <Button
+            {/* <Button
               type="primary"
               onClick={handleLanguageChange}
               className="w-full mt-4 bg-black text-white py-2 rounded-md hover:bg-gray-800"
               disabled={isLoggingIn}
             >
               {localStrings.Login.changeLanguage}
+            </Button> */}
+            <Button
+              type="primary"
+              // onClick={() => setTheme!(theme === "dark" ? "light" : "dark")}
+              className="w-full mt-4 py-2 rounded-md hover:bg-gray-800"
+              // disabled={isLoggingIn}
+            >
+              {"Set Dark Theme"}
             </Button>
           </div>
         </Row>

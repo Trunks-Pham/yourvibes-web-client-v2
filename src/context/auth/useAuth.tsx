@@ -23,6 +23,7 @@ class AuthManager {
   private isAuthenticated: boolean = false;
   private router: any;
   private listeners: Array<() => void> = [];
+  private theme: "light" | "dark" = "light";
 
   private constructor(router: any) { 
     if (!AuthManager.instance) {
@@ -56,6 +57,10 @@ class AuthManager {
     return this.language;
   }
 
+  public getTheme() {
+    return this.theme;
+  }
+
   public getUser() {
     return this.user;
   }
@@ -87,6 +92,26 @@ class AuthManager {
         this.localStrings = lng === "vi" ? VnLocalizedStrings : ENGLocalizedStrings;
         this.notifyListeners();
       });
+    }
+  }
+
+  public changeTheme(theme: "light" | "dark") {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem("theme", theme);
+      this.theme = theme;
+      this.notifyListeners();
+    }
+  }
+  
+  public checkTheme() {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const storedTheme = localStorage.getItem("theme");
+      if (storedTheme === "dark") {
+        this.theme = "dark";
+      } else {
+        this.theme = "light";
+      }
+      this.notifyListeners();
     }
   }
 
@@ -180,6 +205,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     authManager.checkLanguage();  
     authManager.checkAuthStatus(); 
+    authManager.checkTheme();
   }, []);
 
   return (
@@ -195,6 +221,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         user: authManager.getUser(),
         onUpdateProfile: authManager.onUpdateProfile.bind(authManager),
         isLoginUser: authManager.isLoginUser.bind(authManager),
+        theme: authManager.getTheme(), 
+        changeTheme: authManager.changeTheme.bind(authManager),
       }}
     >
       {children}

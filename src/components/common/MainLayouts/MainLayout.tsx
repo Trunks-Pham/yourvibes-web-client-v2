@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { use, useEffect, useRef, useState } from "react";
 import { Layout, Menu, Grid, ConfigProvider, Modal, Avatar, Button } from "antd";
 import { createElement } from "react";
 import {
@@ -25,8 +25,8 @@ const { useBreakpoint } = Grid;
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [visible, setVisible] = useState(false);
-  const { backgroundColor, lightGray } = useColor();
-  const { user, localStrings, onLogout } = useAuth();
+  const { backgroundColor, backGround, brandPrimary,menuItem, darkSlate } = useColor();
+  const { user, localStrings, onLogout, theme } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -34,7 +34,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [settingModal, setSettingModal] = useState(false);
   const [notificationModal, setNotificationModal] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [logoutModal, setLogoutModal] = useState(false);  
+  const [logoutModal, setLogoutModal] = useState(false); 
+  const siderRef = useRef<HTMLDivElement>(null); 
 
   const content = {
     nav: [
@@ -77,6 +78,15 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   const { nav } = content;
+  // const boxShadowActive = theme === "dark"
+  // ? "0 4px 8px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25)"
+  // : "0 4px 8px rgba(180, 180, 180, 0.4), 0 2px 4px rgba(200, 200, 200, 0.3)";
+  const boxShadowActive = theme === "dark"
+  ? "0 4px 12px rgba(0, 0, 0, 0.35)"
+ : "0 4px 8px rgba(180, 180, 180, 0.4), 0 2px 4px rgba(200, 200, 200, 0.3)";
+
+
+
 
   const isActived = (link: string) => {
     const [basePath, queryString] = link.split("?");
@@ -121,18 +131,45 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     { label: `${localStrings.Public.Trending}`, link: "/trending" },
   ];
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        siderRef.current &&
+        !siderRef.current.contains(event.target as Node) &&
+        collapsed === false
+      ) {
+        setCollapsed(true); // đóng sider nếu đang mở và click ra ngoài
+      }
+    }
+  
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [collapsed]);
+
   return (
+    <ConfigProvider
+      theme={{
+        components: {
+          Layout: {
+            bodyBg: backGround,
+          },
+
+        },
+      }}
+    >
     <Layout>
       <ConfigProvider
         theme={{
           components: {
             Layout: {
-              siderBg: "rgb(244, 244, 244)",
+              siderBg: backGround,
             },
             Menu: {
-              itemActiveBg: lightGray,
-              itemSelectedBg: lightGray,
-              colorBgContainer: "rgb(244, 244, 244)",
+              itemActiveBg: menuItem,
+              itemSelectedBg: darkSlate,
+              colorBgContainer: backGround,
               lineWidth: 0,
               itemBorderRadius: 5,
               itemMarginBlock: 0,
@@ -143,6 +180,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         }}
       >
         <Sider
+  ref={screens.lg ? null : siderRef}
           trigger={null}
           collapsedWidth={0}
           width={250}
@@ -171,8 +209,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                     <div
                       className="flex items-center gap-4 w-full h-full px-4 pl-8"
                       style={{
-                        backgroundColor: actived ? "white" : "transparent",
-                        color: "black",
+                        backgroundColor: actived ? menuItem : "transparent",
+                        color: brandPrimary,
 
                       }}
                       onClick={() => {
@@ -183,7 +221,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                       {createElement(item.icon, {
                         size: 20,
                       })}
-                      <span>{item.content}</span>
+                      <span style={{color: brandPrimary}}>{item.content}</span>
                     </div>
                 ),
                 style: {
@@ -193,7 +231,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                   paddingBottom: 0,
                   marginBottom: 10,
                   cursor: "pointer",
-                  boxShadow:actived ? "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)" : "none",
+                   boxShadow: actived ? boxShadowActive : "none",
                   borderRadius: actived ? 10 : 0,
                 },
               };
@@ -206,7 +244,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           style={{
             position: "sticky",
             top: 0,
-            backgroundColor: screens.lg ? "#F5F5F5" : backgroundColor,
+            backgroundColor: screens.lg ? backGround : backgroundColor,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -223,7 +261,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             }}
           >
             <img
-              src="/image/yourvibes_black.png"
+              src={theme === "light" ? "/image/yourvibes_black.png" : "/image/yourvibes _white.png"} 
               alt="YourVibes"
               style={{ height: "40px", cursor: "pointer" }}
               onClick={() => router.push("/home")}
@@ -238,7 +276,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 position: "absolute",
                 left: "50%",
                 transform: "translateX(-50%)",
-                backgroundColor: "white",
+                backgroundColor: backgroundColor,
                 boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
                 borderRadius: 10,
                 padding: "5px 0",
@@ -265,7 +303,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                         padding: "10px 20px",
                         cursor: "pointer",
                         fontWeight: "bold",
-                        color: isActive ? "#808080" : "#000",
+                        color: isActive ? "#808080" : brandPrimary,
                         transition: "color 0.3s, border-bottom 0.3s",
                         lineHeight: "1.5",
                       }}
@@ -289,7 +327,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               className="flex flex-row items-center gap-4 pl-2"
               style={{ cursor: "pointer" }}
             >
-              <span className="font-bold md:block hidden">
+              <span className="font-bold md:block hidden" style={{ color: brandPrimary }}>
                 {user?.family_name} {user?.name}
               </span>
               <Avatar src={user?.avatar_url} alt={user?.name} size={40} />
@@ -310,7 +348,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             style={{
               width: "100%",
               maxWidth: "600px",
-              backgroundColor: "white",
+              backgroundColor: backgroundColor,
               boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
               borderRadius: 10,
               padding: "5px 10px",
@@ -400,6 +438,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             </span>
           }
           bodyStyle={{ maxHeight: "70vh", overflow: "auto" }}
+          style={{maxHeight: "70vh", overflowY: "scroll", scrollbarWidth: "none", msOverflowStyle: "none"}}
         >
           <NotificationScreen
             setNotificationModal={setNotificationModal}
@@ -432,6 +471,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         </p>
       </Modal>
     </Layout>
+    </ConfigProvider>
   );
 };
 

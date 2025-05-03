@@ -6,6 +6,7 @@ import { FriendResponseModel } from '@/api/features/profile/model/FriendReponseM
 import { useRouter } from 'next/navigation';
 import { Avatar, Dropdown, MenuProps, Modal } from 'antd';
 import UserProfileViewModel from '../viewModel/UserProfileViewModel';
+import useColor from '@/hooks/useColor';
 
 const ListFriends = ({
   friends: initialFriends, // Nhận danh sách bạn bè ban đầu từ props
@@ -22,6 +23,7 @@ const ListFriends = ({
   const router = useRouter();
   const { unFriend } = UserProfileViewModel();
   const [friends, setFriends] = useState<FriendResponseModel[]>(initialFriends);
+  const {colorOnl} = useColor();
 
   const handleUnfriend = async (friendId: string) => {
     try {
@@ -71,14 +73,30 @@ const ListFriends = ({
             className="flex flex-row items-center"
             onClick={() => router.push(`/user/${friend.id}`)}
           >
-            <Avatar
-              src={
-                friend.avatar_url ||
-                'https://static2.yan.vn/YanNews/2167221/202102/facebook-cap-nhat-avatar-doi-voi-tai-khoan-khong-su-dung-anh-dai-dien-e4abd14d.jpg'
-              }
-              alt={'avatar'}
-              size={{ xs: 40, sm: 40, md: 50, lg: 50, xl: 50, xxl: 50 }}
-            />
+      <div style={{ position: "relative", display: "inline-block" }}>
+       <Avatar
+         src={friend.avatar_url}
+         alt={friend.name}
+         size={50}
+         style={{
+           boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
+         }}
+       />
+       {friend.active_status && (
+         <span
+           style={{
+             position: "absolute",
+             bottom: 0,
+             right: 0,
+             width: 12,
+             height: 12,
+             backgroundColor: colorOnl || "#00CED1",
+             border: "2px solid white", // để tạo viền trắng giống Messenger
+             borderRadius: "50%",
+           }}
+         />
+       )}
+     </div>
             <span className="ml-4 text-lg font-semibold">
               {friend.family_name} {friend.name}
             </span>

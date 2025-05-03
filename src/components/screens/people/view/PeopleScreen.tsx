@@ -6,6 +6,7 @@ import { useAuth } from "@/context/auth/useAuth";
 import { Spin, Empty, Button } from "antd";
 import SearchScreen from "../../search/views/SearchScreen";
 import { useRouter } from "next/navigation";
+import useColor from "@/hooks/useColor";
 
 const PeopleScreens: React.FC = () => {
   const {
@@ -23,6 +24,7 @@ const PeopleScreens: React.FC = () => {
 
   const { localStrings } = useAuth();
   const router = useRouter();
+  const {backgroundColor, brandPrimary} = useColor();
 
   if (loading && users.length === 0 && loadingFriendRequests && incomingFriendRequests.length === 0) {
     return (
@@ -33,15 +35,15 @@ const PeopleScreens: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <SearchScreen />
         </div>
 
         {incomingFriendRequests.length > 0 && (
-          <div className="mb-8">
-            <span className="block text font-bold text-gray-900 mb-4">
+          <div className="mb-8" style={{color: brandPrimary}}>
+            <span className="block text font-bold mb-4">
               {localStrings.Public.FriendRequests} ({incomingFriendRequests.length})
             </span>
             {loadingFriendRequests ? (
@@ -96,8 +98,8 @@ const PeopleScreens: React.FC = () => {
           </div>
         )}
 
-        <div>
-          <span className="block text font-bold text-gray-900 mb-4">
+        <div style={{color: brandPrimary}}>
+          <span className="block text font-bold mb-4">
             {localStrings.Public.AllUsers}
           </span>
           {loading && users.length === 0 ? (
@@ -120,7 +122,8 @@ const PeopleScreens: React.FC = () => {
                 {users.map((user) => (
                   <div
                     key={user.id}
-                    className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300 border border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between w-full lg:w-2/3"
+                    className=" rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300 border border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between w-full lg:w-2/3"
+                    style={{backgroundColor: backgroundColor, color: brandPrimary}}
                   >
                     <div className="flex items-center space-x-4 flex-1 min-w-0 mb-3 sm:mb-0">
                       <div className="relative">
@@ -133,7 +136,7 @@ const PeopleScreens: React.FC = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3
-                          className="text-base font-medium text-gray-900 truncate cursor-pointer hover:text-gray-600"
+                          className="text-base font-medium  truncate cursor-pointer hover:text-gray-600"
                           onClick={() => router.push(`/user/${user.id}`)}
                         >
                           {user.name} {user.family_name}
