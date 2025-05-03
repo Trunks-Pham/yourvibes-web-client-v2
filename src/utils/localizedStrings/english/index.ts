@@ -508,6 +508,8 @@ export const ENGLocalizedStrings = {
     Decline: "Decline",
     Accept: "Accept",
     Active: "Active",
+    OnlyOwnerCanDeleteConversation: "Only Owner Can Delete Conversation",
+
   },
   People: {
     FetchUsersFailed: "Failed to fetch users!",

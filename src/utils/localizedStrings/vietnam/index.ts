@@ -501,6 +501,8 @@ export const VnLocalizedStrings = {
     Decline: "Từ chối",
     Accept: "Chấp nhận",
     Active: "Đang hoạt động",
+    OnlyOwnerCanDeleteConversation: "Chỉ có chủ phòng mới có thể xóa cuộc trò chuyện này",
+
   },
   People: {
     FetchUsersFailed: "Tải danh sách người dùng thất bại",

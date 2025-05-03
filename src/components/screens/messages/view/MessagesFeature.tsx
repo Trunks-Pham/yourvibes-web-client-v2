@@ -589,10 +589,12 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
         
         {/* Message Options Dropdown - now positioned relative to the message */}
         {isMyMessage && hovering && !message.isTemporary && (
-          <Dropdown 
-            menu={{ items: menuItems }} 
-            trigger={["click"]}
-            placement="bottomRight"
+          <Popconfirm
+            title={localStrings.Messages.ConfirmDeleteMessage}
+            onConfirm={handleDelete}
+            okText={localStrings.Public.Yes}
+            cancelText={localStrings.Public.No}
+            trigger="click"
           >
             <div
               style={{
@@ -607,9 +609,9 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
                 zIndex: 1             
               }}
             >
-              <EllipsisOutlined style={{ fontSize: 16 }} />
+              <DeleteOutlined style={{ fontSize: 16 }} />
             </div>
-          </Dropdown>
+          </Popconfirm>
         )}
       </div>
     </div>
@@ -838,6 +840,7 @@ const MessagesFeature: React.FC = () => {
   const [inCall, setInCall] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [userRole, setUserRole] = useState<number | null>(null);
   const {
     fetchConversations,
     deleteMessage,
@@ -867,6 +870,8 @@ const MessagesFeature: React.FC = () => {
     leaveConversation,
     unreadMessageCounts,
     resetUnreadCount,
+    getCurrentUserRole,
+    isUserConversationOwner,
   } = useMessagesViewModel();
 
   const [isMobile, setIsMobile] = useState(false);
@@ -887,6 +892,13 @@ const MessagesFeature: React.FC = () => {
     from: string;
     reason?: string;
   }
+
+  useEffect(() => {
+    if (currentConversation?.id) {
+      getCurrentUserRole(currentConversation.id)
+        .then(setUserRole);
+    }
+  }, [currentConversation?.id]);
 
   useEffect(() => {
     if (user?.id) {
@@ -1032,6 +1044,13 @@ const MessagesFeature: React.FC = () => {
   };
 
   const handleDeleteConversation = async (conversationId: string) => {
+    const isOwner = await isUserConversationOwner(conversationId);
+    
+    if (!isOwner) {
+      message.error(localStrings.Messages.OnlyOwnerCanDeleteConversation);
+      return;
+    }
+    
     Modal.confirm({
       title: localStrings.Messages.ConfirmDeleteConversation,
       content: localStrings.Messages.ConfirmDeleteConversation,
@@ -1047,6 +1066,7 @@ const MessagesFeature: React.FC = () => {
       }
     });
   };
+  
 
   const fetchExistingMembers = async (conversationId: string) => {
     try {
@@ -2629,13 +2649,16 @@ const MessagesFeature: React.FC = () => {
                       >
                         {localStrings.Messages.AddMembers}
                       </Item>
-                      <Item 
-                        key="delete" 
-                        danger 
-                        onClick={() => currentConversation?.id && handleDeleteConversation(currentConversation.id)}
-                      >
-                        {localStrings.Messages.DeleteConversation}
-                      </Item>
+                      {/* Chỉ hiện nút delete nếu user là owner */}
+                      {userRole === 0 && (
+                        <Item 
+                          key="delete" 
+                          danger 
+                          onClick={() => currentConversation?.id && handleDeleteConversation(currentConversation.id)}
+                        >
+                          {localStrings.Messages.DeleteConversation}
+                        </Item>
+                      )}
                       {(currentConversation?.name && !currentConversation.name.includes(" & ")) && (
                         <Item 
                           key="leave" 

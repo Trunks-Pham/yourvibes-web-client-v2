@@ -424,8 +424,6 @@ export const useMessageViewModel = () => {
         isTemporary: true
     };
     
-    // addNewMessage(currentConversationId, tempMessage);
-    
     scrollToBottom();
     
     const messageData = {
