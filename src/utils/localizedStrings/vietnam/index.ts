@@ -502,6 +502,11 @@ export const VnLocalizedStrings = {
     Accept: "Chấp nhận",
     Active: "Đang hoạt động",
     OnlyOwnerCanDeleteConversation: "Chỉ có chủ phòng mới có thể xóa cuộc trò chuyện này",
+    MakeOwner: "Chọn làm trưởng nhóm",
+    TransferOwnership: "Thay đổi quyền quản trị",
+    ConfirmTransferOwnership: "Bạn có chắc muốn chuyển quyền quản trị ?",
+    OwnershipTransferredSuccessfully: "Chuyển quyền sở hữu thành công",
+    FailedToTransferOwnership: "Không thể chuyển quyền sở hữu",
 
   },
   People: {

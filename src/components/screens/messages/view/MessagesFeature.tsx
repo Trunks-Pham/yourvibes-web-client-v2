@@ -22,6 +22,11 @@ interface AddMemberModalProps {
   conversationId: string | undefined;
   existingMemberIds: string[];
   existingMembers: FriendResponseModel[];
+  userRole?: number | null;
+}
+
+interface ConversationMember extends FriendResponseModel {
+  conversation_role?: number;
 }
 
 const AddMemberModal: React.FC<AddMemberModalProps> = ({ 
@@ -31,6 +36,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   conversationId,
   existingMemberIds,
   existingMembers,
+  userRole,
 }) => {
   const { user, localStrings } = useAuth();
   const { brandPrimary } = useColor();
@@ -39,6 +45,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   const [adding, setAdding] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("addMembers");
+  const [existingMembersWithRole, setExistingMembersWithRole] = useState<ConversationMember[]>([]);
 
   useEffect(() => {
     if (visible && user?.id) {
@@ -51,6 +58,76 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
       setSelectedFriends([]);
     }
   }, [visible]);
+
+  useEffect(() => {
+    if (visible && conversationId) {
+      fetchExistingMembersWithRole(conversationId);
+    }
+  }, [visible, conversationId]);
+
+  const fetchExistingMembersWithRole = async (conversationId: string) => {
+    try {
+      const membersWithRoles = await Promise.all(
+        existingMembers.map(async (member) => {
+          try {
+            if (!member.id) return member as ConversationMember;
+            
+            const roleResponse = await defaultMessagesRepo.getConversationDetailByID({
+              userId: member.id,
+              conversationId: conversationId
+            });
+            
+            const conversationRole = roleResponse.data?.conversation_role;
+            
+            const memberWithRole: ConversationMember = {
+              ...member,
+              conversation_role: conversationRole
+            };
+            
+            return memberWithRole;
+          } catch (error) {
+            console.error(`Error fetching role for user ${member.id}:`, error);
+            return member as ConversationMember;
+          }
+        })
+      );
+      
+      setExistingMembersWithRole(membersWithRoles);
+    } catch (error) {
+      console.error("Error fetching members with roles:", error);
+    }
+  };
+
+  const handleTransferOwnership = async (userId: string) => {
+    if (!conversationId || userRole !== 0) return;
+    
+    Modal.confirm({
+      title: localStrings.Messages.TransferOwnership,
+      content: localStrings.Messages.ConfirmTransferOwnership,
+      okText: localStrings.Messages.Confirm,
+      cancelText: localStrings.Messages.Cancel,
+      onOk: async () => {
+        try {
+          setAdding(true);
+          await defaultMessagesRepo.updateConversationDetailRole({
+            conversation_id: conversationId,
+            user_id: userId
+          });
+          message.success(localStrings.Messages.OwnershipTransferredSuccessfully);
+          await fetchExistingMembersWithRole(conversationId);
+          
+          if (onCancel) {
+            onCancel(); 
+          }
+        } catch (error) {
+          console.error('Error transferring ownership:', error);
+          message.error(localStrings.Messages.FailedToTransferOwnership);
+        } finally {
+          setAdding(false);
+        }
+      }
+    });
+  };
 
   const fetchFriends = async () => {
     if (!user?.id) return;
@@ -188,30 +265,63 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
             padding: "8px 0"
           }}
           dataSource={existingMembers}
-          renderItem={member => (
-            <List.Item 
-              key={member.id}
-              style={{ 
-                padding: "8px 16px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                <Avatar 
-                  src={member.avatar_url} 
-                  style={{ 
-                    marginLeft: 8,
-                    backgroundColor: !member.avatar_url ? brandPrimary : undefined 
-                  }}
-                >
-                  {!member.avatar_url && (member.name?.charAt(0) || "").toUpperCase()}
-                </Avatar>
-                <span style={{ marginLeft: 12 }}>
-                  {`${member.family_name || ''} ${member.name || ''}`}
-                  {member.id === user?.id ? ` (${localStrings.Messages.You})` : ''}
-                </span>
-              </div>
-            </List.Item>
-          )}
+          renderItem={(member: ConversationMember) => {
+            const memberRole = member.conversation_role;
+            const isCurrentUser = member.id === user?.id;
+            const canTransferOwnership = userRole === 0 && memberRole !== 0 && !isCurrentUser;
+    
+            return (
+              <List.Item 
+                key={member.id}
+                style={{ padding: "8px 16px" }}
+              >
+                <div style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  width: "100%",
+                  justifyContent: "space-between" 
+                }}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <Avatar 
+                      src={member.avatar_url} 
+                      style={{ 
+                        marginLeft: 8,
+                        backgroundColor: !member.avatar_url ? brandPrimary : undefined 
+                      }}
+                    >
+                      {!member.avatar_url && (member.name?.charAt(0) || "").toUpperCase()}
+                    </Avatar>
+                    <span style={{ marginLeft: 12 }}>
+                      {`${member.family_name || ''} ${member.name || ''}`}
+                      {member.id === user?.id ? ` (${localStrings.Messages.You})` : ''}
+                    </span>
+                    {memberRole !== undefined && (
+                      <span style={{ 
+                        marginLeft: 12,
+                        padding: "4px 8px",
+                        borderRadius: "12px",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        backgroundColor: memberRole === 0 ? '#1890ff' : '#f5f5f5',
+                        color: memberRole === 0 ? 'white' : '#555'
+                      }}>
+                        {memberRole === 0 ? 'Owner' : 'Member'}
+                      </span>
+                    )}
+                  </div>
+                  {canTransferOwnership && (
+                    <Button 
+                      type="link" 
+                      size="small"
+                      onClick={() => handleTransferOwnership(member.id!)}
+                    >
+                      {localStrings.Messages.MakeOwner}
+                    </Button>
+                  )}
+                </div>
+              </List.Item>
+            );
+          }}
           locale={{ emptyText: localStrings.Messages.NoMembersInConversation }}
         />
       ),
@@ -1067,7 +1177,6 @@ const MessagesFeature: React.FC = () => {
     });
   };
   
-
   const fetchExistingMembers = async (conversationId: string) => {
     try {
       const response = await defaultMessagesRepo.getConversationDetailByUserID({
@@ -3001,6 +3110,7 @@ const MessagesFeature: React.FC = () => {
         conversationId={currentConversation?.id}
         existingMemberIds={existingMemberIds}
         existingMembers={existingMembers}
+        userRole={userRole}
       />
 
       <Modal
