@@ -31,7 +31,12 @@ export interface ConversationResponseModel {
     id?: string,
     name?: string,
     image?: string,
+    avatar?: string,
     user_id?: string,
+    family_name?: string,
     created_at?: string,
     updated_at?: string,
+    last_message?: string,
+    last_message_status?: boolean,
+    active_status?: boolean,
 }

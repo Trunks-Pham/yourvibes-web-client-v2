@@ -120,9 +120,38 @@ export const useConversationDetailViewModel = () => {
     }
   }, []);
 
-  const getMembersForConversation = useCallback((conversationId: string): FriendResponseModel[] => {
-    return conversationMembersMap[conversationId] || [];
-  }, [conversationMembersMap]);
+  // const getMembersForConversation = useCallback((conversationId: string): FriendResponseModel[] => {
+  //   return conversationMembersMap[conversationId] || [];
+  // }, [conversationMembersMap]);
+
+
+  const getCurrentUserRole = useCallback(async (conversationId: string): Promise<number | null> => {
+    if (!user?.id || !conversationId) return null;
+    
+    try {
+      const response = await defaultMessagesRepo.getConversationDetailByUserID({
+        conversation_id: conversationId
+      });
+      
+      if (response.data) {
+        if (Array.isArray(response.data)) {
+          const currentUserDetail = response.data.find(detail => detail.user_id === user.id);
+          return currentUserDetail?.conversation_role ?? null;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error("Error getting user role:", error);
+      return null;
+    }
+  }, [user?.id]);
+  
+  const isUserConversationOwner = useCallback(async (conversationId: string): Promise<boolean> => {
+    const role = await getCurrentUserRole(conversationId);
+    return role === 0;
+  }, [getCurrentUserRole]);
+
 
   return {
     // State
@@ -134,6 +163,8 @@ export const useConversationDetailViewModel = () => {
     addConversationMembers,
     leaveConversation,
     fetchConversationMembers,
-    getMembersForConversation,
+    getCurrentUserRole,
+    isUserConversationOwner,
+    // getMembersForConversation,
   };
 };

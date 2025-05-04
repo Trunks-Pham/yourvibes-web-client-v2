@@ -36,7 +36,7 @@ export const useMessagesViewModel = () => {
 
   const {
     existingMembersLoading, markConversationAsRead,
-    addConversationMembers, leaveConversation, fetchConversationMembers
+    addConversationMembers, leaveConversation, fetchConversationMembers, getCurrentUserRole, isUserConversationOwner,
   } = conversationDetailViewModel;
 
   const [existingMembers, setExistingMembers] = useState<FriendResponseModel[]>([]);
@@ -220,5 +220,7 @@ return {
   handleSelectConversation,
   unreadMessageCounts,
   resetUnreadCount,
+  getCurrentUserRole,
+  isUserConversationOwner,
 };
 };
