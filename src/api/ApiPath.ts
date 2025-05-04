@@ -70,10 +70,12 @@ export const ApiPath = {
 
   //ConversationDetail
   CREATE_CONVERSATION_DETAIL: getApiPath('conversation_details/'),
+  CREATE_MANY_CONVERSATION_DETAIL: getApiPath('conversation_details/create_many'),
   GET_CONVERSATION_DETAIL_BY_ID: getApiPath('conversation_details/get_by_id'),
   GET_CONVERSATION_DETAIL_BY_USER_ID: getApiPath('conversation_details/get_by_id'),
   DELETE_CONVERSATION_DETAIL: getApiPath('conversation_details/delete/'),
   UPDATE_CONVERSATION_DETAIL: getApiPath('conversation_details/update'), 
+  UPDATE_CHANGE_ROLE: getApiPath('conversation_details/transfer_owner_role'), 
 
   //Messages
   CREATE_MESSAGE: getApiPath('messages/'),

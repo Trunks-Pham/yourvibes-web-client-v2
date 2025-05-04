@@ -22,6 +22,12 @@ interface AddMemberModalProps {
   conversationId: string | undefined;
   existingMemberIds: string[];
   existingMembers: FriendResponseModel[];
+  userRole?: number | null;
+  onRefreshConversation?: () => void;
+}
+
+interface ConversationMember extends FriendResponseModel {
+  conversation_role?: number;
 }
 
 const AddMemberModal: React.FC<AddMemberModalProps> = ({ 
@@ -31,6 +37,8 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   conversationId,
   existingMemberIds,
   existingMembers,
+  userRole,
+  onRefreshConversation
 }) => {
   const { user, localStrings } = useAuth();
   const { brandPrimary } = useColor();
@@ -39,6 +47,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   const [adding, setAdding] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("addMembers");
+  const [existingMembersWithRole, setExistingMembersWithRole] = useState<ConversationMember[]>([]);
 
   useEffect(() => {
     if (visible && user?.id) {
@@ -51,6 +60,77 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
       setSelectedFriends([]);
     }
   }, [visible]);
+
+  useEffect(() => {
+    if (visible && conversationId) {
+      fetchExistingMembersWithRole(conversationId);
+    }
+  }, [visible, conversationId]);
+
+  const fetchExistingMembersWithRole = async (conversationId: string) => {
+    try {
+      const membersWithRoles = await Promise.all(
+        existingMembers.map(async (member) => {
+          try {
+            if (!member.id) return member as ConversationMember;
+            
+            const roleResponse = await defaultMessagesRepo.getConversationDetailByID({
+              userId: member.id,
+              conversationId: conversationId
+            });
+            
+            const conversationRole = roleResponse.data?.conversation_role;
+            
+            const memberWithRole: ConversationMember = {
+              ...member,
+              conversation_role: conversationRole
+            };
+            
+            return memberWithRole;
+          } catch (error) {
+            console.error(`Error fetching role for user ${member.id}:`, error);
+            return member as ConversationMember;
+          }
+        })
+      );
+      
+      setExistingMembersWithRole(membersWithRoles);
+    } catch (error) {
+      console.error("Error fetching members with roles:", error);
+    }
+  };
+
+  const handleTransferOwnership = async (userId: string) => {
+    if (!conversationId || userRole !== 0) return;
+    
+    Modal.confirm({
+      title: localStrings.Messages.TransferOwnership,
+      content: localStrings.Messages.ConfirmTransferOwnership,
+      okText: localStrings.Messages.Confirm,
+      cancelText: localStrings.Public.Cancel,
+      onOk: async () => {
+        try {
+          setAdding(true);
+          await defaultMessagesRepo.updateConversationDetailRole({
+            conversation_id: conversationId,
+            user_id: userId
+          });
+          message.success(localStrings.Messages.OwnershipTransferredSuccessfully);
+          
+          if (onRefreshConversation) {
+            onRefreshConversation();
+          }
+          
+          onCancel(); 
+        } catch (error) {
+          console.error('Error transferring ownership:', error);
+          message.error(localStrings.Messages.FailedToTransferOwnership);
+        } finally {
+          setAdding(false);
+        }
+      }
+    });
+  };
 
   const fetchFriends = async () => {
     if (!user?.id) return;
@@ -156,6 +236,16 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                     <span style={{ marginLeft: 12 }}>
                       {`${friend.family_name || ''} ${friend.name || ''}`}
                     </span>
+                    {/* Thêm biểu thị trạng thái online/offline */}
+                    {friend.active_status && (
+                      <span style={{ 
+                        width: 8, 
+                        height: 8, 
+                        borderRadius: '50%', 
+                        backgroundColor: '#52c41a', 
+                        marginLeft: 8 
+                      }} />
+                    )}
                   </div>
                 </List.Item>
               )}
@@ -178,30 +268,63 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
             padding: "8px 0"
           }}
           dataSource={existingMembers}
-          renderItem={member => (
-            <List.Item 
-              key={member.id}
-              style={{ 
-                padding: "8px 16px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                <Avatar 
-                  src={member.avatar_url} 
-                  style={{ 
-                    marginLeft: 8,
-                    backgroundColor: !member.avatar_url ? brandPrimary : undefined 
-                  }}
-                >
-                  {!member.avatar_url && (member.name?.charAt(0) || "").toUpperCase()}
-                </Avatar>
-                <span style={{ marginLeft: 12 }}>
-                  {`${member.family_name || ''} ${member.name || ''}`}
-                  {member.id === user?.id ? ` (${localStrings.Messages.You})` : ''}
-                </span>
-              </div>
-            </List.Item>
-          )}
+          renderItem={(member: ConversationMember) => {
+            const memberRole = member.conversation_role;
+            const isCurrentUser = member.id === user?.id;
+            const canTransferOwnership = userRole === 0 && memberRole !== 0 && !isCurrentUser;
+    
+            return (
+              <List.Item 
+                key={member.id}
+                style={{ padding: "8px 16px" }}
+              >
+                <div style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  width: "100%",
+                  justifyContent: "space-between" 
+                }}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <Avatar 
+                      src={member.avatar_url} 
+                      style={{ 
+                        marginLeft: 8,
+                        backgroundColor: !member.avatar_url ? brandPrimary : undefined 
+                      }}
+                    >
+                      {!member.avatar_url && (member.name?.charAt(0) || "").toUpperCase()}
+                    </Avatar>
+                    <span style={{ marginLeft: 12 }}>
+                      {`${member.family_name || ''} ${member.name || ''}`}
+                      {member.id === user?.id ? ` (${localStrings.Messages.You})` : ''}
+                    </span>
+                    {memberRole !== undefined && (
+                      <span style={{ 
+                        marginLeft: 12,
+                        padding: "4px 8px",
+                        borderRadius: "12px",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        backgroundColor: memberRole === 0 ? '#1890ff' : '#f5f5f5',
+                        color: memberRole === 0 ? 'white' : '#555'
+                      }}>
+                        {memberRole === 0 ? 'Owner' : 'Member'}
+                      </span>
+                    )}
+                  </div>
+                  {canTransferOwnership && (
+                    <Button 
+                      type="link" 
+                      size="small"
+                      onClick={() => handleTransferOwnership(member.id!)}
+                    >
+                      {localStrings.Messages.MakeOwner}
+                    </Button>
+                  )}
+                </div>
+              </List.Item>
+            );
+          }}
           locale={{ emptyText: localStrings.Messages.NoMembersInConversation }}
         />
       ),
@@ -537,68 +660,73 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
           {!message.user?.avatar_url && message.user?.name?.charAt(0)}
         </Avatar>
       )}
-      <div 
-        style={{
-          maxWidth: "70%",
-          padding: "8px 12px",
-          borderRadius: 12,
-          background: isMyMessage ? brandPrimary : lightGray,
-          color: isMyMessage ? "#fff" : "inherit",
-          position: "relative",
-          border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
-        }}
-      >
-        {!isMyMessage && (
-          <div style={{ fontSize: 12, marginBottom: 2, fontWeight: "bold", color: isMyMessage ? "#fff" : "inherit" }}>
-            {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
-          </div>
-        )}
-        
-        <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", color: isMyMessage ? "#fff" : "inherit" }}>
-          {message.content}
-        </div>
-        
-        <div style={{ fontSize: 10, textAlign: "right", marginTop: 4, opacity: 0.7 }}>
-          {message.isTemporary ? (
-            <span style={{ color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit" }}>
-            </span>
-          ) : (
-            <span style={{ 
-              color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end"
-            }}>
-              {formatMessageTime(message.created_at || '')}
-            </span>
-          )}
-        </div>
-      </div>
       
-      {/* Message Options Dropdown (only for the user's own messages) */}
-      {isMyMessage && hovering && !message.isTemporary && (
-        <Dropdown 
-          menu={{ items: menuItems }} 
-          trigger={["click"]}
-          placement="bottomRight"
+      <div style={{ position: "relative" }}>
+        <div 
+          style={{
+            maxWidth: "100%",
+            padding: "8px 12px",
+            borderRadius: 12,
+            background: isMyMessage ? brandPrimary : lightGray,
+            color: isMyMessage ? "#fff" : "inherit",
+            position: "relative",
+            border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
+          }}
         >
-          <div
-            style={{
-              position: "absolute",
-              right: "calc(15% + 3px)", 
-              top: "50%", 
-              transform: "translateY(-50%)",
-              cursor: "pointer",
-              padding: 4,
-              borderRadius: "50%",
-              background: "#f0f0f0",
-              zIndex: 1             
-            }}
-          >
-            <EllipsisOutlined style={{ fontSize: 16 }} />
+          {!isMyMessage && (
+            <div style={{ fontSize: 12, marginBottom: 2, fontWeight: "bold", color: isMyMessage ? "#fff" : "inherit" }}>
+              {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
+            </div>
+          )}
+          
+          <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", color: isMyMessage ? "#fff" : "inherit" }}>
+            {message.content}
           </div>
-        </Dropdown>
-      )}
+          
+          <div style={{ fontSize: 10, textAlign: "right", marginTop: 4, opacity: 0.7 }}>
+            {message.isTemporary ? (
+              <span style={{ color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit" }}>
+              </span>
+            ) : (
+              <span style={{ 
+                color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end"
+              }}>
+                {formatMessageTime(message.created_at || '')}
+              </span>
+            )}
+          </div>
+        </div>
+        
+        {/* Message Options Dropdown - now positioned relative to the message */}
+        {isMyMessage && hovering && !message.isTemporary && (
+          <Popconfirm
+            title={localStrings.Messages.ConfirmDeleteMessage}
+            onConfirm={handleDelete}
+            okText={localStrings.Public.Yes}
+            cancelText={localStrings.Public.No}
+            trigger="click"
+          >
+            <div
+              style={{
+                position: "absolute",
+                left: "-28px",
+                top: "50%", 
+                transform: "translateY(-50%)",
+                cursor: "pointer",
+                padding: 4,
+                borderRadius: "50%",
+                background: "#f0f0f0",
+                zIndex: 1             
+              }}
+            >
+              <DeleteOutlined style={{ fontSize: 16 }} />
+            </div>
+          </Popconfirm>
+        )}
+      </div>
     </div>
   );
 };
@@ -659,44 +787,6 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleImageUpload = (info: any) => {
-    const file = info.file;
-    
-    if (!file) {
-      console.error("Không tìm thấy file:", info);
-      return false;
-    }
-    
-    const isImage = file.type.startsWith('image/');
-    const isLt5M = file.size / 1024 / 1024 < 5;
-    
-    if (!isImage) {
-      message.error(localStrings.Messages.OnlyImageFiles);
-      return false;
-    }
-    
-    if (!isLt5M) {
-      message.error(localStrings.Messages.ImageMustSmallerThan5M);
-      return false;
-    }
-    
-    
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const previewUrl = reader.result as string;
-      setImagePreview(previewUrl);
-    };
-    reader.readAsDataURL(file);
-    
-    setConversationImage(file);
-    return false; 
-  };
-
-  const removeImage = () => {
-    setConversationImage(null);
-    setImagePreview(null);
   };
 
   const handleCreateConversation = async () => {
@@ -863,6 +953,7 @@ const MessagesFeature: React.FC = () => {
   const [inCall, setInCall] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [userRole, setUserRole] = useState<number | null>(null);
   const {
     fetchConversations,
     deleteMessage,
@@ -892,6 +983,8 @@ const MessagesFeature: React.FC = () => {
     leaveConversation,
     unreadMessageCounts,
     resetUnreadCount,
+    getCurrentUserRole,
+    isUserConversationOwner,
   } = useMessagesViewModel();
 
   const [isMobile, setIsMobile] = useState(false);
@@ -900,6 +993,7 @@ const MessagesFeature: React.FC = () => {
   const [editConversationModalVisible, setEditConversationModalVisible] = useState(false);
   const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
   const [existingMemberIds, setExistingMemberIds] = useState<string[]>([]);
+  const conversationIdFromUrl = searchParams.get("conversation_id");
 
   interface SocketCallPayload {
     from: string;
@@ -912,55 +1006,29 @@ const MessagesFeature: React.FC = () => {
     reason?: string;
   }
 
-  const conversationIdFromUrl = searchParams.get("conversation_id");
+  useEffect(() => {
+    if (currentConversation?.id) {
+      getCurrentUserRole(currentConversation.id)
+        .then(setUserRole);
+    }
+  }, [currentConversation?.id]);
 
   useEffect(() => {
     if (user?.id) {
-      const socketUrl = process.env.NEXT_PUBLIC_VIDEO_CHAT_SERVER || 'http://localhost:5000';
+      const socketUrl = process.env.NEXT_PUBLIC_VIDEO_CHAT_SERVER;
       socketRef.current = io(socketUrl);
-      initializeSocket();
       
       socketRef.current.emit('register', user.id);
       
-      socketRef.current.on('call-incoming', async ({ from, signalData, callType }: SocketCallPayload) => {
-        if (callType === 'video') {
-          try {
-            let fromUser: FriendResponseModel | undefined;
-            
-            if (conversations.length > 0) {
-              for (const conv of conversations) {
-                if (!conv.id) continue;
-                
-                const messages = getMessagesForConversation(conv.id);
-                const fromMessage = messages.find(m => m.user_id === from && !m.isDateSeparator);
-                
-                if (fromMessage && fromMessage.user) {
-                  fromUser = {
-                    id: fromMessage.user.id,
-                    name: fromMessage.user.name,
-                    family_name: fromMessage.user.family_name,
-                    avatar_url: fromMessage.user.avatar_url
-                  } as FriendResponseModel;
-                  break;
-                }
-              }
-            }
-            
-            setIncomingCall({
-              from,
-              signalData,
-              fromUser
-            });
-          } catch (error) {
-            console.error('Error handling incoming call:', error);
-            setIncomingCall({
-              from,
-              signalData
-            });
-          }
+      socketRef.current.on('call-ended', ({ from }: SocketEndCallPayload) => {
+        console.log('Call ended by caller:', from);
+        if (incomingCall && incomingCall.from === from) {
+          console.log('Closing incoming call modal for caller:', from);
+          setIncomingCall(null);
         }
       });
       
+      initializeSocket();
       
       return () => {
         if (socketRef.current) {
@@ -969,7 +1037,7 @@ const MessagesFeature: React.FC = () => {
         }
       };
     }
-  }, [user?.id]);
+  }, [user?.id, incomingCall]);
 
   useEffect(() => {
     fetchConversations();
@@ -996,8 +1064,6 @@ const MessagesFeature: React.FC = () => {
     };
   }, [currentConversation?.id, markConversationAsRead]);
 
-  
-
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -1016,6 +1082,15 @@ const MessagesFeature: React.FC = () => {
       setShowConversation(false);
     }
   }, [currentConversation, isMobile]);
+
+  const handleRefreshAfterRoleChange = useCallback(async () => {
+    await fetchConversations();
+    
+    if (currentConversation?.id) {
+      const role = await getCurrentUserRole(currentConversation.id);
+      setUserRole(role);
+    }
+  }, [currentConversation?.id, fetchConversations, getCurrentUserRole]);
   
   const handleSelectConversation = (conversation: ConversationResponseModel) => {
     if (currentConversation?.id === conversation.id) {
@@ -1089,6 +1164,13 @@ const MessagesFeature: React.FC = () => {
   };
 
   const handleDeleteConversation = async (conversationId: string) => {
+    const isOwner = await isUserConversationOwner(conversationId);
+    
+    if (!isOwner) {
+      message.error(localStrings.Messages.OnlyOwnerCanDeleteConversation);
+      return;
+    }
+    
     Modal.confirm({
       title: localStrings.Messages.ConfirmDeleteConversation,
       content: localStrings.Messages.ConfirmDeleteConversation,
@@ -1104,7 +1186,7 @@ const MessagesFeature: React.FC = () => {
       }
     });
   };
-
+  
   const fetchExistingMembers = async (conversationId: string) => {
     try {
       const response = await defaultMessagesRepo.getConversationDetailByUserID({
@@ -1124,7 +1206,8 @@ const MessagesFeature: React.FC = () => {
             id: member.user?.id,
             name: member.user?.name,
             family_name: member.user?.family_name,
-            avatar_url: member.user?.avatar_url
+            avatar_url: member.user?.avatar_url,
+            active_status: member.user?.active_status || false
           }));
           
           setExistingMembers(memberProfiles as FriendResponseModel[]);
@@ -1191,6 +1274,51 @@ const MessagesFeature: React.FC = () => {
         }
       }
     });
+  };
+
+  const findUserById = async (userId: string): Promise<FriendResponseModel | undefined> => {
+    // Trước tiên kiểm tra thông tin người dùng trong các cuộc trò chuyện
+    if (conversations.length > 0) {
+      for (const conv of conversations) {
+        if (!conv.id) continue;
+        
+        const messages = getMessagesForConversation(conv.id);
+        const fromMessage = messages.find(m => m.user_id === userId && !m.isDateSeparator);
+        
+        if (fromMessage && fromMessage.user) {
+          return {
+            id: fromMessage.user.id,
+            name: fromMessage.user.name,
+            family_name: fromMessage.user.family_name,
+            avatar_url: fromMessage.user.avatar_url
+          } as FriendResponseModel;
+        }
+      }
+    }
+    
+    // Nếu không tìm thấy trong cuộc trò chuyện, kiểm tra danh sách bạn bè
+    try {
+      if (user?.id) {
+        const response = await defaultProfileRepo.getListFriends({
+          user_id: user.id,
+          limit: 50,
+          page: 1
+        });
+        
+        if (response.data) {
+          const friends = response.data as FriendResponseModel[];
+          const friend = friends.find(f => f.id === userId);
+          
+          if (friend) {
+            return friend;
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching friends for caller ID:", error);
+    }
+    
+    return undefined;
   };
 
   const handleVideoCall = (conversation: ConversationResponseModel) => {
@@ -2194,13 +2322,13 @@ const MessagesFeature: React.FC = () => {
     }
     
     try {
-      const socketUrl = process.env.NEXT_PUBLIC_VIDEO_CHAT_SERVER || 'http://localhost:5000';
+      const socketUrl = process.env.NEXT_PUBLIC_VIDEO_CHAT_SERVER ;
       socketRef.current = io(socketUrl, {
+        autoConnect: true,
         reconnection: true,
         reconnectionAttempts: 3, 
         reconnectionDelay: 1000,
         timeout: 10000,  
-        autoConnect: true
       });
       
       socketRef.current.on('connect', () => {
@@ -2240,9 +2368,10 @@ const MessagesFeature: React.FC = () => {
     if (!socketRef.current) return;
     
     socketRef.current.off('call-incoming');
+    socketRef.current.off('call-ended'); 
     
     socketRef.current.on('call-incoming', ({ from, signalData, callType }: SocketCallPayload) => {
-      
+      // Logic hiện tại được giữ nguyên
       if (inCall) {
         socketRef.current.emit('call-declined', {
           to: from,
@@ -2253,31 +2382,12 @@ const MessagesFeature: React.FC = () => {
       }
       
       try {
-        let fromUser: FriendResponseModel | undefined;
-        
-        if (conversations.length > 0) {
-          for (const conv of conversations) {
-            if (!conv.id) continue;
-            
-            const messages = getMessagesForConversation(conv.id);
-            const fromMessage = messages.find(m => m.user_id === from && !m.isDateSeparator);
-            
-            if (fromMessage && fromMessage.user) {
-              fromUser = {
-                id: fromMessage.user.id,
-                name: fromMessage.user.name,
-                family_name: fromMessage.user.family_name,
-                avatar_url: fromMessage.user.avatar_url
-              } as FriendResponseModel;
-              break;
-            }
-          }
-        }
-        
-        setIncomingCall({
-          from,
-          signalData,
-          fromUser
+        findUserById(from).then(fromUser => {
+          setIncomingCall({
+            from,
+            signalData,
+            fromUser
+          });
         });
       } catch (error) {
         console.error('Error handling incoming call:', error);
@@ -2285,6 +2395,15 @@ const MessagesFeature: React.FC = () => {
           from,
           signalData
         });
+      }
+    });
+    
+    // Thêm mới: Xử lý khi người gọi kết thúc cuộc gọi trước khi người nhận trả lời
+    socketRef.current.on('call-ended', ({ from }: SocketEndCallPayload) => {
+      // Kiểm tra nếu đang có cuộc gọi đến từ người gọi này
+      if (incomingCall && incomingCall.from === from) {
+        // Đóng cửa sổ thông báo cuộc gọi đến
+        setIncomingCall(null);
       }
     });
   };
@@ -2416,6 +2535,9 @@ const MessagesFeature: React.FC = () => {
                   <List
                     dataSource={filteredConversations}
                     renderItem={(item) => {
+
+                      const isOnline = item.active_status;
+
                       const conversationMessages = getMessagesForConversation(item.id || '');
 
                       const actualMessages = conversationMessages.filter(msg => !msg.isDateSeparator);
@@ -2480,14 +2602,7 @@ const MessagesFeature: React.FC = () => {
                         >
                           <List.Item.Meta
                             avatar={
-                              // <Badge 
-                              //   count={unreadMessageCounts[item.id || ''] || 0} 
-                              //   offset={[-5, 5]}
-                              //   size="small"
-                              //   style={{ 
-                              //     display: unreadMessageCounts[item.id || ''] ? 'block' : 'none' 
-                              //   }}
-                              // >
+                              <div style={{ position: 'relative' }}>
                                 <Avatar
                                   src={avatarUrl}
                                   size={48}
@@ -2497,7 +2612,19 @@ const MessagesFeature: React.FC = () => {
                                 >
                                   {!avatarUrl && avatarInitial}
                                 </Avatar>
-                              // </Badge>
+                                {isOnline && (
+                                  <span style={{
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    right: 0,
+                                    width: 12,
+                                    height: 12,
+                                    borderRadius: '50%',
+                                    backgroundColor: '#52c41a',
+                                    border: '2px solid white'
+                                  }} />
+                                )}
+                              </div>
                             }
                             title={<Text strong>{item.name}</Text>}
                             description={
@@ -2518,16 +2645,6 @@ const MessagesFeature: React.FC = () => {
                                 {lastMessageTime}
                               </Text>
                               
-                              {/* {unreadMessageCounts[item.id || ''] > 0 && (
-                                // <Badge
-                                //   count={unreadMessageCounts[item.id || '']}
-                                //   size="small"
-                                //   style={{ 
-                                //     marginTop: 4,
-                                //     backgroundColor: brandPrimary 
-                                //   }}
-                                // />
-                              )} */}
                             </div>
                           )}
                         </List.Item>
@@ -2603,10 +2720,29 @@ const MessagesFeature: React.FC = () => {
                     </Avatar>
                   );
                 })()}
-                <div style={{ marginLeft: 12 }}>
-                  <Text strong style={{ fontSize: 16 }}>
+                <div style={{ marginLeft: 12, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Text strong style={{ fontSize: 16, marginBottom: 2 }}>
                     {currentConversation.name}
                   </Text>
+                  {currentConversation.active_status && (
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      fontSize: 12, 
+                      color: '#52c41a',
+                      lineHeight: '1'
+                    }}>
+                      <span style={{
+                        display: 'inline-block',
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        backgroundColor: '#52c41a',
+                        marginRight: 4
+                      }} />
+                      <span>{localStrings.Messages.Active}</span>
+                    </div>
+                  )}
                 </div>
                 <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
                 {currentConversation && (
@@ -2632,13 +2768,16 @@ const MessagesFeature: React.FC = () => {
                       >
                         {localStrings.Messages.AddMembers}
                       </Item>
-                      <Item 
-                        key="delete" 
-                        danger 
-                        onClick={() => currentConversation?.id && handleDeleteConversation(currentConversation.id)}
-                      >
-                        {localStrings.Messages.DeleteConversation}
-                      </Item>
+                      {/* Chỉ hiện nút delete nếu user là owner */}
+                      {userRole === 0 && (
+                        <Item 
+                          key="delete" 
+                          danger 
+                          onClick={() => currentConversation?.id && handleDeleteConversation(currentConversation.id)}
+                        >
+                          {localStrings.Messages.DeleteConversation}
+                        </Item>
+                      )}
                       {(currentConversation?.name && !currentConversation.name.includes(" & ")) && (
                         <Item 
                           key="leave" 
@@ -2981,6 +3120,8 @@ const MessagesFeature: React.FC = () => {
         conversationId={currentConversation?.id}
         existingMemberIds={existingMemberIds}
         existingMembers={existingMembers}
+        userRole={userRole}
+        onRefreshConversation={handleRefreshAfterRoleChange}
       />
 
       <Modal

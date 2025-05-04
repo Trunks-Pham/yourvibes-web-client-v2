@@ -507,6 +507,14 @@ export const ENGLocalizedStrings = {
     IsCallingYou: "Is Calling You",
     Decline: "Decline",
     Accept: "Accept",
+    Active: "Active",
+    OnlyOwnerCanDeleteConversation: "Only Owner Can Delete Conversation",
+    MakeOwner: "Choose Owner",
+    TransferOwnership: "Transfer Ownership",
+    ConfirmTransferOwnership: "Are you sure you want to transfer ownership to this member? You will become a member.",
+    OwnershipTransferredSuccessfully: "Ownership transferred successfully",
+    FailedToTransferOwnership: "Failed to transfer ownership",
+
   },
   People: {
     FetchUsersFailed: "Failed to fetch users!",

@@ -76,34 +76,34 @@ export const useConversationViewModel = () => {
         
         setConversations(conversationsList);
         
-        const detailsPromises = conversationsList.map(async (conversation) => {
-          if (conversation.id) {
-            try {
-              const detailResponse = await defaultMessagesRepo.getConversationDetailByID({
-                userId: user.id,
-                conversationId: conversation.id
-              });
+        // const detailsPromises = conversationsList.map(async (conversation) => {
+        //   if (conversation.id) {
+        //     try {
+        //       const detailResponse = await defaultMessagesRepo.getConversationDetailByID({
+        //         userId: user.id,
+        //         conversationId: conversation.id
+        //       });
               
-              if (detailResponse.data) {
-                return { id: conversation.id, detail: detailResponse.data };
-              }
-            } catch (error) {
-              console.error("Error fetching conversation detail", conversation.id, error);
-            }
-          }
-          return null;
-        });
+        //       if (detailResponse.data) {
+        //         return { id: conversation.id, detail: detailResponse.data };
+        //       }
+        //     } catch (error) {
+        //       console.error("Error fetching conversation detail", conversation.id, error);
+        //     }
+        //   }
+        //   return null;
+        // });
         
-        const details = await Promise.all(detailsPromises);
-        const detailsMap: Record<string, ConversationDetailResponseModel> = {};
+        // const details = await Promise.all(detailsPromises);
+        // const detailsMap: Record<string, ConversationDetailResponseModel> = {};
         
-        details.filter(Boolean).forEach(item => {
-          if (item && item.id) {
-            detailsMap[item.id] = item.detail as ConversationDetailResponseModel;
-          }
-        });
+        // details.filter(Boolean).forEach(item => {
+        //   if (item && item.id) {
+        //     detailsMap[item.id] = item.detail as ConversationDetailResponseModel;
+        //   }
+        // });
         
-        setConversationDetails(detailsMap);
+        // setConversationDetails(detailsMap);
       }
     } catch (error) {
       console.error("Error fetching conversations:", error);
@@ -135,7 +135,6 @@ export const useConversationViewModel = () => {
       if (createResponse.data) {
         const newConversation = createResponse.data;
         
-        // Cập nhật UI
         addNewConversation(newConversation);
         await fetchConversations();
         
