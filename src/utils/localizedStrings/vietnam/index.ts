@@ -522,6 +522,7 @@ export const VnLocalizedStrings = {
     FailedToRemoveMember: "Xóa thành viên không thành công",
     CannotRemoveYourself: "Không thể xóa chính bạn!",
     OneOnOneChatNote: "📝 Lưu ý: Trong chat 1-1, bạn không thể xóa thành viên kia.",
+    YouHaveBeenRemoved: "Bạn đã bị xóa khỏi cuộc trò chuyện này",
 
   },
   People: {
