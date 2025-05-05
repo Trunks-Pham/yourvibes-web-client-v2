@@ -1124,7 +1124,7 @@ const MessagesFeature: React.FC = () => {
     handleScroll,
     getMessagesForConversation,
     initialMessagesLoaded,
-    markConversationAsRead,
+    // markConversationAsRead,
     addConversationMembers,
     leaveConversation,
     unreadMessageCounts,
@@ -1203,26 +1203,26 @@ const MessagesFeature: React.FC = () => {
     fetchConversations();
   }, []);
 
-  useEffect(() => {
-    if (currentConversation?.id) {
-      markConversationAsRead(currentConversation.id);
-      resetUnreadCount(currentConversation.id);
-    }
-  }, [currentConversation?.id]);
+  // useEffect(() => {
+  //   if (currentConversation?.id) {
+  //     markConversationAsRead(currentConversation.id);
+  //     resetUnreadCount(currentConversation.id);
+  //   }
+  // }, [currentConversation?.id]);
   
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && currentConversation?.id) {
-        markConversationAsRead(currentConversation.id);
-      }
-    };
+  // useEffect(() => {
+  //   const handleVisibilityChange = () => {
+  //     if (document.visibilityState === 'visible' && currentConversation?.id) {
+  //       markConversationAsRead(currentConversation.id);
+  //     }
+  //   };
   
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+  //   document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [currentConversation?.id, markConversationAsRead]);
+  //   return () => {
+  //     document.removeEventListener('visibilitychange', handleVisibilityChange);
+  //   };
+  // }, [currentConversation?.id, markConversationAsRead]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -1287,27 +1287,27 @@ const MessagesFeature: React.FC = () => {
   const handleSendMessage = async () => {
     if (!user?.id || !currentConversation?.id) return;
     
-    try {
-      const response = await defaultMessagesRepo.getConversationDetailByUserID({
-        conversation_id: currentConversation.id
-      });
+    // try {
+    //   const response = await defaultMessagesRepo.getConversationDetailByUserID({
+    //     conversation_id: currentConversation.id
+    //   });
       
-      if (response.data) {
-        const members = Array.isArray(response.data) ? response.data : [response.data];
-        const userExists = members.some(member => member.user_id === user.id);
+    //   if (response.data) {
+    //     const members = Array.isArray(response.data) ? response.data : [response.data];
+    //     const userExists = members.some(member => member.user_id === user.id);
         
-        if (!userExists) {
-          setHasPermission(false);
-          message.error(localStrings.Messages.YouHaveBeenRemoved);
-          setCurrentConversation(null);
-          fetchConversations();
-          return;
-        }
-      }
-    } catch (error) {
-      console.error("Error checking permission:", error);
-      return;
-    }
+    //     if (!userExists) {
+    //       setHasPermission(false);
+    //       message.error(localStrings.Messages.YouHaveBeenRemoved);
+    //       setCurrentConversation(null);
+    //       fetchConversations();
+    //       return;
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.error("Error checking permission:", error);
+    //   return;
+    // }
     
     if (messageText.trim() && currentConversation && messageText.length <= 500) {
       sendMessage();
