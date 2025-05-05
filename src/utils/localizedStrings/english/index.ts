@@ -529,6 +529,7 @@ export const ENGLocalizedStrings = {
     FailedToRemoveMember: "Failed to remove member",
     CannotRemoveYourself: "Cannot remove yourself",
     OneOnOneChatNote: "📝 Note: In a one-on-one chat, you cannot remove the other member.",
+    YouHaveBeenRemoved: "You Have Been Removed",
 
   },
   People: {

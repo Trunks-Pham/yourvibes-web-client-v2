@@ -1098,6 +1098,8 @@ const MessagesFeature: React.FC = () => {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [userRole, setUserRole] = useState<number | null>(null);
   const { socketMessages, setSocketMessages } = useWebSocket();
+  const [hasPermission, setHasPermission] = useState<boolean>(true); //sau khi bi kick khoi conversation se kiem tra de khong cho chat vao duoc neu nhu con dang mo conversation
+
   const {
     fetchConversations,
     deleteMessage,
@@ -1258,6 +1260,7 @@ const MessagesFeature: React.FC = () => {
     }
   
     setCurrentConversation(conversation);
+    setHasPermission(true);
   
     // setTimeout(() => {
     //   if (conversation.id) {
@@ -1281,7 +1284,31 @@ const MessagesFeature: React.FC = () => {
     setMessageText(prev => prev + emojiData.emoji);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
+    if (!user?.id || !currentConversation?.id) return;
+    
+    try {
+      const response = await defaultMessagesRepo.getConversationDetailByUserID({
+        conversation_id: currentConversation.id
+      });
+      
+      if (response.data) {
+        const members = Array.isArray(response.data) ? response.data : [response.data];
+        const userExists = members.some(member => member.user_id === user.id);
+        
+        if (!userExists) {
+          setHasPermission(false);
+          message.error(localStrings.Messages.YouHaveBeenRemoved);
+          setCurrentConversation(null);
+          fetchConversations();
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Error checking permission:", error);
+      return;
+    }
+    
     if (messageText.trim() && currentConversation && messageText.length <= 500) {
       sendMessage();
     } else if (messageText.length > 500) {
