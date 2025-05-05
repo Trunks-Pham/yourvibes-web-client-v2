@@ -7,6 +7,7 @@ import { MessageResponseModel } from '@/api/features/messages/models/MessageMode
 import { defaultProfileRepo } from '@/api/features/profile/ProfileRepository';
 import { FriendResponseModel } from '@/api/features/profile/model/FriendReponseModel';
 import { useAuth } from '@/context/auth/useAuth';
+import { useWebSocket } from '@/context/socket/useSocket';
 import useColor from '@/hooks/useColor';
 import { EllipsisOutlined, DeleteOutlined, InboxOutlined, SendOutlined, SearchOutlined, ArrowLeftOutlined, PlusOutlined, SmileOutlined, VideoCameraOutlined, CloseOutlined } from '@ant-design/icons';
 import { Empty, Layout, Skeleton, Typography, Popover, Badge, Menu, Dropdown, Popconfirm, Input, Button, Upload, Modal, Form, List, Avatar, Spin, message, Checkbox, Tabs } from 'antd';
@@ -829,12 +830,14 @@ interface NewConversationModalProps {
   visible: boolean;
   onCancel: () => void;
   onCreateConversation: (name: string, image?: File | string, userIds?: string[]) => Promise<any>;
+  onConversationCreated?: (conversation: ConversationResponseModel) => void;
 }
 
 const NewConversationModal: React.FC<NewConversationModalProps> = ({ 
   visible, 
   onCancel, 
-  onCreateConversation 
+  onCreateConversation,
+  onConversationCreated, 
 }) => {
   const { user, localStrings } = useAuth();
   const { brandPrimary } = useColor();
@@ -930,6 +933,10 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
         setSelectedFriends([]);
         setConversationImage(null);
         setImagePreview(null);
+
+        if (onConversationCreated) {
+          onConversationCreated(newConversation);
+        }
         
         onCancel();
       }
@@ -1090,6 +1097,7 @@ const MessagesFeature: React.FC = () => {
   const [isReconnecting, setIsReconnecting] = useState(false);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [userRole, setUserRole] = useState<number | null>(null);
+  const { socketMessages, setSocketMessages } = useWebSocket();
   const {
     fetchConversations,
     deleteMessage,
@@ -1141,6 +1149,20 @@ const MessagesFeature: React.FC = () => {
     from: string;
     reason?: string;
   }
+
+  useEffect(() => {
+    if (socketMessages.length > 0) {
+      const latestMessage = socketMessages[0];
+      
+      const isNewConversation = latestMessage.conversation_id && 
+        !conversations.some(conv => conv.id === latestMessage.conversation_id);
+      
+      if (isNewConversation) {
+        fetchConversations();
+        setSocketMessages([]);
+      }
+    }
+  }, [socketMessages, conversations, fetchConversations, setSocketMessages]);
 
   useEffect(() => {
     if (currentConversation?.id) {
@@ -1237,23 +1259,23 @@ const MessagesFeature: React.FC = () => {
   
     setCurrentConversation(conversation);
   
-    setTimeout(() => {
-      if (conversation.id) {
-        fetchMessages(conversation.id);
-        markConversationAsRead(conversation.id);
-        resetUnreadCount(conversation.id); 
-      }
-    }, 200);
+    // setTimeout(() => {
+    //   if (conversation.id) {
+    //     fetchMessages(conversation.id);
+    //     markConversationAsRead(conversation.id);
+    //     resetUnreadCount(conversation.id); 
+    //   }
+    // }, 200);
   };
   
-  useEffect(() => {
-    if (conversationIdFromUrl && conversations.length > 0) {
-      const selectedConversation = conversations.find(conv => conv.id === conversationIdFromUrl);
-      if (selectedConversation && selectedConversation.id !== currentConversation?.id) {
-        handleSelectConversation(selectedConversation);
-      }
-    }
-  }, [conversationIdFromUrl, conversations, currentConversation?.id, handleSelectConversation]);
+  // useEffect(() => {
+  //   if (conversationIdFromUrl && conversations.length > 0) {
+  //     const selectedConversation = conversations.find(conv => conv.id === conversationIdFromUrl);
+  //     if (selectedConversation && selectedConversation.id !== currentConversation?.id) {
+  //       handleSelectConversation(selectedConversation);
+  //     }
+  //   }
+  // }, [conversationIdFromUrl, conversations, currentConversation?.id, handleSelectConversation]);
 
   const onEmojiClick = (emojiData: EmojiClickData) => {
     setMessageText(prev => prev + emojiData.emoji);
@@ -1389,11 +1411,11 @@ const MessagesFeature: React.FC = () => {
     }
   };
   
-  useEffect(() => {
-    if (currentConversation?.id) {
-      fetchExistingMembers(currentConversation.id);
-    }
-  }, [currentConversation?.id]);
+  // useEffect(() => {
+  //   if (currentConversation?.id) {
+  //     fetchExistingMembers(currentConversation.id);
+  //   }
+  // }, [currentConversation?.id]);
 
   const handleAddMembers = async (userIds: string[]) => {
     if (currentConversation?.id) {
@@ -1432,6 +1454,10 @@ const MessagesFeature: React.FC = () => {
           if (currentConversation.id) {
             await leaveConversation(currentConversation.id);
             message.success(localStrings.Messages.LeftConversation);
+            
+            await fetchConversations();
+            
+            setCurrentConversation(null);
           }
         } catch (error) {
           message.error(localStrings.Public.Error);
@@ -3268,6 +3294,9 @@ const MessagesFeature: React.FC = () => {
         visible={newConversationModalVisible}
         onCancel={() => setNewConversationModalVisible(false)}
         onCreateConversation={createConversation}
+        onConversationCreated={(newConversation) => {
+          handleSelectConversation(newConversation);
+        }}
       />
 
       {/* Edit Conversation Modal */}
