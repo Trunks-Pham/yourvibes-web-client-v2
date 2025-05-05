@@ -189,6 +189,52 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
     }
   };
 
+  const handleRemoveMember = async (userId: string) => {
+    if (!conversationId || userRole !== 0) return;
+    
+    if (userId === user?.id) {
+      message.warning(localStrings.Messages.CannotRemoveYourself);
+      return;
+    }
+    
+    const member = existingMembers.find(m => m.id === userId);
+    const memberName = member ? `${member.family_name || ''} ${member.name || ''}`.trim() : '';
+    
+    Modal.confirm({
+      title: localStrings.Messages.RemoveMember,
+      content: `${localStrings.Messages.ConfirmRemoveMember} ${memberName}?`,
+      okText: localStrings.Messages.Remove,
+      cancelText: localStrings.Public.Cancel,
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try { 
+          const response = await defaultMessagesRepo.deleteConversationDetail({
+            user_id: userId,
+            conversation_id: conversationId
+          });
+          
+          if (response.error?.code) {
+            throw new Error(response.error.message);
+          }
+          else {
+            message.success(localStrings.Messages.MemberRemovedSuccessfully);
+            if (onRefreshConversation) {
+              onRefreshConversation();
+            }
+            
+            await fetchExistingMembersWithRole(conversationId);
+          }
+          
+        } catch (error) {
+          console.error('Network error:', error);
+          message.error(localStrings.Messages.FailedToRemoveMember);
+        }
+      }
+    });
+  };
+
+  const isOneOnOneConversation = existingMembers.length === 2;
+
   const tabItems = [
     {
       key: 'addMembers',
@@ -274,6 +320,24 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
               </span>
             </div>
           )}
+          
+          {/* Thêm thông báo cho conversation 1-1 */}
+          {isOneOnOneConversation && userRole === 0 && (
+            <div style={{ 
+              padding: "8px", 
+              background: "#e6f4ff", 
+              borderRadius: "4px",
+              marginBottom: "16px",
+              display: "flex",
+              alignItems: "center",
+              border: "1px solid #91d5ff"
+            }}>
+              <span style={{ color: "#1890ff" }}>
+                {localStrings.Messages.OneOnOneChatNote}
+              </span>
+            </div>
+          )}
+          
           <List
             style={{ 
               maxHeight: 300, 
@@ -287,6 +351,12 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
               const memberRole = member.conversation_role;
               const isCurrentUser = member.id === user?.id;
               const canTransferOwnership = userRole === 0 && memberRole !== 0 && !isCurrentUser;
+              
+              // Chỉ hiển thị nút Remove nếu:
+              // 1. User là owner
+              // 2. Member không phải là chính mình 
+              // 3. KHÔNG phải là conversation 1-1
+              const canRemoveMember = userRole === 0 && !isCurrentUser && !isOneOnOneConversation;
       
               return (
                 <List.Item 
@@ -327,15 +397,27 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                         </span>
                       )}
                     </div>
-                    {canTransferOwnership && (
-                      <Button 
-                        type="link" 
-                        size="small"
-                        onClick={() => handleTransferOwnership(member.id!)}
-                      >
-                        {localStrings.Messages.MakeOwner}
-                      </Button>
-                    )}
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {canTransferOwnership && (
+                        <Button 
+                          type="link" 
+                          size="small"
+                          onClick={() => handleTransferOwnership(member.id!)}
+                        >
+                          {localStrings.Messages.MakeOwner}
+                        </Button>
+                      )}
+                      {canRemoveMember && (
+                        <Button 
+                          type="link" 
+                          size="small"
+                          danger
+                          onClick={() => handleRemoveMember(member.id!)}
+                        >
+                          {localStrings.Messages.Remove}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </List.Item>
               );
@@ -1222,16 +1304,14 @@ const MessagesFeature: React.FC = () => {
   };
 
   const handleDeleteConversation = async (conversationId: string) => {
+    if (!existingMembers.length) return;
+    
     const isOneOnOne = existingMembers.length === 2 && 
                        currentConversation?.name?.includes(" & ");
-  
-    if (!isOneOnOne) {
-      const isOwner = await isUserConversationOwner(conversationId);
-      
-      if (!isOwner) {
-        message.error(localStrings.Messages.OnlyOwnerCanDeleteConversation);
-        return;
-      }
+    
+    if (userRole !== 0 && !isOneOnOne) {
+      message.error(localStrings.Messages.OnlyOwnerCanDeleteConversation);
+      return;
     }
     
     Modal.confirm({

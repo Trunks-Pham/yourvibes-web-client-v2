@@ -523,6 +523,12 @@ export const ENGLocalizedStrings = {
     GroupMustHaveAtLeastTwoMembers: "Group Must Have At Least 2 Members",
     CannotRemoveWhenTwoMembers: "Cannot Remove Member When Only 2 Members",
     ConfirmDeleteConversationContent: "Are You Sure To Delete This Conversation ?",
+    RemoveMember: "Remove Member",
+    ConfirmRemoveMember: "Are you sure you want to remove ?",
+    MemberRemovedSuccessfully: "Member removed successfully",
+    FailedToRemoveMember: "Failed to remove member",
+    CannotRemoveYourself: "Cannot remove yourself",
+    OneOnOneChatNote: "📝 Note: In a one-on-one chat, you cannot remove the other member.",
 
   },
   People: {

@@ -516,6 +516,12 @@ export const VnLocalizedStrings = {
     GroupMustHaveAtLeastTwoMembers: "Nhóm phải có ít nhất 2 thành viên",
     CannotRemoveWhenTwoMembers: "Không thể xóa thành viên khi nhóm chỉ còn 2 người",
     ConfirmDeleteConversationContent: "Bạn có chắc chắn muốn xóa cuộc trò chuyện này?",
+    RemoveMember: "Xóa thành viên",
+    ConfirmRemoveMember: "Bạn có chắc là muốn xóa thành viên này?",
+    MemberRemovedSuccessfully: "Xóa thành viên thành công",
+    FailedToRemoveMember: "Xóa thành viên không thành công",
+    CannotRemoveYourself: "Không thể xóa chính bạn!",
+    OneOnOneChatNote: "📝 Lưu ý: Trong chat 1-1, bạn không thể xóa thành viên kia.",
 
   },
   People: {
