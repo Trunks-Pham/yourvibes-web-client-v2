@@ -1098,7 +1098,7 @@ const MessagesFeature: React.FC = () => {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [userRole, setUserRole] = useState<number | null>(null);
   const { socketMessages, setSocketMessages } = useWebSocket();
-  const [hasPermission, setHasPermission] = useState<boolean>(true);
+  const [hasPermission, setHasPermission] = useState<boolean>(true); //sau khi bi kick khoi conversation se kiem tra de khong cho chat vao duoc neu nhu con dang mo conversation
 
   const {
     fetchConversations,
