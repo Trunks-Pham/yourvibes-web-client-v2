@@ -536,6 +536,11 @@ useEffect(() => {
     };
 }, []);
 
+useEffect(() => {
+  setCurrentPage(1);
+  setIsMessagesEnd(false);
+}, [currentConversationId]);
+
 return {
     // State
     messages,
