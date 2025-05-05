@@ -514,6 +514,15 @@ export const ENGLocalizedStrings = {
     ConfirmTransferOwnership: "Are you sure you want to transfer ownership to this member? You will become a member.",
     OwnershipTransferredSuccessfully: "Ownership transferred successfully",
     FailedToTransferOwnership: "Failed to transfer ownership",
+    GroupNameRequired: "Group Name Required",
+    GroupNameRequiredNote: "When Create Group Chat, Must Name For It",
+    CannotLeaveAsOwner: "Cannot Leave Group As Owner",
+    MustTransferOwnershipFirst: "Must Transfer Ownership First",
+    OwnerCannotLeaveNote: "⚠️ You Are Owner, Must Transfer Ownership To Someone Before Leave Group",
+    CannotLeaveGroup: "Cannot Leave Group",
+    GroupMustHaveAtLeastTwoMembers: "Group Must Have At Least 2 Members",
+    CannotRemoveWhenTwoMembers: "Cannot Remove Member When Only 2 Members",
+    ConfirmDeleteConversationContent: "Are You Sure To Delete This Conversation ?",
 
   },
   People: {

@@ -507,6 +507,15 @@ export const VnLocalizedStrings = {
     ConfirmTransferOwnership: "Bạn có chắc muốn chuyển quyền quản trị ?",
     OwnershipTransferredSuccessfully: "Chuyển quyền sở hữu thành công",
     FailedToTransferOwnership: "Không thể chuyển quyền sở hữu",
+    GroupNameRequired: "Tên nhóm là bắt buộc",
+    GroupNameRequiredNote: "* Khi tạo nhóm chat với nhiều người, bạn phải đặt tên cho nhóm",
+    CannotLeaveAsOwner: "Không thể rời nhóm khi là trưởng nhóm",
+    MustTransferOwnershipFirst: "Bạn là chủ nhóm, vui lòng chuyển quyền sở hữu cho thành viên khác trước khi rời nhóm",
+    OwnerCannotLeaveNote: "⚠️ Bạn là chủ nhóm, không thể rời nhóm. Vui lòng chuyển quyền sở hữu cho thành viên khác trước khi rời nhóm",
+    CannotLeaveGroup: "Không thể rời nhóm",
+    GroupMustHaveAtLeastTwoMembers: "Nhóm phải có ít nhất 2 thành viên",
+    CannotRemoveWhenTwoMembers: "Không thể xóa thành viên khi nhóm chỉ còn 2 người",
+    ConfirmDeleteConversationContent: "Bạn có chắc chắn muốn xóa cuộc trò chuyện này?",
 
   },
   People: {
