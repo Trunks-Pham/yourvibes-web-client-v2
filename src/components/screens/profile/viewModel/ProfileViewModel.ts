@@ -90,6 +90,7 @@ const ProfileViewModel = () => {
 
         setTotalFriends(totalRecords);
         setPageFriend(currentPage);
+        setFriendCount(totalRecords);
         setHasMoreFriends(currentPage * currentLimit < totalRecords);
       }
       

@@ -31,15 +31,14 @@ const ProfileTabs = ({
   loading: boolean,
   setPosts: React.Dispatch<React.SetStateAction<PostResponseModel[]>>,
 }) => {
-  const searchParams = useSearchParams(); // Lấy tham số search của URL
-  const tab = searchParams.get('tab'); // Lấy giá trị của tham số 'tab' từ URL
+  const searchParams = useSearchParams();  
+  const tab = searchParams.get('tab');  
 
-  const [activeKey, setActiveKey] = useState<string>('info'); // Quản lý activeKey
-
-  // Cập nhật activeKey khi tham số 'tab' thay đổi trong URL
+  const [activeKey, setActiveKey] = useState<string>('info');  
+ 
   useEffect(() => {
     if (tab) {
-      setActiveKey(tab); // Cập nhật activeKey nếu có tab trong URL
+      setActiveKey(tab);  
     }
   }, [tab]);
 
