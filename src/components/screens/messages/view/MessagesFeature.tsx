@@ -224,7 +224,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
             
             await fetchExistingMembersWithRole(conversationId);
           }
-          
+
         } catch (error) {
           console.error('Network error:', error);
           message.error(localStrings.Messages.FailedToRemoveMember);
@@ -351,11 +351,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
               const memberRole = member.conversation_role;
               const isCurrentUser = member.id === user?.id;
               const canTransferOwnership = userRole === 0 && memberRole !== 0 && !isCurrentUser;
-              
-              // Chỉ hiển thị nút Remove nếu:
-              // 1. User là owner
-              // 2. Member không phải là chính mình 
-              // 3. KHÔNG phải là conversation 1-1
+
               const canRemoveMember = userRole === 0 && !isCurrentUser && !isOneOnOneConversation;
       
               return (
@@ -1306,8 +1302,7 @@ const MessagesFeature: React.FC = () => {
   const handleDeleteConversation = async (conversationId: string) => {
     if (!existingMembers.length) return;
     
-    const isOneOnOne = existingMembers.length === 2 && 
-                       currentConversation?.name?.includes(" & ");
+    const isOneOnOne = existingMembers.length === 2;
     
     if (userRole !== 0 && !isOneOnOne) {
       message.error(localStrings.Messages.OnlyOwnerCanDeleteConversation);
@@ -1443,12 +1438,7 @@ const MessagesFeature: React.FC = () => {
     });
   };
 
-  const isOneOnOneConversation = useMemo(() => {
-    if (!currentConversation || !existingMembers.length) return false;
-    
-    return existingMembers.length === 2 && 
-           currentConversation.name?.includes(" & ");
-  }, [currentConversation, existingMembers]);
+  const isOneOnOneConversation = existingMembers.length === 2;
 
   const findUserById = async (userId: string): Promise<FriendResponseModel | undefined> => {
     if (conversations.length > 0) {
