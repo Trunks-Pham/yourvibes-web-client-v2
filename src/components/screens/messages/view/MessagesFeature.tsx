@@ -3169,7 +3169,7 @@ const MessagesFeature: React.FC = () => {
                 ) : (
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     {/* Load More Button - only show when we have messages and not at the end */}
-                    {messages.length > 0 && !isMessagesEnd && (
+                    {/* {messages.length > 0 && !isMessagesEnd && (
                       <div style={{ textAlign: "center", padding: "10px 0" }}>
                         <Button
                           onClick={loadMoreMessages}
@@ -3179,7 +3179,7 @@ const MessagesFeature: React.FC = () => {
                           {localStrings.Public.LoadMore}
                         </Button>
                       </div>
-                    )}
+                    )} */}
 
                     {/* Loading indicator when fetching more messages */}
                     {messagesLoading && messages.length > 0 && (
