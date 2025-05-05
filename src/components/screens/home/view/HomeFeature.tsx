@@ -20,7 +20,7 @@ import { defaultPostRepo } from "@/api/features/post/PostRepo";
 import { PostResponseModel } from "@/api/features/post/models/PostResponseModel";
 
 const Homepage = () => {
-  const { brandPrimary, backgroundColor, lightGray, borderBirth, colorOnl, brandPrimaryTap} = useColor();
+  const { brandPrimary, backgroundColor, lightGray, borderBirth, colorOnl, brandPrimaryTap } = useColor();
   const {
     loading,
     newFeeds,
@@ -36,7 +36,7 @@ const Homepage = () => {
   const { user, localStrings } = useAuth();
   const router = useRouter();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const { friends, fetchMyFriends, page, loadMoreFriends, hasMoreFriends  } = ProfileViewModel();
+  const { friends, fetchMyFriends, page, loadMoreFriends, hasMoreFriends } = ProfileViewModel();
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -87,10 +87,10 @@ const Homepage = () => {
             size={{ xs: 40, sm: 40, md: 50, lg: 50, xl: 50, xxl: 50 }}
           />
           <div style={{ marginLeft: "10px", flex: 1 }}>
-              <b style={{color: brandPrimary}}>
-                {user?.family_name + " " + user?.name ||
-                  localStrings.Public.Username}
-              </b>
+            <b style={{ color: brandPrimary }}>
+              {user?.family_name + " " + user?.name ||
+                localStrings.Public.Username}
+            </b>
             <p style={{ color: "gray" }}>{localStrings.Public.Today}</p>
           </div>
           <span
@@ -297,8 +297,8 @@ const Homepage = () => {
           }}
         >
           {friends.length > 0 ? (
-                  friends.map((user) => (
-                <div
+            friends.map((user) => (
+              <div
                 key={user.id}
                 style={{
                   display: "flex",
@@ -312,60 +312,60 @@ const Homepage = () => {
                   animation: "fadeIn 0.5s ease-in-out",
                   boxShadow:
                     "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
-                    color: brandPrimary,
+                  color: brandPrimary,
                 }}
-                  onClick={() => router.push(`/user/${user?.id}`)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow =
-                      "0 6px 12px rgba(0, 0, 0, 0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow =
-                      "0 2px 8px rgba(0, 0, 0, 0.06)";
-                  }}
+                onClick={() => router.push(`/user/${user?.id}`)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 6px 12px rgba(0, 0, 0, 0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 2px 8px rgba(0, 0, 0, 0.06)";
+                }}
+              >
+                <div
+                  style={{ position: "relative", display: "inline-block" }}
                 >
-                  <div
-                    style={{ position: "relative", display: "inline-block" }}
-                  >
-                    <Avatar
-                      src={user.avatar_url}
-                      alt={user.name}
-                      size={40}
+                  <Avatar
+                    src={user.avatar_url}
+                    alt={user.name}
+                    size={40}
+                    style={{
+                      boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
+                    }}
+                  />
+                  {user.active_status && (
+                    <span
                       style={{
-                        boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
+                        position: "absolute",
+                        bottom: 0,
+                        right: 0,
+                        width: 12,
+                        height: 12,
+                        backgroundColor: colorOnl || "#00CED1",
+                        border: "2px solid white",
+                        borderRadius: "50%",
                       }}
                     />
-                    {user.active_status && (
-                      <span
-                        style={{
-                          position: "absolute",
-                          bottom: 0,
-                          right: 0,
-                          width: 12,
-                          height: 12,
-                          backgroundColor: colorOnl || "#00CED1",
-                          border: "2px solid white", 
-                          borderRadius: "50%",
-                        }}
-                      />
-                    )}
-                  </div>
-
-                  <span
-                    style={{
-                      marginLeft: 12,
-                      fontWeight: "600",
-                      fontSize: 14,
-                      // color: "#1f2937",
-                    }}
-                  >
-                    {user.family_name + " " + user.name}
-                  </span>
+                  )}
                 </div>
+
+                <span
+                  style={{
+                    marginLeft: 12,
+                    fontWeight: "600",
+                    fontSize: 14,
+                    // color: "#1f2937",
+                  }}
+                >
+                  {user.family_name + " " + user.name}
+                </span>
+              </div>
             ))
-              
+
           ) : (
             <div
               style={{
