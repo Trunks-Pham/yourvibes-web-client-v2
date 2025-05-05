@@ -126,6 +126,11 @@ export const useConversationViewModel = () => {
         return null;
       }
       
+      if (filteredUserIds.length > 1 && !name) {
+        message.error(localStrings.Messages.GroupNameRequired);
+        return null;
+      }
+      
       const createResponse = await defaultMessagesRepo.createConversation({
         name: name,
         image: image, 

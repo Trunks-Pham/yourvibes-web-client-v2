@@ -12,7 +12,7 @@ import { EllipsisOutlined, DeleteOutlined, InboxOutlined, SendOutlined, SearchOu
 import { Empty, Layout, Skeleton, Typography, Popover, Badge, Menu, Dropdown, Popconfirm, Input, Button, Upload, Modal, Form, List, Avatar, Spin, message, Checkbox, Tabs } from 'antd';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useSearchParams } from 'next/navigation';
-import React, { useCallback, useEffect, useState, useRef  } from 'react';
+import React, { useCallback, useEffect, useState, useRef, useMemo  } from 'react';
 import io from 'socket.io-client';
 
 interface AddMemberModalProps {
@@ -189,6 +189,52 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
     }
   };
 
+  const handleRemoveMember = async (userId: string) => {
+    if (!conversationId || userRole !== 0) return;
+    
+    if (userId === user?.id) {
+      message.warning(localStrings.Messages.CannotRemoveYourself);
+      return;
+    }
+    
+    const member = existingMembers.find(m => m.id === userId);
+    const memberName = member ? `${member.family_name || ''} ${member.name || ''}`.trim() : '';
+    
+    Modal.confirm({
+      title: localStrings.Messages.RemoveMember,
+      content: `${localStrings.Messages.ConfirmRemoveMember} ${memberName}?`,
+      okText: localStrings.Messages.Remove,
+      cancelText: localStrings.Public.Cancel,
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try { 
+          const response = await defaultMessagesRepo.deleteConversationDetail({
+            user_id: userId,
+            conversation_id: conversationId
+          });
+          
+          if (response.error?.code) {
+            throw new Error(response.error.message);
+          }
+          else {
+            message.success(localStrings.Messages.MemberRemovedSuccessfully);
+
+            if (onRefreshConversation) {
+              onRefreshConversation();
+            }
+            
+          }
+
+        } catch (error) {
+          console.error('Network error:', error);
+          message.error(localStrings.Messages.FailedToRemoveMember);
+        }
+      }
+    });
+  };
+
+  const isOneOnOneConversation = existingMembers.length === 2;
+
   const tabItems = [
     {
       key: 'addMembers',
@@ -236,7 +282,6 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                     <span style={{ marginLeft: 12 }}>
                       {`${friend.family_name || ''} ${friend.name || ''}`}
                     </span>
-                    {/* Thêm biểu thị trạng thái online/offline */}
                     {friend.active_status && (
                       <span style={{ 
                         width: 8, 
@@ -259,74 +304,123 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
       key: 'currentMembers',
       label: localStrings.Messages.CurrentMembers,
       children: (
-        <List
-          style={{ 
-            maxHeight: 300, 
-            overflow: "auto", 
-            border: "1px solid #d9d9d9", 
-            borderRadius: 4,
-            padding: "8px 0"
-          }}
-          dataSource={existingMembers}
-          renderItem={(member: ConversationMember) => {
-            const memberRole = member.conversation_role;
-            const isCurrentUser = member.id === user?.id;
-            const canTransferOwnership = userRole === 0 && memberRole !== 0 && !isCurrentUser;
-    
-            return (
-              <List.Item 
-                key={member.id}
-                style={{ padding: "8px 16px" }}
-              >
-                <div style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  width: "100%",
-                  justifyContent: "space-between" 
-                }}>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <Avatar 
-                      src={member.avatar_url} 
-                      style={{ 
-                        marginLeft: 8,
-                        backgroundColor: !member.avatar_url ? brandPrimary : undefined 
-                      }}
-                    >
-                      {!member.avatar_url && (member.name?.charAt(0) || "").toUpperCase()}
-                    </Avatar>
-                    <span style={{ marginLeft: 12 }}>
-                      {`${member.family_name || ''} ${member.name || ''}`}
-                      {member.id === user?.id ? ` (${localStrings.Messages.You})` : ''}
-                    </span>
-                    {memberRole !== undefined && (
-                      <span style={{ 
-                        marginLeft: 12,
-                        padding: "4px 8px",
-                        borderRadius: "12px",
-                        fontSize: "12px",
-                        fontWeight: "bold",
-                        backgroundColor: memberRole === 0 ? '#1890ff' : '#f5f5f5',
-                        color: memberRole === 0 ? 'white' : '#555'
-                      }}>
-                        {memberRole === 0 ? 'Owner' : 'Member'}
+        <div>
+          {userRole === 0 && (
+            <div style={{ 
+              padding: "8px", 
+              background: "#fffbe6", 
+              borderRadius: "4px",
+              marginBottom: "16px",
+              display: "flex",
+              alignItems: "center",
+              border: "1px solid #ffe58f"
+            }}>
+              <span style={{ color: "#d48806" }}>
+                {localStrings.Messages.OwnerCannotLeaveNote}
+              </span>
+            </div>
+          )}
+          
+          {/* Thêm thông báo cho conversation 1-1 */}
+          {isOneOnOneConversation && userRole === 0 && (
+            <div style={{ 
+              padding: "8px", 
+              background: "#e6f4ff", 
+              borderRadius: "4px",
+              marginBottom: "16px",
+              display: "flex",
+              alignItems: "center",
+              border: "1px solid #91d5ff"
+            }}>
+              <span style={{ color: "#1890ff" }}>
+                {localStrings.Messages.OneOnOneChatNote}
+              </span>
+            </div>
+          )}
+          
+          <List
+            style={{ 
+              maxHeight: 300, 
+              overflow: "auto", 
+              border: "1px solid #d9d9d9", 
+              borderRadius: 4,
+              padding: "8px 0"
+            }}
+            dataSource={existingMembers}
+            renderItem={(member: ConversationMember) => {
+              const memberRole = member.conversation_role;
+              const isCurrentUser = member.id === user?.id;
+              const canTransferOwnership = userRole === 0 && memberRole !== 0 && !isCurrentUser;
+
+              const canRemoveMember = userRole === 0 && !isCurrentUser && !isOneOnOneConversation;
+      
+              return (
+                <List.Item 
+                  key={member.id}
+                  style={{ padding: "8px 16px" }}
+                >
+                  <div style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    width: "100%",
+                    justifyContent: "space-between" 
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <Avatar 
+                        src={member.avatar_url} 
+                        style={{ 
+                          marginLeft: 8,
+                          backgroundColor: !member.avatar_url ? brandPrimary : undefined 
+                        }}
+                      >
+                        {!member.avatar_url && (member.name?.charAt(0) || "").toUpperCase()}
+                      </Avatar>
+                      <span style={{ marginLeft: 12 }}>
+                        {`${member.family_name || ''} ${member.name || ''}`}
+                        {member.id === user?.id ? ` (${localStrings.Messages.You})` : ''}
                       </span>
-                    )}
+                      {memberRole !== undefined && (
+                        <span style={{ 
+                          marginLeft: 12,
+                          padding: "4px 8px",
+                          borderRadius: "12px",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          backgroundColor: memberRole === 0 ? '#1890ff' : '#f5f5f5',
+                          color: memberRole === 0 ? 'white' : '#555'
+                        }}>
+                          {memberRole === 0 ? 'Owner' : 'Member'}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {canTransferOwnership && (
+                        <Button 
+                          type="link" 
+                          size="small"
+                          onClick={() => handleTransferOwnership(member.id!)}
+                        >
+                          {localStrings.Messages.MakeOwner}
+                        </Button>
+                      )}
+                      {canRemoveMember && (
+                        <Button 
+                          type="link" 
+                          size="small"
+                          danger
+                          onClick={() => handleRemoveMember(member.id!)}
+                        >
+                          {localStrings.Messages.Remove}
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  {canTransferOwnership && (
-                    <Button 
-                      type="link" 
-                      size="small"
-                      onClick={() => handleTransferOwnership(member.id!)}
-                    >
-                      {localStrings.Messages.MakeOwner}
-                    </Button>
-                  )}
-                </div>
-              </List.Item>
-            );
-          }}
-          locale={{ emptyText: localStrings.Messages.NoMembersInConversation }}
-        />
+                </List.Item>
+              );
+            }}
+            locale={{ emptyText: localStrings.Messages.NoMembersInConversation }}
+          />
+        </div>
       ),
     },
   ];
@@ -799,6 +893,14 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
         return;
       }
       
+      if (selectedFriends.length > 1 && !values.name) {
+        form.setFields([{
+          name: 'name',
+          errors: [localStrings.Messages.GroupNameRequired]
+        }]);
+        return;
+      }
+      
       setCreating(true);
       
       const selectedUsers = selectedFriends.map(id => 
@@ -806,7 +908,7 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
       ).filter(Boolean) as FriendResponseModel[];
       
       let conversationName = values.name;
-      if (!conversationName && selectedUsers.length > 0) {
+      if (!conversationName && selectedUsers.length === 1) {
         conversationName = selectedUsers
           .map(user => `${user.family_name || ''} ${user.name || ''}`.trim())
           .join(", ");
@@ -846,6 +948,18 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (selectedFriends.length > 1) {
+      const nameField = form.getFieldValue('name');
+      if (!nameField) {
+        form.setFields([{
+          name: 'name',
+          errors: undefined 
+        }]);
+      }
+    }
+  }, [selectedFriends.length, form]);
+
   return (
     <Modal
       open={visible}
@@ -868,11 +982,33 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
     >
       <Form form={form} layout="vertical">
         <Form.Item 
-          name="name" 
-          label={localStrings.Messages.ConversationName}
-        >
-          <Input placeholder={localStrings.Messages.OptionalGroupName} />
+            name="name" 
+            label={localStrings.Messages.ConversationName}
+            rules={[
+              {
+                validator: (_, value) => {
+                  if (selectedFriends.length > 1 && !value) {
+                    return Promise.reject(new Error(localStrings.Messages.GroupNameRequired));
+                  }
+                  return Promise.resolve();
+                },
+              },
+            ]}
+          >
+            <Input 
+              placeholder={
+                selectedFriends.length > 1 
+                  ? localStrings.Messages.GroupNameRequired 
+                  : localStrings.Messages.OptionalGroupName
+              } 
+            />
         </Form.Item>
+
+        {selectedFriends.length > 1 && (
+          <div style={{ marginBottom: 16, color: '#fa8c16' }}>
+            {localStrings.Messages.GroupNameRequiredNote}
+          </div>
+        )}
         
         {/* Image Upload Section */}
         <div style={{ marginBottom: 16 }}>
@@ -1089,6 +1225,8 @@ const MessagesFeature: React.FC = () => {
     if (currentConversation?.id) {
       const role = await getCurrentUserRole(currentConversation.id);
       setUserRole(role);
+      
+      await fetchExistingMembers(currentConversation.id);
     }
   }, [currentConversation?.id, fetchConversations, getCurrentUserRole]);
   
@@ -1164,16 +1302,18 @@ const MessagesFeature: React.FC = () => {
   };
 
   const handleDeleteConversation = async (conversationId: string) => {
-    const isOwner = await isUserConversationOwner(conversationId);
+    if (!existingMembers.length) return;
     
-    if (!isOwner) {
+    const isOneOnOne = existingMembers.length === 2;
+    
+    if (userRole !== 0 && !isOneOnOne) {
       message.error(localStrings.Messages.OnlyOwnerCanDeleteConversation);
       return;
     }
     
     Modal.confirm({
       title: localStrings.Messages.ConfirmDeleteConversation,
-      content: localStrings.Messages.ConfirmDeleteConversation,
+      content: localStrings.Messages.ConfirmDeleteConversationContent,
       okText: localStrings.Public.Yes,
       cancelText: localStrings.Public.No,
       onOk: async () => {
@@ -1248,6 +1388,12 @@ const MessagesFeature: React.FC = () => {
       setAddMemberModalVisible(true);
     }
   };
+  
+  useEffect(() => {
+    if (currentConversation?.id) {
+      fetchExistingMembers(currentConversation.id);
+    }
+  }, [currentConversation?.id]);
 
   const handleAddMembers = async (userIds: string[]) => {
     if (currentConversation?.id) {
@@ -1257,7 +1403,25 @@ const MessagesFeature: React.FC = () => {
 
   const handleLeaveConversation = () => {
     if (!currentConversation?.id) return;
-
+  
+    if (userRole === 0) {
+      Modal.info({
+        title: localStrings.Messages.CannotLeaveAsOwner,
+        content: localStrings.Messages.MustTransferOwnershipFirst,
+        okText: localStrings.Messages.OK,
+      });
+      return;
+    }
+  
+    if (existingMembers.length <= 2) {
+      Modal.info({
+        title: localStrings.Messages.CannotLeaveGroup,
+        content: localStrings.Messages.GroupMustHaveAtLeastTwoMembers,
+        okText: localStrings.Messages.OK,
+      });
+      return;
+    }
+  
     Modal.confirm({
       title: localStrings.Messages.LeaveConversation,
       content: localStrings.Messages.ConfirmLeaveConversation,
@@ -1276,8 +1440,9 @@ const MessagesFeature: React.FC = () => {
     });
   };
 
+  const isOneOnOneConversation = existingMembers.length === 2;
+
   const findUserById = async (userId: string): Promise<FriendResponseModel | undefined> => {
-    // Trước tiên kiểm tra thông tin người dùng trong các cuộc trò chuyện
     if (conversations.length > 0) {
       for (const conv of conversations) {
         if (!conv.id) continue;
@@ -1296,7 +1461,6 @@ const MessagesFeature: React.FC = () => {
       }
     }
     
-    // Nếu không tìm thấy trong cuộc trò chuyện, kiểm tra danh sách bạn bè
     try {
       if (user?.id) {
         const response = await defaultProfileRepo.getListFriends({
@@ -2371,7 +2535,6 @@ const MessagesFeature: React.FC = () => {
     socketRef.current.off('call-ended'); 
     
     socketRef.current.on('call-incoming', ({ from, signalData, callType }: SocketCallPayload) => {
-      // Logic hiện tại được giữ nguyên
       if (inCall) {
         socketRef.current.emit('call-declined', {
           to: from,
@@ -2398,11 +2561,8 @@ const MessagesFeature: React.FC = () => {
       }
     });
     
-    // Thêm mới: Xử lý khi người gọi kết thúc cuộc gọi trước khi người nhận trả lời
     socketRef.current.on('call-ended', ({ from }: SocketEndCallPayload) => {
-      // Kiểm tra nếu đang có cuộc gọi đến từ người gọi này
       if (incomingCall && incomingCall.from === from) {
-        // Đóng cửa sổ thông báo cuộc gọi đến
         setIncomingCall(null);
       }
     });
@@ -2720,6 +2880,7 @@ const MessagesFeature: React.FC = () => {
                     </Avatar>
                   );
                 })()}
+                
                 <div style={{ marginLeft: 12, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <Text strong style={{ fontSize: 16, marginBottom: 2 }}>
                     {currentConversation.name}
@@ -2768,8 +2929,8 @@ const MessagesFeature: React.FC = () => {
                       >
                         {localStrings.Messages.AddMembers}
                       </Item>
-                      {/* Chỉ hiện nút delete nếu user là owner */}
-                      {userRole === 0 && (
+                      {/* Hiện nút delete nếu là owner HOẶC là conversation 1-1 */}
+                      {(userRole === 0 || isOneOnOneConversation) && (
                         <Item 
                           key="delete" 
                           danger 
@@ -2778,7 +2939,11 @@ const MessagesFeature: React.FC = () => {
                           {localStrings.Messages.DeleteConversation}
                         </Item>
                       )}
-                      {(currentConversation?.name && !currentConversation.name.includes(" & ")) && (
+                      {/* Chỉ hiện nút Leave nếu user không phải là owner, là group chat và có >2 thành viên */}
+                      {currentConversation?.name && 
+                       !currentConversation.name.includes(" & ") && 
+                       userRole !== 0 && 
+                       existingMembers.length > 2 && (
                         <Item 
                           key="leave" 
                           onClick={handleLeaveConversation}
