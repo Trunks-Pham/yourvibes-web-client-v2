@@ -1411,11 +1411,11 @@ const MessagesFeature: React.FC = () => {
     }
   };
   
-  // useEffect(() => {
-  //   if (currentConversation?.id) {
-  //     fetchExistingMembers(currentConversation.id);
-  //   }
-  // }, [currentConversation?.id]);
+  useEffect(() => {
+    if (currentConversation?.id) {
+      fetchExistingMembers(currentConversation.id);
+    }
+  }, [currentConversation?.id]);
 
   const handleAddMembers = async (userIds: string[]) => {
     if (currentConversation?.id) {
