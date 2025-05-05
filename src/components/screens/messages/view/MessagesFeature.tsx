@@ -218,11 +218,11 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
           }
           else {
             message.success(localStrings.Messages.MemberRemovedSuccessfully);
+
             if (onRefreshConversation) {
               onRefreshConversation();
             }
             
-            await fetchExistingMembersWithRole(conversationId);
           }
 
         } catch (error) {
@@ -1225,6 +1225,8 @@ const MessagesFeature: React.FC = () => {
     if (currentConversation?.id) {
       const role = await getCurrentUserRole(currentConversation.id);
       setUserRole(role);
+      
+      await fetchExistingMembers(currentConversation.id);
     }
   }, [currentConversation?.id, fetchConversations, getCurrentUserRole]);
   
