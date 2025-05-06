@@ -66,6 +66,19 @@ const themeColors = {
     }
   },
 
+  icons: {
+    light: {
+      primary: '#000000',           // Dark icons for light theme
+      secondary: 'rgba(0, 0, 0, 0.65)', // Slightly lighter icons
+      action: '#1890ff',            // Blue for interactive icons
+    },
+    dark: {
+      primary: '#ffffff',           // White icons for dark theme
+      secondary: 'rgba(255, 255, 255, 0.85)', // Light gray icons
+      action: '#40a9ff',            // Lighter blue for interactive icons
+    }
+  },
+
   sidebar: {
     light: {
       text: '#000000',
@@ -1240,6 +1253,9 @@ const MessagesFeature: React.FC = () => {
   const secondaryTextColor = themeColors.text[currentTheme].secondary;
   const sidebarTextColor = themeColors.sidebar[currentTheme].text;
   const sidebarSecondaryTextColor = themeColors.sidebar[currentTheme].secondaryText;
+  const iconPrimaryColor = themeColors.icons[currentTheme].primary;
+  const iconSecondaryColor = themeColors.icons[currentTheme].secondary;
+  const iconActionColor = themeColors.icons[currentTheme].action;
 
   const {
     fetchConversations,
@@ -2811,7 +2827,7 @@ const MessagesFeature: React.FC = () => {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               style={{ marginTop: 16 }}
-              prefix={<SearchOutlined style={{ color: secondaryTextColor }} />}
+              prefix={<SearchOutlined style={{ color: iconSecondaryColor }} />}
             />
           </div>
           <div style={{ height: "calc(100% - 130px)", overflow: "auto" }}>
@@ -3030,7 +3046,7 @@ const MessagesFeature: React.FC = () => {
           }}>
             {isMobile && (
               <Button
-                icon={<ArrowLeftOutlined />}
+                icon={<ArrowLeftOutlined style={{ color: iconPrimaryColor }} />}
                 type="text"
                 onClick={handleBackToConversations}
                 style={{ marginRight: 8 }}
@@ -3102,7 +3118,7 @@ const MessagesFeature: React.FC = () => {
                 {currentConversation && (
                   <Button 
                     type="text" 
-                    icon={<VideoCameraOutlined style={{ fontSize: 20 }} />} 
+                    icon={<VideoCameraOutlined style={{ fontSize: 20, color: iconPrimaryColor }} />} 
                     onClick={() => handleVideoCall(currentConversation)}
                     style={{ marginRight: 8 }}
                   />
@@ -3150,7 +3166,7 @@ const MessagesFeature: React.FC = () => {
                 >
                   <Button 
                     type="text" 
-                    icon={<EllipsisOutlined style={{ fontSize: 20 }} />} 
+                    icon={<EllipsisOutlined style={{ fontSize: 20, color: iconPrimaryColor }} />} 
                   />
                 </Dropdown>
                 </div>
@@ -3406,7 +3422,7 @@ const MessagesFeature: React.FC = () => {
                   >
                     <Button
                       type="text"
-                      icon={<SmileOutlined style={{ fontSize: "20px", color: "#666" }} />}
+                      icon={<SmileOutlined style={{ fontSize: "20px", color: iconSecondaryColor }} />}
                       style={{ marginRight: 8 }}
                     />
                   </Popover>
@@ -3434,7 +3450,7 @@ const MessagesFeature: React.FC = () => {
                   <Button
                     type="primary"
                     shape="circle"
-                    icon={<SendOutlined />}
+                    icon={<SendOutlined style={{ color: iconActionColor }} />}
                     onClick={handleSendMessage}
                     style={{ marginLeft: 8 }}
                     disabled={!messageText.trim() || messageText.length > 500}
@@ -3447,7 +3463,9 @@ const MessagesFeature: React.FC = () => {
                   justifyContent: "flex-end",
                   fontSize: "12px",
                   marginTop: "4px",
-                  color: messageText.length > 500 ? "#ff4d4f" : "rgba(0, 0, 0, 0.45)"
+                  color: messageText.length > 500 ? 
+                    "#ff4d4f" : 
+                    themeColors.text[currentTheme].secondary
                 }}>
                   {messageText.length}/500
                 </div>
