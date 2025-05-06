@@ -696,7 +696,7 @@ interface MessageItemProps {
   onDelete: (messageId: string) => void;
 }
 
-const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
+const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
   const { user, localStrings } = useAuth();
   const { brandPrimary, lightGray } = useColor();
   const [hovering, setHovering] = useState(false);
@@ -739,64 +739,17 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
     <div 
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
-      style={{
-        display: "flex",
+      style={{ 
+        width: "100%", 
+        display: "flex", 
+        alignItems: "center", 
         justifyContent: isMyMessage ? "flex-end" : "flex-start",
-        marginBottom: 16,
-        position: "relative"
+        marginBottom: "16px"
       }}
     >
-      {!isMyMessage && (
-        <Avatar 
-          src={message.user?.avatar_url} 
-          size={32}
-          style={{ marginRight: 8, alignSelf: "flex-end" }}
-        >
-          {!message.user?.avatar_url && message.user?.name?.charAt(0)}
-        </Avatar>
-      )}
-      
-      <div style={{ position: "relative" }}>
-        <div 
-          style={{
-            maxWidth: "100%",
-            padding: "8px 12px",
-            borderRadius: 12,
-            background: isMyMessage ? brandPrimary : lightGray,
-            color: isMyMessage ? "#fff" : "inherit",
-            position: "relative",
-            border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
-          }}
-        >
-          {!isMyMessage && (
-            <div style={{ fontSize: 12, marginBottom: 2, fontWeight: "bold", color: isMyMessage ? "#fff" : "inherit" }}>
-              {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
-            </div>
-          )}
-          
-          <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", color: isMyMessage ? "#fff" : "inherit" }}>
-            {message.content}
-          </div>
-          
-          <div style={{ fontSize: 10, textAlign: "right", marginTop: 4, opacity: 0.7 }}>
-            {message.isTemporary ? (
-              <span style={{ color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit" }}>
-              </span>
-            ) : (
-              <span style={{ 
-                color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-end"
-              }}>
-                {formatMessageTime(message.created_at || '')}
-              </span>
-            )}
-          </div>
-        </div>
-        
-        {/* Message Options Dropdown - now positioned relative to the message */}
-        {isMyMessage && hovering && !message.isTemporary && (
+      {/* Nút xóa tin nhắn - chỉ hiển thị cho tin nhắn của mình */}
+      {isMyMessage && hovering && !message.isTemporary && (
+        <div style={{ display: "flex", alignItems: "center", marginRight: "8px" }}>
           <Popconfirm
             title={localStrings.Messages.ConfirmDeleteMessage}
             onConfirm={handleDelete}
@@ -806,25 +759,81 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
           >
             <div
               style={{
-                position: "absolute",
-                left: "-28px",
-                top: "50%", 
-                transform: "translateY(-50%)",
                 cursor: "pointer",
                 padding: 4,
                 borderRadius: "50%",
-                background: "#f0f0f0",
-                zIndex: 1             
+                background: "#f0f0f0"            
               }}
             >
               <DeleteOutlined style={{ fontSize: 16 }} />
             </div>
           </Popconfirm>
+        </div>
+      )}
+      
+      {/* Avatar - chỉ hiển thị cho tin nhắn của người khác */}
+      {!isMyMessage && (
+        <Avatar 
+          src={message.user?.avatar_url} 
+          size={32}
+          style={{ marginRight: "8px", flexShrink: 0 }}
+        >
+          {!message.user?.avatar_url && message.user?.name?.charAt(0)}
+        </Avatar>
+      )}
+      
+      {/* Khối tin nhắn */}
+      <div style={{
+        maxWidth: "50%",
+        padding: "8px 12px",
+        borderRadius: "12px",
+        background: isMyMessage ? brandPrimary : lightGray,
+        color: isMyMessage ? "#fff" : "inherit",
+        overflow: "hidden",
+        wordWrap: "break-word",
+        border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
+      }}>
+        {/* Tên người gửi - chỉ hiển thị cho tin nhắn của người khác */}
+        {!isMyMessage && (
+          <div style={{ 
+            fontSize: 12, 
+            marginBottom: 2, 
+            fontWeight: "bold", 
+            color: isMyMessage ? "#fff" : "inherit" 
+          }}>
+            {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
+          </div>
         )}
+        
+        {/* Nội dung tin nhắn */}
+        <div style={{ 
+          whiteSpace: "pre-wrap", 
+          wordBreak: "break-word", 
+          color: isMyMessage ? "#fff" : "inherit" 
+        }}>
+          {message.content}
+        </div>
+        
+        {/* Thời gian */}
+        <div style={{ fontSize: 10, textAlign: "right", marginTop: 4, opacity: 0.7 }}>
+          {message.isTemporary ? (
+            <span style={{ color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit" }}>
+            </span>
+          ) : (
+            <span style={{ 
+              color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end"
+            }}>
+              {formatMessageTime(message.created_at || '')}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
-};
+});
 
 interface NewConversationModalProps {
   visible: boolean;
