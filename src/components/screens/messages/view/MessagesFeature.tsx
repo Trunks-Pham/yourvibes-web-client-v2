@@ -16,6 +16,92 @@ import { useSearchParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState, useRef, useMemo  } from 'react';
 import io from 'socket.io-client';
 
+const themeColors = {
+  messageBubble: {
+    light: {
+      sender: {
+        background: '#1890ff', // brandPrimary for light theme
+        color: '#fff',
+      },
+      receiver: {
+        background: '#E2E2E2', // lightGray for light theme
+        color: 'inherit',
+      }
+    },
+    dark: {
+      sender: {
+        background: '#1890ff', // Keep blue background for dark theme too
+        color: '#fff',         // White text still works on blue
+      },
+      receiver: {
+        background: '#62676B', // Dark gray background
+        color: '#ffffff',      // White text for better visibility in dark mode
+      }
+    }
+  },
+  layout: {
+    light: {
+      background: '#ffffff', // backgroundColor for light theme
+      siderBg: '#F6F6F6', // backGround for light theme
+      headerBg: '#ffffff', 
+      border: '#E2E2E2', // lightGray for light theme
+      activeItem: '#E2E2E2', // lightGray for light theme
+    },
+    dark: {
+      background: '#202427', // backgroundColor for dark theme
+      siderBg: '#262930', // backGround for dark theme
+      headerBg: '#202427', 
+      border: '#62676B', // borderColor for dark theme
+      activeItem: '#31343B', // darkSlate for dark theme
+    }
+  },
+  text: {
+    light: {
+      primary: '#000000',           // Black for light theme
+      secondary: 'rgba(0, 0, 0, 0.45)', // Darker gray for light theme
+    },
+    dark: {
+      primary: '#ffffff',           // Bright white for dark theme 
+      secondary: 'rgba(255, 255, 255, 0.85)', // Very light gray with higher opacity
+    }
+  },
+
+  sidebar: {
+    light: {
+      text: '#000000',
+      secondaryText: 'rgba(0, 0, 0, 0.45)',
+    },
+    dark: {
+      text: '#ffffff',              // Pure white for main text
+      secondaryText: '#e0e0e0',     // Light gray for secondary text
+    }
+  },
+  avatar: {
+    light: '#1890ff', // brandPrimary for light theme
+    dark: '#ffffff', // white for dark theme
+  },
+  button: {
+    light: {
+      background: '#f0f0f0',
+    },
+    dark: {
+      background: '#31343B',
+    }
+  },
+  dateSeparator: {
+    light: {
+      background: '#f0f2f5',
+      line: 'rgba(0, 0, 0, 0.1)',
+      text: '#65676B',
+    },
+    dark: {
+      background: '#262930',
+      line: 'rgba(255, 255, 255, 0.1)',
+      text: '#a0a0a0',
+    }
+  }
+};
+
 interface AddMemberModalProps {
   visible: boolean;
   onCancel: () => void;
@@ -41,7 +127,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   userRole,
   onRefreshConversation
 }) => {
-  const { user, localStrings } = useAuth();
+  const { user, localStrings, theme } = useAuth();
   const { brandPrimary } = useColor();
   const [friends, setFriends] = useState<FriendResponseModel[]>([]);
   const [loading, setLoading] = useState(false);
@@ -49,6 +135,9 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("addMembers");
   const [existingMembersWithRole, setExistingMembersWithRole] = useState<ConversationMember[]>([]);
+  const currentTheme = theme || 'light';
+  const avatarBackground = themeColors.avatar[currentTheme];
+  const primaryTextColor = themeColors.text[currentTheme].primary;
 
   useEffect(() => {
     if (visible && user?.id) {
@@ -275,7 +364,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                       src={friend.avatar_url} 
                       style={{ 
                         marginLeft: 8,
-                        backgroundColor: !friend.avatar_url ? brandPrimary : undefined 
+                        backgroundColor: !friend.avatar_url ? avatarBackground : undefined 
                       }}
                     >
                       {!friend.avatar_url && (friend.name?.charAt(0) || "").toUpperCase()}
@@ -371,7 +460,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                         src={member.avatar_url} 
                         style={{ 
                           marginLeft: 8,
-                          backgroundColor: !member.avatar_url ? brandPrimary : undefined 
+                          backgroundColor: !member.avatar_url ? avatarBackground : undefined  
                         }}
                       >
                         {!member.avatar_url && (member.name?.charAt(0) || "").toUpperCase()}
@@ -453,41 +542,50 @@ interface DateSeparatorProps {
 }
 
 const DateSeparator: React.FC<DateSeparatorProps> = ({ date }) => {
-    return (
+
+  const { theme } = useAuth();
+  const currentTheme = theme || 'light';
+
+  const separatorBackground = themeColors.dateSeparator[currentTheme].background;
+  const lineColor = themeColors.dateSeparator[currentTheme].line;
+  const textColor = themeColors.dateSeparator[currentTheme].text;
+
+
+  return (
+    <div 
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        margin: "16px 0",
+        position: "relative",
+        width: "100%"
+      }}
+    >
       <div 
         style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          margin: "16px 0",
+          width: "100%",
+          height: "1px",
+          backgroundColor: lineColor,
+          position: "absolute",
+          zIndex: 1
+        }}
+      />
+      <div 
+        style={{
+          backgroundColor: separatorBackground,
+          padding: "4px 12px",
+          borderRadius: "16px",
+          fontSize: "12px",
+          color: textColor,
           position: "relative",
-          width: "100%"
+          zIndex: 2
         }}
       >
-        <div 
-          style={{
-            width: "100%",
-            height: "1px",
-            backgroundColor: "rgba(0, 0, 0, 0.1)",
-            position: "absolute",
-            zIndex: 1
-          }}
-        />
-        <div 
-          style={{
-            backgroundColor: "#f0f2f5",
-            padding: "4px 12px",
-            borderRadius: "16px",
-            fontSize: "12px",
-            color: "#65676B",
-            position: "relative",
-            zIndex: 2
-          }}
-        >
-          {date}
-        </div>
+        {date}
       </div>
-    );
+    </div>
+  );
 };
 
 const { Dragger } = Upload;
@@ -697,9 +795,10 @@ interface MessageItemProps {
 }
 
 const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
-  const { user, localStrings } = useAuth();
+  const { user, localStrings, theme } = useAuth();
   const { brandPrimary, lightGray } = useColor();
   const [hovering, setHovering] = useState(false);
+  const currentTheme = theme || 'light';
   
   const isMyMessage = message.user_id === user?.id;
   
@@ -714,6 +813,20 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
       onDelete(message.id);
     }
   };
+
+  const messageBackground = isMyMessage 
+    ? themeColors.messageBubble[currentTheme].sender.background 
+    : themeColors.messageBubble[currentTheme].receiver.background;
+    
+  const messageColor = isMyMessage 
+    ? themeColors.messageBubble[currentTheme].sender.color 
+    : themeColors.messageBubble[currentTheme].receiver.color;
+    
+  const avatarBackground = !message.user?.avatar_url 
+    ? themeColors.avatar[currentTheme] 
+    : undefined;
+    
+  const deleteButtonBackground = themeColors.button[currentTheme].background;
   
   const menuItems = [
     {
@@ -747,7 +860,7 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
         marginBottom: "16px"
       }}
     >
-      {/* Nút xóa tin nhắn - chỉ hiển thị cho tin nhắn của mình */}
+      {/* Delete button - only shown for the user's own messages */}
       {isMyMessage && hovering && !message.isTemporary && (
         <div style={{ display: "flex", alignItems: "center", marginRight: "8px" }}>
           <Popconfirm
@@ -762,7 +875,7 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
                 cursor: "pointer",
                 padding: 4,
                 borderRadius: "50%",
-                background: "#f0f0f0"            
+                background: deleteButtonBackground
               }}
             >
               <DeleteOutlined style={{ fontSize: 16 }} />
@@ -771,50 +884,54 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
         </div>
       )}
       
-      {/* Avatar - chỉ hiển thị cho tin nhắn của người khác */}
+      {/* Avatar - only shown for messages from others */}
       {!isMyMessage && (
         <Avatar 
           src={message.user?.avatar_url} 
           size={32}
-          style={{ marginRight: "8px", flexShrink: 0 }}
+          style={{ 
+            marginRight: "8px", 
+            flexShrink: 0,
+            backgroundColor: avatarBackground
+          }}
         >
           {!message.user?.avatar_url && message.user?.name?.charAt(0)}
         </Avatar>
       )}
       
-      {/* Khối tin nhắn */}
+      {/* Message bubble */}
       <div style={{
         maxWidth: "50%",
         padding: "8px 12px",
         borderRadius: "12px",
-        background: isMyMessage ? brandPrimary : lightGray,
-        color: isMyMessage ? "#fff" : "inherit",
+        background: messageBackground,
+        color: messageColor,
         overflow: "hidden",
         wordWrap: "break-word",
         border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
       }}>
-        {/* Tên người gửi - chỉ hiển thị cho tin nhắn của người khác */}
+        {/* Sender name - only shown for messages from others */}
         {!isMyMessage && (
           <div style={{ 
             fontSize: 12, 
             marginBottom: 2, 
             fontWeight: "bold", 
-            color: isMyMessage ? "#fff" : "inherit" 
+            color: messageColor
           }}>
             {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
           </div>
         )}
         
-        {/* Nội dung tin nhắn */}
+        {/* Message content */}
         <div style={{ 
           whiteSpace: "pre-wrap", 
           wordBreak: "break-word", 
-          color: isMyMessage ? "#fff" : "inherit" 
+          color: messageColor
         }}>
           {message.content}
         </div>
         
-        {/* Thời gian */}
+        {/* Timestamp */}
         <div style={{ fontSize: 10, textAlign: "right", marginTop: 4, opacity: 0.7 }}>
           {message.isTemporary ? (
             <span style={{ color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit" }}>
@@ -848,7 +965,7 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   onCreateConversation,
   onConversationCreated, 
 }) => {
-  const { user, localStrings } = useAuth();
+  const { user, localStrings, theme  } = useAuth();
   const { brandPrimary } = useColor();
   const [form] = Form.useForm();
   const [friends, setFriends] = useState<FriendResponseModel[]>([]);
@@ -857,6 +974,9 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [conversationImage, setConversationImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const currentTheme = theme || 'light';
+  const avatarBackground = themeColors.avatar[currentTheme];
+  const primaryTextColor = themeColors.text[currentTheme].primary;
 
   useEffect(() => {
     if (visible && user?.id) {
@@ -1091,7 +1211,8 @@ const { Text, Title } = Typography;
 const { SubMenu, Item } = Menu;
 
 const MessagesFeature: React.FC = () => {
-  const { user, localStrings } = useAuth();
+  const { user, localStrings, theme } = useAuth();
+  const currentTheme = theme || 'light';
   const searchParams = useSearchParams(); // Thêm để lấy query params
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const [existingMembers, setExistingMembers] = useState<FriendResponseModel[]>([]);
@@ -1108,6 +1229,17 @@ const MessagesFeature: React.FC = () => {
   const [userRole, setUserRole] = useState<number | null>(null);
   const { socketMessages, setSocketMessages } = useWebSocket();
   const [hasPermission, setHasPermission] = useState<boolean>(true); //sau khi bi kick khoi conversation se kiem tra de khong cho chat vao duoc neu nhu con dang mo conversation
+
+  const layoutBackground = themeColors.layout[currentTheme].background;
+  const siderBackground = themeColors.layout[currentTheme].siderBg;
+  const borderColor = themeColors.layout[currentTheme].border;
+  const activeItemBackground = themeColors.layout[currentTheme].activeItem;
+  const avatarBackground = themeColors.avatar[currentTheme];
+  const headerBackground = themeColors.layout[currentTheme].headerBg;
+  const primaryTextColor = themeColors.text[currentTheme].primary;
+  const secondaryTextColor = themeColors.text[currentTheme].secondary;
+  const sidebarTextColor = themeColors.sidebar[currentTheme].text;
+  const sidebarSecondaryTextColor = themeColors.sidebar[currentTheme].secondaryText;
 
   const {
     fetchConversations,
@@ -2648,22 +2780,22 @@ const MessagesFeature: React.FC = () => {
   }, []);
 
   return (
-    <Layout style={{ height: "calc(100vh - 64px)", background: backgroundColor }}>
+    <Layout style={{ height: "calc(100vh - 64px)", background: layoutBackground }}>
       {/* Conversations Sidebar */}
       {(showConversation || !isMobile) && (
         <Sider
           width={isMobile ? "100%" : 300}
           style={{
-            background: backgroundColor,
+            background: siderBackground,
             overflow: "auto",
-            borderRight: `1px solid ${lightGray}`,
+            borderRight: `1px solid ${borderColor}`,
             display: isMobile ? (showConversation ? "block" : "none") : "block"
           }}
         >
           <div style={{ padding: "16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Title level={4} style={{ margin: 0 }}>
-                {localStrings.Public.Messages}
+              <Title level={4} style={{ margin: 0, color: sidebarTextColor }}>
+                  {localStrings.Public.Messages}
               </Title>
               <div>
                 <Button
@@ -2679,7 +2811,7 @@ const MessagesFeature: React.FC = () => {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               style={{ marginTop: 16 }}
-              prefix={<SearchOutlined />}
+              prefix={<SearchOutlined style={{ color: secondaryTextColor }} />}
             />
           </div>
           <div style={{ height: "calc(100% - 130px)", overflow: "auto" }}>
@@ -2811,13 +2943,11 @@ const MessagesFeature: React.FC = () => {
 
                       return (
                         <List.Item
-                          onClick={() => {
-                            handleSelectConversation(item);
-                          }}
+                          onClick={() => handleSelectConversation(item)}
                           style={{
                             cursor: "pointer",
                             padding: "12px 16px",
-                            background: currentConversation?.id === item.id ? lightGray : "transparent",
+                            background: currentConversation?.id === item.id ? activeItemBackground : "transparent",
                             transition: "background 0.3s",
                           }}
                           key={item.id}
@@ -2829,7 +2959,7 @@ const MessagesFeature: React.FC = () => {
                                   src={avatarUrl}
                                   size={48}
                                   style={{
-                                    backgroundColor: !avatarUrl ? brandPrimary : undefined
+                                    backgroundColor: !avatarUrl ? avatarBackground : undefined
                                   }}
                                 >
                                   {!avatarUrl && avatarInitial}
@@ -2848,13 +2978,14 @@ const MessagesFeature: React.FC = () => {
                                 )}
                               </div>
                             }
-                            title={<Text strong>{item.name}</Text>}
+                            title={<Text strong style={{ color: sidebarTextColor }}>{item.name}</Text>}
                             description={
                               <Text
                                 type="secondary"
                                 ellipsis
                                 style={{
                                   maxWidth: '100%',
+                                  color: sidebarSecondaryTextColor
                                 }}
                               >
                                 {messageDisplay}
@@ -2863,7 +2994,7 @@ const MessagesFeature: React.FC = () => {
                           />
                           {lastMessage && (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                              <Text type="secondary" style={{ fontSize: '12px' }}>
+                              <Text type="secondary" style={{ fontSize: '12px', color: sidebarSecondaryTextColor }}>
                                 {lastMessageTime}
                               </Text>
                               
@@ -2884,16 +3015,16 @@ const MessagesFeature: React.FC = () => {
       {(!showConversation || !isMobile) && (
         <Layout style={{
           height: "100%",
-          background: backgroundColor,
+          background: layoutBackground,
           display: isMobile ? (showConversation ? "none" : "flex") : "flex"
         }}>
           {/* Chat Header */}
           <Header style={{
-            background: backgroundColor,
+            background: headerBackground,
             padding: "0 16px",
             height: "64px",
             lineHeight: "64px",
-            borderBottom: `1px solid ${lightGray}`,
+            borderBottom: `1px solid ${borderColor}`,
             display: "flex",
             alignItems: "center"
           }}>
@@ -2944,9 +3075,9 @@ const MessagesFeature: React.FC = () => {
                 })()}
                 
                 <div style={{ marginLeft: 12, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <Text strong style={{ fontSize: 16, marginBottom: 2 }}>
-                    {currentConversation.name}
-                  </Text>
+                <Text strong style={{ fontSize: 16, marginBottom: 2, color: primaryTextColor }}>
+                  {currentConversation.name}
+                </Text>
                   {currentConversation.active_status && (
                     <div style={{ 
                       display: 'flex', 
@@ -3044,7 +3175,8 @@ const MessagesFeature: React.FC = () => {
               display: "flex",
               flexDirection: "column",
               height: "calc(100% - 128px)",
-              position: "relative"
+              position: "relative",
+              background: layoutBackground
             }}
             ref={messageListRef}
             onScroll={handleScroll}
@@ -3248,8 +3380,8 @@ const MessagesFeature: React.FC = () => {
           {/* Message Input */}
           <div style={{
             padding: "12px 16px",
-            borderTop: `1px solid ${lightGray}`,
-            background: backgroundColor,
+            borderTop: `1px solid ${borderColor}`,
+            background: layoutBackground,
             display: "flex",
             flexDirection: "column",
           }}>
