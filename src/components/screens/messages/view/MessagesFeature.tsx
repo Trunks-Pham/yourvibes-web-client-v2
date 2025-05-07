@@ -10,7 +10,7 @@ import { useAuth } from '@/context/auth/useAuth';
 import { useWebSocket } from '@/context/socket/useSocket';
 import useColor from '@/hooks/useColor';
 import { EllipsisOutlined, DeleteOutlined, InboxOutlined, SendOutlined, SearchOutlined, ArrowLeftOutlined, PlusOutlined, SmileOutlined, VideoCameraOutlined, CloseOutlined } from '@ant-design/icons';
-import { Empty, Layout, Skeleton, Typography, Popover, Badge, Menu, Dropdown, Popconfirm, Input, Button, Upload, Modal, Form, List, Avatar, Spin, message, Checkbox, Tabs } from 'antd';
+import { Empty, Layout, Skeleton, Typography, Popover, Menu, Dropdown, Popconfirm, Input, Button, Upload, Modal, Form, List, Avatar, Spin, message, Checkbox, Tabs } from 'antd';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useSearchParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState, useRef, useMemo  } from 'react';
@@ -1615,7 +1615,17 @@ const MessagesFeature: React.FC = () => {
   const iconPrimaryColor = themeColors.icons[currentTheme].primary;
   const iconSecondaryColor = themeColors.icons[currentTheme].secondary;
   const iconActionColor = themeColors.icons[currentTheme].action;
-  
+  const inputBackground = themeColors.layout[currentTheme].siderBg;
+  const inputTextColor = themeColors.input[currentTheme].textColor;
+  const inputBorderColor = themeColors.input[currentTheme].borderColor;
+  const inputPlaceholderColor = themeColors.input[currentTheme].placeholderColor;
+  const dropdownBg = themeColors.dropdown[currentTheme].background;
+  const dropdownItemText = themeColors.dropdown[currentTheme].textColor;
+  const dropdownItemHover = themeColors.dropdown[currentTheme].itemHover;
+  const dropdownBorder = themeColors.dropdown[currentTheme].borderColor;
+  const dropdownBoxShadow = themeColors.dropdown[currentTheme].boxShadow;
+  const dropdownDangerColor = themeColors.dropdown[currentTheme].dangerColor;
+  const dropdownDangerHoverBg = themeColors.dropdown[currentTheme].dangerHoverBg;
 
   const {
     fetchConversations,
@@ -3488,16 +3498,33 @@ const MessagesFeature: React.FC = () => {
                 )}
                 <Dropdown
                   overlay={
-                    <Menu>
+                    <Menu
+                      style={{
+                        backgroundColor: dropdownBg,
+                        border: `1px solid ${dropdownBorder}`,
+                        boxShadow: dropdownBoxShadow
+                      }}
+                      className={`themed-dropdown-${currentTheme}`}
+                    >
                       <Item 
                         key="edit" 
                         onClick={() => setEditConversationModalVisible(true)}
+                        style={{ 
+                          color: dropdownItemText,
+                          padding: "8px 16px" 
+                        }}
+                        className="dropdown-menu-item"
                       >
                         {localStrings.Messages.EditConversation}
                       </Item>
                       <Item 
                         key="addMember" 
                         onClick={handleOpenAddMemberModal}
+                        style={{ 
+                          color: dropdownItemText,
+                          padding: "8px 16px" 
+                        }}
+                        className="dropdown-menu-item"
                       >
                         {localStrings.Messages.AddMembers}
                       </Item>
@@ -3507,18 +3534,28 @@ const MessagesFeature: React.FC = () => {
                           key="delete" 
                           danger 
                           onClick={() => currentConversation?.id && handleDeleteConversation(currentConversation.id)}
+                          style={{ 
+                            padding: "8px 16px",
+                            color: dropdownDangerColor
+                          }}
+                          className="dropdown-menu-item-danger"
                         >
                           {localStrings.Messages.DeleteConversation}
                         </Item>
                       )}
                       {/* Chỉ hiện nút Leave nếu user không phải là owner, là group chat và có >2 thành viên */}
                       {currentConversation?.name && 
-                       !currentConversation.name.includes(" & ") && 
-                       userRole !== 0 && 
-                       existingMembers.length > 2 && (
+                      !currentConversation.name.includes(" & ") && 
+                      userRole !== 0 && 
+                      existingMembers.length > 2 && (
                         <Item 
                           key="leave" 
                           onClick={handleLeaveConversation}
+                          style={{ 
+                            color: dropdownItemText,
+                            padding: "8px 16px" 
+                          }}
+                          className="dropdown-menu-item"
                         >
                           {localStrings.Messages.LeaveConversation}
                         </Item>
@@ -3526,12 +3563,38 @@ const MessagesFeature: React.FC = () => {
                     </Menu>
                   }
                   trigger={['click']}
+                  getPopupContainer={(triggerNode) => {
+                    return triggerNode.parentNode as HTMLElement;
+                  }}
                 >
                   <Button 
                     type="text" 
                     icon={<EllipsisOutlined style={{ fontSize: 20, color: iconPrimaryColor }} />} 
                   />
                 </Dropdown>
+
+                <style>{`
+                  .dropdown-menu-item:hover {
+                    background-color: ${dropdownItemHover} !important;
+                  }
+                  
+                  .dropdown-menu-item-danger:hover {
+                    background-color: ${dropdownDangerHoverBg} !important;
+                  }
+                  
+                  .themed-dropdown-${currentTheme} .ant-dropdown-menu-item {
+                    transition: background-color 0.3s ease;
+                  }
+                  
+                  .themed-dropdown-dark .ant-dropdown-menu {
+                    background-color: ${themeColors.dropdown.dark.background};
+                  }
+                  
+                  .themed-dropdown-light .ant-dropdown-menu {
+                    background-color: ${themeColors.dropdown.light.background};
+                  }
+                `}</style>
+
                 </div>
               </>
             ) : (
@@ -3806,9 +3869,26 @@ const MessagesFeature: React.FC = () => {
                     style={{
                       borderRadius: 20,
                       padding: "8px 12px",
-                      flex: 1
+                      flex: 1,
+                      backgroundColor: inputBackground,
+                      color: inputTextColor,
+                      borderColor: inputBorderColor
                     }}
+                    className="message-input"
                   />
+
+                  <style>{`
+                    .message-input::placeholder {
+                      color: ${inputPlaceholderColor} !important;
+                    }
+                    .message-input:hover {
+                      border-color: ${themeColors.input[currentTheme].hoverBorderColor} !important;
+                    }
+                    .message-input:focus {
+                      border-color: ${themeColors.input[currentTheme].hoverBorderColor} !important;
+                      box-shadow: 0 0 0 2px rgba(${currentTheme === 'dark' ? '23, 125, 220' : '24, 144, 255'}, 0.2) !important;
+                    }
+                  `}</style>
 
                   <Button
                     type="primary"
