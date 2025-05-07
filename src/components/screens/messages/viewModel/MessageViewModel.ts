@@ -7,11 +7,11 @@ import { useWebSocket } from "@/context/socket/useSocket";
 import { defaultMessagesRepo } from "@/api/features/messages/MessagesRepo";
 import { MessageResponseModel, MessageWebSocketResponseModel } from "@/api/features/messages/models/MessageModel";
 
-interface ExtendedMessageResponseModel extends MessageResponseModel {
-  isDateSeparator?: boolean;
-}
+// interface ExtendedMessageResponseModel extends MessageResponseModel {
+//   isDateSeparator?: boolean;
+// }
 
-type MessageWithDate = ExtendedMessageResponseModel;
+// type MessageWithDate = ExtendedMessageResponseModel;
 
 export const useMessageViewModel = () => {
   const { user, localStrings } = useAuth();
@@ -23,7 +23,6 @@ export const useMessageViewModel = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [messagesByConversation, setMessagesByConversation] = useState<Record<string, MessageResponseModel[]>>({});
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const { sendSocketMessage } = useWebSocket();
   
   const pageSize = 20;
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -209,7 +208,7 @@ export const useMessageViewModel = () => {
     }
   }, []);
   
-  const processMessagesWithDateSeparators = useCallback((messages: MessageResponseModel[]): MessageWithDate[] => {
+  const processMessagesWithDateSeparators = useCallback((messages: MessageResponseModel[]) => {
     if (!messages || messages.length === 0) return [];
   
     const sortedMessages = [...messages].sort((a, b) => {
@@ -222,7 +221,7 @@ export const useMessageViewModel = () => {
     
     const messagesWithoutSeparators = sortedMessages.filter(msg => !msg.isDateSeparator);
     
-    const processedMessages: MessageWithDate[] = [];
+    const processedMessages: MessageResponseModel[] = [];
     let currentDate: string | null = null;
   
     messagesWithoutSeparators.forEach((message) => {
@@ -236,7 +235,7 @@ export const useMessageViewModel = () => {
           
           const formattedDate = formatDateForDisplay(messageDate);
           
-          const dateSeparator: MessageWithDate = {
+          const dateSeparator: MessageResponseModel = {
             id: `date-separator-${messageDateStr}`,
             content: formattedDate,
             isDateSeparator: true,
@@ -247,7 +246,7 @@ export const useMessageViewModel = () => {
         }
       }
       
-      processedMessages.push(message as MessageWithDate);
+      processedMessages.push(message as MessageResponseModel);
     });
   
     return processedMessages;
@@ -535,6 +534,11 @@ useEffect(() => {
         messageListenersRef.current.clear();
     };
 }, []);
+
+useEffect(() => {
+  setCurrentPage(1);
+  setIsMessagesEnd(false);
+}, [currentConversationId]);
 
 return {
     // State

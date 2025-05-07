@@ -2,7 +2,6 @@ export interface CreateMessageRequestModel {
     content?: string,
     conversation_id?: string,
     parent_id?: string,
-    parent_content?: string,
     user?:{
         avatar_url?: string,
         family_name?: string,
@@ -53,17 +52,14 @@ export interface MessageResponseModel {
     }
     conversation_id?: string,
     parent_id?: string,
+    parent_content?: string;
     content?: string,
     created_at?: string,
-    updated_at?: string,
-    deleted_at?: string,
-    
-    text?: string,                
+          
     isTemporary?: boolean,        
     reply_to?: MessageResponseModel 
 
     fromServer?: boolean,
-    sendFailed?: boolean
 
     isDateSeparator?: boolean;
 }

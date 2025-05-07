@@ -10,11 +10,229 @@ import { useAuth } from '@/context/auth/useAuth';
 import { useWebSocket } from '@/context/socket/useSocket';
 import useColor from '@/hooks/useColor';
 import { EllipsisOutlined, DeleteOutlined, InboxOutlined, SendOutlined, SearchOutlined, ArrowLeftOutlined, PlusOutlined, SmileOutlined, VideoCameraOutlined, CloseOutlined } from '@ant-design/icons';
-import { Empty, Layout, Skeleton, Typography, Popover, Badge, Menu, Dropdown, Popconfirm, Input, Button, Upload, Modal, Form, List, Avatar, Spin, message, Checkbox, Tabs } from 'antd';
+import { Empty, Layout, Skeleton, Typography, Popover, Menu, Dropdown, Popconfirm, Input, Button, Upload, Modal, Form, List, Avatar, Spin, message, Checkbox, Tabs } from 'antd';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useSearchParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState, useRef, useMemo  } from 'react';
 import io from 'socket.io-client';
+
+const themeColors = {
+  messageBubble: {
+    light: {
+      sender: {
+        background: '#e0f0ff', 
+        color: '#000',
+      },
+      receiver: {
+        background: '#E2E2E2',
+        color: 'inherit',
+      }
+    },
+    dark: {
+      sender: {
+        background: '#2f3f5c', 
+        color: '#fff',         
+      },
+      receiver: {
+        background: '#62676B',
+        color: '#ffffff',     
+      }
+    }
+  },
+  layout: {
+    light: {
+      background: '#ffffff', 
+      siderBg: '#F6F6F6', 
+      headerBg: '#ffffff', 
+      border: '#E2E2E2', 
+      activeItem: '#E2E2E2', 
+    },
+    dark: {
+      background: '#262930', 
+      siderBg: '#202427', 
+      headerBg: '#202427', 
+      border: '#62676B', 
+      activeItem: '#31343B', 
+    }
+  },
+  text: {
+    light: {
+      primary: '#000000',        
+      secondary: 'rgba(0, 0, 0, 0.45)', 
+    },
+    dark: {
+      primary: '#ffffff',       
+      secondary: 'rgba(255, 255, 255, 0.85)', 
+    }
+  },
+  icons: {
+    light: {
+      primary: '#000000',          
+      secondary: 'rgba(0, 0, 0, 0.65)', 
+      action: '#1890ff',  
+      delete: '#2f3f5c',         
+    },
+    dark: {
+      primary: '#ffffff',         
+      secondary: 'rgba(255, 255, 255, 0.85)', 
+      action: '#40a9ff',   
+      delete: '#ffffff'      
+    }
+  },
+  sidebar: {
+    light: {
+      text: '#000000',
+      secondaryText: 'rgba(0, 0, 0, 0.45)',
+    },
+    dark: {
+      text: '#ffffff',              
+      secondaryText: '#e0e0e0',    
+    }
+  },
+  avatar: {
+    light: '#1890ff',
+    dark: '#ffffff', 
+  },
+  button: {
+    light: {
+      defaultBg: '#ffffff',
+      defaultBorder: '#d9d9d9',
+      defaultText: 'rgba(0, 0, 0, 0.85)',
+      defaultHoverBg: '#fafafa',
+      primaryBg: '#1890ff',
+      primaryText: '#ffffff',
+      primaryHoverBg: '#40a9ff'
+    },
+    dark: {
+      defaultBg: '#141414',
+      defaultBorder: '#434343',
+      defaultText: 'rgba(255, 255, 255, 0.85)',
+      defaultHoverBg: '#1f1f1f',
+      primaryBg: '#177ddc',
+      primaryText: '#ffffff',
+      primaryHoverBg: '#1f6bb4'
+    }
+  },
+  dateSeparator: {
+    light: {
+      background: '#f0f2f5',
+      line: 'rgba(0, 0, 0, 0.1)',
+      text: '#65676B',
+    },
+    dark: {
+      background: '#262930',
+      line: 'rgba(255, 255, 255, 0.1)',
+      text: '#a0a0a0',
+    }
+  },
+  search: {
+    light: {
+      background: '#ffffff',
+      textColor: 'rgba(0, 0, 0, 0.85)',
+      placeholderColor: 'rgba(0, 0, 0, 0.45)',
+      borderColor: '#d9d9d9',
+      buttonBackground: '#ffffff',
+      buttonHoverBackground: '#f5f5f5',
+      iconColor: 'rgba(0, 0, 0, 0.45)'
+    },
+    dark: {
+      background: '#2d2d30',
+      textColor: 'rgba(255, 255, 255, 0.85)',
+      placeholderColor: 'rgba(255, 255, 255, 0.45)',
+      borderColor: '#3e3e42',
+      buttonBackground: '#3e3e42',
+      buttonHoverBackground: '#4e4e52',
+      iconColor: 'rgba(255, 255, 255, 0.65)'
+    }
+  },
+  indicators: {
+    light: {
+      normal: 'rgba(0, 0, 0, 0.45)',
+      warning: '#faad14',
+      error: '#ff4d4f'
+    },
+    dark: {
+      normal: 'rgba(255, 255, 255, 0.65)',
+      warning: '#faad14',
+      error: '#ff4d4f'
+    }
+  },
+  
+  dropdown: {
+    light: {
+      background: '#ffffff',
+      itemHover: '#f5f5f5',
+      borderColor: '#d9d9d9',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+      textColor: '#000000',
+      dangerColor: '#ff4d4f',
+      dangerHoverBg: '#fff1f0'
+    },
+    dark: {
+      background: '#202427',
+      itemHover: '#2c3033',
+      borderColor: '#434343',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.45)',
+      textColor: '#ffffff',
+      dangerColor: '#ff7875',
+      dangerHoverBg: '#2a1215'
+    }
+  },
+  modal: {
+    light: {
+      background: '#ffffff',
+      headerBg: '#ffffff',
+      footerBg: '#ffffff',
+      titleColor: '#000000',
+      borderColor: '#e8e8e8',
+      boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08)',
+      maskBg: 'rgba(0, 0, 0, 0.45)'
+    },
+    dark: {
+      background: '#202427',
+      headerBg: '#202427',
+      footerBg: '#202427',
+      titleColor: '#ffffff',
+      borderColor: '#434343',
+      boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.48), 0 6px 16px 0 rgba(0, 0, 0, 0.32)',
+      maskBg: 'rgba(0, 0, 0, 0.65)'
+    }
+  },
+  
+  upload: {
+    light: {
+      background: '#fafafa',
+      hoverBg: '#f5f5f5',
+      borderColor: '#d9d9d9',
+      textColor: 'rgba(0, 0, 0, 0.85)',
+      iconColor: '#1890ff'
+    },
+    dark: {
+      background: '#141414',
+      hoverBg: '#1f1f1f',
+      borderColor: '#434343',
+      textColor: 'rgba(255, 255, 255, 0.85)',
+      iconColor: '#177ddc'
+    }
+  },
+  
+  input: {
+    light: {
+      background: '#ffffff',
+      borderColor: '#d9d9d9',
+      hoverBorderColor: '#40a9ff',
+      placeholderColor: 'rgba(0, 0, 0, 0.45)',
+      textColor: 'rgba(0, 0, 0, 0.85)'
+    },
+    dark: {
+      background: '#141414',
+      borderColor: '#434343',
+      hoverBorderColor: '#177ddc',
+      placeholderColor: 'rgba(255, 255, 255, 0.45)',
+      textColor: 'rgba(255, 255, 255, 0.85)'
+    }
+  },
+};
 
 interface AddMemberModalProps {
   visible: boolean;
@@ -41,7 +259,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   userRole,
   onRefreshConversation
 }) => {
-  const { user, localStrings } = useAuth();
+  const { user, localStrings, theme } = useAuth();
   const { brandPrimary } = useColor();
   const [friends, setFriends] = useState<FriendResponseModel[]>([]);
   const [loading, setLoading] = useState(false);
@@ -49,6 +267,36 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("addMembers");
   const [existingMembersWithRole, setExistingMembersWithRole] = useState<ConversationMember[]>([]);
+  const currentTheme = theme || 'light';
+  
+  // Theme variables
+  const avatarBackground = themeColors.avatar[currentTheme];
+  const primaryTextColor = themeColors.text[currentTheme].primary;
+  const secondaryTextColor = themeColors.text[currentTheme].secondary;
+  const borderColor = themeColors.layout[currentTheme].border;
+  
+  // Enhanced theming variables
+  const modalBackground = currentTheme === 'dark' ? themeColors.layout[currentTheme].siderBg : '#ffffff';
+  const modalTitleColor = currentTheme === 'dark' ? '#ffffff' : '#000000';
+  const modalHeaderBg = currentTheme === 'dark' ? themeColors.layout[currentTheme].headerBg : '#ffffff';
+  const cancelButtonBg = currentTheme === 'dark' ? '#2d2d30' : '#fff';
+  const cancelButtonText = currentTheme === 'dark' ? '#ffffff' : '#000000';
+  const cancelButtonBorder = currentTheme === 'dark' ? '#6e6e6e' : '#d9d9d9';
+  const listItemHoverBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+  const listItemSelectedBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.05)';
+  const listBackground = currentTheme === 'dark' ? '#1f1f1f' : '#ffffff';
+  const warningBgColor = currentTheme === 'dark' ? '#2b2111' : '#fffbe6';
+  const warningBorderColor = currentTheme === 'dark' ? '#644a05' : '#ffe58f';
+  const warningTextColor = currentTheme === 'dark' ? '#faad14' : '#d48806';
+  const infoBgColor = currentTheme === 'dark' ? '#111a2c' : '#e6f4ff';
+  const infoBorderColor = currentTheme === 'dark' ? '#15395b' : '#91d5ff';
+  const infoTextColor = currentTheme === 'dark' ? '#40a9ff' : '#1890ff';
+  const tabBgColor = currentTheme === 'dark' ? '#202427' : '#ffffff';
+  const tabActiveColor = currentTheme === 'dark' ? '#177ddc' : '#1890ff';
+  const checkboxColor = currentTheme === 'dark' ? '#177ddc' : '#1890ff';
+  const ownerBadgeBg = currentTheme === 'dark' ? '#177ddc' : '#1890ff';
+  const memberBadgeBg = currentTheme === 'dark' ? '#333' : '#f5f5f5';
+  const memberBadgeText = currentTheme === 'dark' ? '#e0e0e0' : '#555';
 
   useEffect(() => {
     if (visible && user?.id) {
@@ -239,7 +487,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   const tabItems = [
     {
       key: 'addMembers',
-      label: localStrings.Messages.AddMembers,
+      label: <span style={{ color: primaryTextColor }}>{localStrings.Messages.AddMembers}</span>,
       children: (
         <div>
           {loading ? (
@@ -251,9 +499,10 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
               style={{ 
                 maxHeight: 300, 
                 overflow: "auto", 
-                border: "1px solid #d9d9d9", 
+                border: `1px solid ${borderColor}`, 
                 borderRadius: 4,
-                padding: "8px 0"
+                padding: "8px 0",
+                backgroundColor: listBackground
               }}
               dataSource={friends}
               renderItem={friend => (
@@ -263,8 +512,9 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                   style={{ 
                     cursor: "pointer", 
                     padding: "8px 16px",
-                    background: selectedFriends.includes(friend.id!) ? "rgba(0, 0, 0, 0.05)" : "transparent"
+                    background: selectedFriends.includes(friend.id!) ? listItemSelectedBg : "transparent"
                   }}
+                  className="friend-list-item"
                 >
                   <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
                     <Checkbox 
@@ -275,12 +525,12 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                       src={friend.avatar_url} 
                       style={{ 
                         marginLeft: 8,
-                        backgroundColor: !friend.avatar_url ? brandPrimary : undefined 
+                        backgroundColor: !friend.avatar_url ? avatarBackground : undefined 
                       }}
                     >
                       {!friend.avatar_url && (friend.name?.charAt(0) || "").toUpperCase()}
                     </Avatar>
-                    <span style={{ marginLeft: 12 }}>
+                    <span style={{ marginLeft: 12, color: primaryTextColor }}>
                       {`${friend.family_name || ''} ${friend.name || ''}`}
                     </span>
                     {friend.active_status && (
@@ -295,7 +545,9 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                   </div>
                 </List.Item>
               )}
-              locale={{ emptyText: localStrings.Messages.NoFriendsToAdd }}
+              locale={{ 
+                emptyText: <div style={{ color: secondaryTextColor }}>{localStrings.Messages.NoFriendsToAdd}</div> 
+              }}
             />
           )}
         </div>
@@ -303,37 +555,37 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
     },
     {
       key: 'currentMembers',
-      label: localStrings.Messages.CurrentMembers,
+      label: <span style={{ color: primaryTextColor }}>{localStrings.Messages.CurrentMembers}</span>,
       children: (
         <div>
           {userRole === 0 && (
             <div style={{ 
               padding: "8px", 
-              background: "#fffbe6", 
+              background: warningBgColor, 
               borderRadius: "4px",
               marginBottom: "16px",
               display: "flex",
               alignItems: "center",
-              border: "1px solid #ffe58f"
+              border: `1px solid ${warningBorderColor}`
             }}>
-              <span style={{ color: "#d48806" }}>
+              <span style={{ color: warningTextColor }}>
                 {localStrings.Messages.OwnerCannotLeaveNote}
               </span>
             </div>
           )}
           
-          {/* Thêm thông báo cho conversation 1-1 */}
+          {/* One-on-one conversation note */}
           {isOneOnOneConversation && userRole === 0 && (
             <div style={{ 
               padding: "8px", 
-              background: "#e6f4ff", 
+              background: infoBgColor, 
               borderRadius: "4px",
               marginBottom: "16px",
               display: "flex",
               alignItems: "center",
-              border: "1px solid #91d5ff"
+              border: `1px solid ${infoBorderColor}`
             }}>
-              <span style={{ color: "#1890ff" }}>
+              <span style={{ color: infoTextColor }}>
                 {localStrings.Messages.OneOnOneChatNote}
               </span>
             </div>
@@ -343,16 +595,16 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
             style={{ 
               maxHeight: 300, 
               overflow: "auto", 
-              border: "1px solid #d9d9d9", 
+              border: `1px solid ${borderColor}`, 
               borderRadius: 4,
-              padding: "8px 0"
+              padding: "8px 0",
+              backgroundColor: listBackground
             }}
             dataSource={existingMembers}
             renderItem={(member: ConversationMember) => {
               const memberRole = member.conversation_role;
               const isCurrentUser = member.id === user?.id;
               const canTransferOwnership = userRole === 0 && memberRole !== 0 && !isCurrentUser;
-
               const canRemoveMember = userRole === 0 && !isCurrentUser && !isOneOnOneConversation;
       
               return (
@@ -371,12 +623,12 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                         src={member.avatar_url} 
                         style={{ 
                           marginLeft: 8,
-                          backgroundColor: !member.avatar_url ? brandPrimary : undefined 
+                          backgroundColor: !member.avatar_url ? avatarBackground : undefined  
                         }}
                       >
                         {!member.avatar_url && (member.name?.charAt(0) || "").toUpperCase()}
                       </Avatar>
-                      <span style={{ marginLeft: 12 }}>
+                      <span style={{ marginLeft: 12, color: primaryTextColor }}>
                         {`${member.family_name || ''} ${member.name || ''}`}
                         {member.id === user?.id ? ` (${localStrings.Messages.You})` : ''}
                       </span>
@@ -387,8 +639,8 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                           borderRadius: "12px",
                           fontSize: "12px",
                           fontWeight: "bold",
-                          backgroundColor: memberRole === 0 ? '#1890ff' : '#f5f5f5',
-                          color: memberRole === 0 ? 'white' : '#555'
+                          backgroundColor: memberRole === 0 ? ownerBadgeBg : memberBadgeBg,
+                          color: memberRole === 0 ? 'white' : memberBadgeText
                         }}>
                           {memberRole === 0 ? 'Owner' : 'Member'}
                         </span>
@@ -419,7 +671,9 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                 </List.Item>
               );
             }}
-            locale={{ emptyText: localStrings.Messages.NoMembersInConversation }}
+            locale={{ 
+              emptyText: <div style={{ color: secondaryTextColor }}>{localStrings.Messages.NoMembersInConversation}</div> 
+            }}
           />
         </div>
       ),
@@ -429,7 +683,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   return (
     <Modal
       open={visible}
-      title={localStrings.Messages.ManageMembers}
+      title={<span style={{ color: modalTitleColor }}>{localStrings.Messages.ManageMembers}</span>}
       onCancel={onCancel}
       okText={localStrings.Messages.Add}
       cancelText={localStrings.Public.Cancel}
@@ -438,12 +692,82 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
       okButtonProps={{ 
         disabled: selectedFriends.length === 0 || activeTab === "currentMembers"
       }}
+      styles={{ 
+        content: { 
+          backgroundColor: modalBackground,
+        },
+        header: {
+          backgroundColor: modalHeaderBg,
+          borderBottom: `1px solid ${borderColor}`
+        },
+        footer: {
+          backgroundColor: modalBackground,
+          borderTop: `1px solid ${borderColor}`
+        },
+        mask: {
+          backgroundColor: currentTheme === 'dark' ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)'
+        }
+      }}
+      cancelButtonProps={{
+        style: {
+          backgroundColor: cancelButtonBg,
+          color: cancelButtonText,
+          borderColor: cancelButtonBorder
+        }
+      }}
+      closeIcon={<CloseOutlined style={{ color: primaryTextColor }} />}
     >
       <Tabs 
         activeKey={activeTab} 
         onChange={setActiveTab}
         items={tabItems}
+        style={{
+          color: primaryTextColor,
+          backgroundColor: tabBgColor
+        }}
       />
+      <style>{`
+        .friend-list-item:hover {
+          background-color: ${listItemHoverBg} !important;
+        }
+        .ant-modal .ant-form-item-label > label {
+          color: ${primaryTextColor};
+        }
+        .ant-checkbox-wrapper {
+          color: ${primaryTextColor};
+        }
+        .ant-list-empty-text {
+          color: ${secondaryTextColor};
+        }
+        .ant-modal-content {
+          background-color: ${modalBackground};
+        }
+        .ant-modal-title {
+          color: ${modalTitleColor};
+          background-color: ${modalHeaderBg};
+        }
+        .ant-tabs-tab {
+          color: ${secondaryTextColor} !important;
+        }
+        .ant-tabs-tab:hover {
+          color: ${tabActiveColor} !important;
+        }
+        .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+          color: ${tabActiveColor} !important;
+        }
+        .ant-tabs-ink-bar {
+          background: ${tabActiveColor} !important;
+        }
+        .ant-checkbox-checked .ant-checkbox-inner {
+          background-color: ${checkboxColor};
+          border-color: ${checkboxColor};
+        }
+        .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+        .ant-checkbox:hover .ant-checkbox-inner,
+        .ant-checkbox-input:focus + .ant-checkbox-inner {
+          border-color: ${checkboxColor};
+        }
+      `}</style>
     </Modal>
   );
 };
@@ -453,41 +777,50 @@ interface DateSeparatorProps {
 }
 
 const DateSeparator: React.FC<DateSeparatorProps> = ({ date }) => {
-    return (
+
+  const { theme } = useAuth();
+  const currentTheme = theme || 'light';
+
+  const separatorBackground = themeColors.dateSeparator[currentTheme].background;
+  const lineColor = themeColors.dateSeparator[currentTheme].line;
+  const textColor = themeColors.dateSeparator[currentTheme].text;
+
+
+  return (
+    <div 
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        margin: "16px 0",
+        position: "relative",
+        width: "100%"
+      }}
+    >
       <div 
         style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          margin: "16px 0",
+          width: "100%",
+          height: "1px",
+          backgroundColor: lineColor,
+          position: "absolute",
+          zIndex: 1
+        }}
+      />
+      <div 
+        style={{
+          backgroundColor: separatorBackground,
+          padding: "4px 12px",
+          borderRadius: "16px",
+          fontSize: "12px",
+          color: textColor,
           position: "relative",
-          width: "100%"
+          zIndex: 2
         }}
       >
-        <div 
-          style={{
-            width: "100%",
-            height: "1px",
-            backgroundColor: "rgba(0, 0, 0, 0.1)",
-            position: "absolute",
-            zIndex: 1
-          }}
-        />
-        <div 
-          style={{
-            backgroundColor: "#f0f2f5",
-            padding: "4px 12px",
-            borderRadius: "16px",
-            fontSize: "12px",
-            color: "#65676B",
-            position: "relative",
-            zIndex: 2
-          }}
-        >
-          {date}
-        </div>
+        {date}
       </div>
-    );
+    </div>
+  );
 };
 
 const { Dragger } = Upload;
@@ -505,12 +838,36 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
   onUpdateConversation,
   currentConversation
 }) => {
-  const { localStrings } = useAuth();
+  const { localStrings, theme } = useAuth();
   const { brandPrimary } = useColor();
   const [form] = Form.useForm();
   const [updating, setUpdating] = useState(false);
   const [conversationImage, setConversationImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const currentTheme = theme || 'light';
+  
+  // Get theme colors
+  const primaryTextColor = themeColors.text[currentTheme].primary;
+  const secondaryTextColor = themeColors.text[currentTheme].secondary;
+  const modalBackground = themeColors.modal[currentTheme].background;
+  const modalHeaderBg = themeColors.modal[currentTheme].headerBg;
+  const modalFooterBg = themeColors.modal[currentTheme].footerBg;
+  const modalTitleColor = themeColors.modal[currentTheme].titleColor;
+  const modalBorderColor = themeColors.modal[currentTheme].borderColor;
+  const uploadBg = themeColors.upload[currentTheme].background;
+  const uploadHoverBg = themeColors.upload[currentTheme].hoverBg;
+  const uploadBorderColor = themeColors.upload[currentTheme].borderColor;
+  const uploadTextColor = themeColors.upload[currentTheme].textColor;
+  const uploadIconColor = themeColors.upload[currentTheme].iconColor;
+  const inputBg = themeColors.input[currentTheme].background;
+  const inputBorderColor = themeColors.input[currentTheme].borderColor;
+  const inputTextColor = themeColors.input[currentTheme].textColor;
+  const inputPlaceholderColor = themeColors.input[currentTheme].placeholderColor;
+  
+  // Button colors
+  const defaultButtonBg = themeColors.button[currentTheme].defaultBg;
+  const defaultButtonBorder = themeColors.button[currentTheme].defaultBorder;
+  const defaultButtonText = themeColors.button[currentTheme].defaultText;
 
   useEffect(() => {
     if (visible && currentConversation) {
@@ -595,10 +952,18 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
   return (
     <Modal
       open={visible}
-      title={localStrings.Messages.EditConversation}
+      title={<span style={{ color: modalTitleColor }}>{localStrings.Messages.EditConversation}</span>}
       onCancel={onCancel}
       footer={[
-        <Button key="cancel" onClick={onCancel}>
+        <Button 
+          key="cancel" 
+          onClick={onCancel}
+          style={{
+            backgroundColor: defaultButtonBg,
+            color: defaultButtonText,
+            borderColor: defaultButtonBorder
+          }}
+        >
           {localStrings.Public.Cancel}
         </Button>,
         <Button 
@@ -610,20 +975,45 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
           {localStrings.Messages.Update}
         </Button>
       ]}
+      styles={{ 
+        content: { 
+          backgroundColor: modalBackground,
+        },
+        header: {
+          backgroundColor: modalHeaderBg,
+          borderBottom: `1px solid ${modalBorderColor}`,
+          color: modalTitleColor
+        },
+        footer: {
+          backgroundColor: modalFooterBg,
+          borderTop: `1px solid ${modalBorderColor}`
+        },
+        mask: {
+          backgroundColor: themeColors.modal[currentTheme].maskBg
+        }
+      }}
+      closeIcon={<CloseOutlined style={{ color: primaryTextColor }} />}
     >
       <Form form={form} layout="vertical">
         <Form.Item 
           name="name" 
-          label={localStrings.Messages.ConversationName}
+          label={<span style={{ color: primaryTextColor }}>{localStrings.Messages.ConversationName}</span>}
           rules={[{ required: true, message: localStrings.Messages.ConversationNameRequired}]}
         >
-          <Input placeholder={localStrings.Messages.GroupName} />
+          <Input 
+            placeholder={localStrings.Messages.GroupName} 
+            style={{
+              backgroundColor: inputBg,
+              borderColor: inputBorderColor,
+              color: inputTextColor
+            }}
+          />
         </Form.Item>
         
         {/* Image Upload Section */}
         <Form.Item 
           name="image" 
-          label={localStrings.Messages?.ConversationImage}
+          label={<span style={{ color: primaryTextColor }}>{localStrings.Messages?.ConversationImage}</span>}
         >
           <Dragger
             name="avatar"
@@ -634,6 +1024,10 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
               handleImageUpload(info);
             }}
             accept="image/*"
+            style={{
+              backgroundColor: uploadBg,
+              borderColor: uploadBorderColor
+            }}
           >
             {imagePreview ? (
               <div style={{ 
@@ -665,7 +1059,8 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
                     top: 5, 
                     right: 5, 
                     zIndex: 10,
-                    background: 'rgba(255, 255, 255, 0.7)'
+                    background: currentTheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.7)',
+                    color: primaryTextColor
                   }}
                 >
                   {localStrings.Messages.Remove}
@@ -674,12 +1069,12 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
             ) : (
               <div>
                 <p className="ant-upload-drag-icon">
-                  <InboxOutlined />
+                  <InboxOutlined style={{ color: uploadIconColor }} />
                 </p>
-                <p className="ant-upload-text">
+                <p className="ant-upload-text" style={{ color: uploadTextColor }}>
                   {localStrings.Messages?.ClickOrDragImageToUpload}
                 </p>
-                <p className="ant-upload-hint">
+                <p className="ant-upload-hint" style={{ color: secondaryTextColor }}>
                   {localStrings.Messages?.SupportSingleImageUpload}
                 </p>
               </div>
@@ -696,10 +1091,11 @@ interface MessageItemProps {
   onDelete: (messageId: string) => void;
 }
 
-const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
-  const { user, localStrings } = useAuth();
+const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
+  const { user, localStrings, theme } = useAuth();
   const { brandPrimary, lightGray } = useColor();
   const [hovering, setHovering] = useState(false);
+  const currentTheme = theme || 'light';
   
   const isMyMessage = message.user_id === user?.id;
   
@@ -714,6 +1110,21 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
       onDelete(message.id);
     }
   };
+
+  const messageBackground = isMyMessage 
+    ? themeColors.messageBubble[currentTheme].sender.background 
+    : themeColors.messageBubble[currentTheme].receiver.background;
+    
+  const messageColor = isMyMessage 
+    ? themeColors.messageBubble[currentTheme].sender.color 
+    : themeColors.messageBubble[currentTheme].receiver.color;
+    
+  const avatarBackground = !message.user?.avatar_url 
+    ? themeColors.avatar[currentTheme] 
+    : undefined;
+    
+  const deleteButtonBackground = themeColors.button[currentTheme].defaultBg;
+  const deleteIconColor = currentTheme === 'dark' ? '#ffffff' : '#2f3f5c';
   
   const menuItems = [
     {
@@ -739,64 +1150,17 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
     <div 
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
-      style={{
-        display: "flex",
+      style={{ 
+        width: "100%", 
+        display: "flex", 
+        alignItems: "center", 
         justifyContent: isMyMessage ? "flex-end" : "flex-start",
-        marginBottom: 16,
-        position: "relative"
+        marginBottom: "16px"
       }}
     >
-      {!isMyMessage && (
-        <Avatar 
-          src={message.user?.avatar_url} 
-          size={32}
-          style={{ marginRight: 8, alignSelf: "flex-end" }}
-        >
-          {!message.user?.avatar_url && message.user?.name?.charAt(0)}
-        </Avatar>
-      )}
-      
-      <div style={{ position: "relative" }}>
-        <div 
-          style={{
-            maxWidth: "100%",
-            padding: "8px 12px",
-            borderRadius: 12,
-            background: isMyMessage ? brandPrimary : lightGray,
-            color: isMyMessage ? "#fff" : "inherit",
-            position: "relative",
-            border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
-          }}
-        >
-          {!isMyMessage && (
-            <div style={{ fontSize: 12, marginBottom: 2, fontWeight: "bold", color: isMyMessage ? "#fff" : "inherit" }}>
-              {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
-            </div>
-          )}
-          
-          <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", color: isMyMessage ? "#fff" : "inherit" }}>
-            {message.content}
-          </div>
-          
-          <div style={{ fontSize: 10, textAlign: "right", marginTop: 4, opacity: 0.7 }}>
-            {message.isTemporary ? (
-              <span style={{ color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit" }}>
-              </span>
-            ) : (
-              <span style={{ 
-                color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-end"
-              }}>
-                {formatMessageTime(message.created_at || '')}
-              </span>
-            )}
-          </div>
-        </div>
-        
-        {/* Message Options Dropdown - now positioned relative to the message */}
-        {isMyMessage && hovering && !message.isTemporary && (
+      {/* Delete button - only shown for the user's own messages */}
+      {isMyMessage && hovering && !message.isTemporary && (
+        <div style={{ display: "flex", alignItems: "center", marginRight: "8px" }}>
           <Popconfirm
             title={localStrings.Messages.ConfirmDeleteMessage}
             onConfirm={handleDelete}
@@ -806,25 +1170,85 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onDelete }) => {
           >
             <div
               style={{
-                position: "absolute",
-                left: "-28px",
-                top: "50%", 
-                transform: "translateY(-50%)",
                 cursor: "pointer",
                 padding: 4,
                 borderRadius: "50%",
-                background: "#f0f0f0",
-                zIndex: 1             
+                background: deleteButtonBackground
               }}
             >
-              <DeleteOutlined style={{ fontSize: 16 }} />
+              <DeleteOutlined style={{ fontSize: 16, color: themeColors.icons[currentTheme].delete }} />
             </div>
           </Popconfirm>
+        </div>
+      )}
+      
+      {/* Avatar - only shown for messages from others */}
+      {!isMyMessage && (
+        <Avatar 
+          src={message.user?.avatar_url} 
+          size={32}
+          style={{ 
+            marginRight: "8px", 
+            flexShrink: 0,
+            backgroundColor: avatarBackground
+          }}
+        >
+          {!message.user?.avatar_url && message.user?.name?.charAt(0)}
+        </Avatar>
+      )}
+      
+      {/* Message bubble */}
+      <div style={{
+        maxWidth: "50%",
+        padding: "8px 12px",
+        borderRadius: "12px",
+        background: messageBackground,
+        color: messageColor,
+        overflow: "hidden",
+        wordWrap: "break-word",
+        border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
+      }}>
+        {/* Sender name - only shown for messages from others */}
+        {!isMyMessage && (
+          <div style={{ 
+            fontSize: 12, 
+            marginBottom: 2, 
+            fontWeight: "bold", 
+            color: messageColor
+          }}>
+            {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
+          </div>
         )}
+        
+        {/* Message content */}
+        <div style={{ 
+          whiteSpace: "pre-wrap", 
+          wordBreak: "break-word", 
+          color: messageColor
+        }}>
+          {message.content}
+        </div>
+        
+        {/* Timestamp */}
+        <div style={{ fontSize: 10, textAlign: "right", marginTop: 4, opacity: 0.7 }}>
+          {message.isTemporary ? (
+            <span style={{ color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit" }}>
+            </span>
+          ) : (
+            <span style={{ 
+              color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end"
+            }}>
+              {formatMessageTime(message.created_at || '')}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
-};
+});
 
 interface NewConversationModalProps {
   visible: boolean;
@@ -839,7 +1263,7 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   onCreateConversation,
   onConversationCreated, 
 }) => {
-  const { user, localStrings } = useAuth();
+  const { user, localStrings, theme } = useAuth();
   const { brandPrimary } = useColor();
   const [form] = Form.useForm();
   const [friends, setFriends] = useState<FriendResponseModel[]>([]);
@@ -848,6 +1272,25 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [conversationImage, setConversationImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const currentTheme = theme || 'light';
+  const avatarBackground = themeColors.avatar[currentTheme];
+  const primaryTextColor = themeColors.text[currentTheme].primary;
+  const secondaryTextColor = themeColors.text[currentTheme].secondary;
+  const borderColor = themeColors.layout[currentTheme].border;
+  
+  const modalBackground = currentTheme === 'dark' ? themeColors.layout[currentTheme].siderBg : '#ffffff';
+  const modalTitleColor = currentTheme === 'dark' ? '#ffffff' : '#000000';
+  const modalHeaderBg = currentTheme === 'dark' ? themeColors.layout[currentTheme].headerBg : '#ffffff';
+  const inputBackground = currentTheme === 'dark' ? '#2d2d30' : '#ffffff';
+  const inputBorder = currentTheme === 'dark' ? '#3e3e42' : '#d9d9d9';
+  const inputPlaceholderColor = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.45)';
+  const cancelButtonBg = currentTheme === 'dark' ? '#2d2d30' : '#fff';
+  const cancelButtonText = currentTheme === 'dark' ? '#ffffff' : '#000000';
+  const cancelButtonBorder = currentTheme === 'dark' ? '#6e6e6e' : '#d9d9d9';
+  const listItemHoverBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+  const listItemSelectedBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.05)';
+  const listBackground = currentTheme === 'dark' ? '#1f1f1f' : '#ffffff';
+  const warningTextColor = currentTheme === 'dark' ? '#faad14' : '#fa8c16';
 
   useEffect(() => {
     if (visible && user?.id) {
@@ -970,10 +1413,18 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   return (
     <Modal
       open={visible}
-      title={localStrings.Messages.NewConversation}
+      title={<span style={{ color: modalTitleColor }}>{localStrings.Messages.NewConversation}</span>}
       onCancel={onCancel}
       footer={[
-        <Button key="cancel" onClick={onCancel}>
+        <Button 
+          key="cancel" 
+          onClick={onCancel}
+          style={{
+            backgroundColor: cancelButtonBg,
+            color: cancelButtonText,
+            borderColor: cancelButtonBorder
+          }}
+        >
           {localStrings.Public.Cancel}
         </Button>,
         <Button 
@@ -986,11 +1437,28 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
           {localStrings.Messages.Create}
         </Button>
       ]}
+      styles={{ 
+        content: { 
+          backgroundColor: modalBackground,
+        },
+        header: {
+          backgroundColor: modalHeaderBg,
+          borderBottom: `1px solid ${borderColor}`
+        },
+        footer: {
+          backgroundColor: modalBackground,
+          borderTop: `1px solid ${borderColor}`
+        },
+        mask: {
+          backgroundColor: currentTheme === 'dark' ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)'
+        }
+      }}
+      closeIcon={<CloseOutlined style={{ color: primaryTextColor }} />}
     >
       <Form form={form} layout="vertical">
         <Form.Item 
             name="name" 
-            label={localStrings.Messages.ConversationName}
+            label={<span style={{ color: primaryTextColor }}>{localStrings.Messages.ConversationName}</span>}
             rules={[
               {
                 validator: (_, value) => {
@@ -1001,25 +1469,30 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
                 },
               },
             ]}
-          >
-            <Input 
-              placeholder={
-                selectedFriends.length > 1 
-                  ? localStrings.Messages.GroupNameRequired 
-                  : localStrings.Messages.OptionalGroupName
-              } 
-            />
+        >
+          <Input 
+            placeholder={
+              selectedFriends.length > 1 
+                ? localStrings.Messages.GroupNameRequired 
+                : localStrings.Messages.OptionalGroupName
+            } 
+            style={{
+              backgroundColor: inputBackground,
+              color: primaryTextColor,
+              borderColor: inputBorder
+            }}
+          />
         </Form.Item>
 
         {selectedFriends.length > 1 && (
-          <div style={{ marginBottom: 16, color: '#fa8c16' }}>
+          <div style={{ marginBottom: 16, color: warningTextColor }}>
             {localStrings.Messages.GroupNameRequiredNote}
           </div>
         )}
         
-        {/* Image Upload Section */}
+        {/* Friends List Section */}
         <div style={{ marginBottom: 16 }}>
-          <label style={{ display: "block", marginBottom: 8 }}>
+          <label style={{ display: "block", marginBottom: 8, color: primaryTextColor }}>
             {localStrings.Public.Messages}
           </label>
           
@@ -1032,9 +1505,10 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
               style={{ 
                 maxHeight: 300, 
                 overflow: "auto", 
-                border: "1px solid #d9d9d9", 
+                border: `1px solid ${borderColor}`, 
                 borderRadius: 4,
-                padding: "8px 0"
+                padding: "8px 0",
+                backgroundColor: listBackground
               }}
               dataSource={friends}
               renderItem={friend => (
@@ -1044,8 +1518,9 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
                   style={{ 
                     cursor: "pointer", 
                     padding: "8px 16px",
-                    background: selectedFriends.includes(friend.id!) ? "rgba(0, 0, 0, 0.05)" : "transparent"
+                    background: selectedFriends.includes(friend.id!) ? listItemSelectedBg : "transparent",
                   }}
+                  className="friend-list-item"
                 >
                   <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
                     <Checkbox 
@@ -1056,22 +1531,48 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
                       src={friend.avatar_url} 
                       style={{ 
                         marginLeft: 8,
-                        backgroundColor: !friend.avatar_url ? brandPrimary : undefined 
+                        backgroundColor: !friend.avatar_url ? avatarBackground : undefined 
                       }}
                     >
                       {!friend.avatar_url && (friend.name?.charAt(0) || "").toUpperCase()}
                     </Avatar>
-                    <span style={{ marginLeft: 12 }}>
+                    <span style={{ marginLeft: 12, color: primaryTextColor }}>
                       {`${friend.family_name || ''} ${friend.name || ''}`}
                     </span>
                   </div>
                 </List.Item>
               )}
-              locale={{ emptyText: localStrings.Messages.NoFriendsFound}}
+              locale={{ 
+                emptyText: <div style={{ color: secondaryTextColor }}>{localStrings.Messages.NoFriendsFound}</div> 
+              }}
             />
           )}
         </div>
       </Form>
+      <style>{`
+        .friend-list-item:hover {
+          background-color: ${listItemHoverBg} !important;
+        }
+        .ant-modal .ant-form-item-label > label {
+          color: ${primaryTextColor};
+        }
+        .ant-checkbox-wrapper {
+          color: ${primaryTextColor};
+        }
+        .ant-list-empty-text {
+          color: ${secondaryTextColor};
+        }
+        .ant-input::placeholder {
+          color: ${inputPlaceholderColor};
+        }
+        .ant-modal-content {
+          background-color: ${modalBackground};
+        }
+        .ant-modal-title {
+          color: ${modalTitleColor};
+          background-color: ${modalHeaderBg};
+        }
+      `}</style>
     </Modal>
   );
 };
@@ -1082,7 +1583,8 @@ const { Text, Title } = Typography;
 const { SubMenu, Item } = Menu;
 
 const MessagesFeature: React.FC = () => {
-  const { user, localStrings } = useAuth();
+  const { user, localStrings, theme } = useAuth();
+  const currentTheme = theme || 'light';
   const searchParams = useSearchParams(); // Thêm để lấy query params
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const [existingMembers, setExistingMembers] = useState<FriendResponseModel[]>([]);
@@ -1099,6 +1601,31 @@ const MessagesFeature: React.FC = () => {
   const [userRole, setUserRole] = useState<number | null>(null);
   const { socketMessages, setSocketMessages } = useWebSocket();
   const [hasPermission, setHasPermission] = useState<boolean>(true); //sau khi bi kick khoi conversation se kiem tra de khong cho chat vao duoc neu nhu con dang mo conversation
+
+  const layoutBackground = themeColors.layout[currentTheme].background;
+  const siderBackground = themeColors.layout[currentTheme].siderBg;
+  const borderColor = themeColors.layout[currentTheme].border;
+  const activeItemBackground = themeColors.layout[currentTheme].activeItem;
+  const avatarBackground = themeColors.avatar[currentTheme];
+  const headerBackground = themeColors.layout[currentTheme].headerBg;
+  const primaryTextColor = themeColors.text[currentTheme].primary;
+  const secondaryTextColor = themeColors.text[currentTheme].secondary;
+  const sidebarTextColor = themeColors.sidebar[currentTheme].text;
+  const sidebarSecondaryTextColor = themeColors.sidebar[currentTheme].secondaryText;
+  const iconPrimaryColor = themeColors.icons[currentTheme].primary;
+  const iconSecondaryColor = themeColors.icons[currentTheme].secondary;
+  const iconActionColor = themeColors.icons[currentTheme].action;
+  const inputBackground = themeColors.layout[currentTheme].siderBg;
+  const inputTextColor = themeColors.input[currentTheme].textColor;
+  const inputBorderColor = themeColors.input[currentTheme].borderColor;
+  const inputPlaceholderColor = themeColors.input[currentTheme].placeholderColor;
+  const dropdownBg = themeColors.dropdown[currentTheme].background;
+  const dropdownItemText = themeColors.dropdown[currentTheme].textColor;
+  const dropdownItemHover = themeColors.dropdown[currentTheme].itemHover;
+  const dropdownBorder = themeColors.dropdown[currentTheme].borderColor;
+  const dropdownBoxShadow = themeColors.dropdown[currentTheme].boxShadow;
+  const dropdownDangerColor = themeColors.dropdown[currentTheme].dangerColor;
+  const dropdownDangerHoverBg = themeColors.dropdown[currentTheme].dangerHoverBg;
 
   const {
     fetchConversations,
@@ -1287,27 +1814,27 @@ const MessagesFeature: React.FC = () => {
   const handleSendMessage = async () => {
     if (!user?.id || !currentConversation?.id) return;
     
-    try {
-      const response = await defaultMessagesRepo.getConversationDetailByUserID({
-        conversation_id: currentConversation.id
-      });
+    // try {
+    //   const response = await defaultMessagesRepo.getConversationDetailByUserID({
+    //     conversation_id: currentConversation.id
+    //   });
       
-      if (response.data) {
-        const members = Array.isArray(response.data) ? response.data : [response.data];
-        const userExists = members.some(member => member.user_id === user.id);
+    //   if (response.data) {
+    //     const members = Array.isArray(response.data) ? response.data : [response.data];
+    //     const userExists = members.some(member => member.user_id === user.id);
         
-        if (!userExists) {
-          setHasPermission(false);
-          message.error(localStrings.Messages.YouHaveBeenRemoved);
-          setCurrentConversation(null);
-          fetchConversations();
-          return;
-        }
-      }
-    } catch (error) {
-      console.error("Error checking permission:", error);
-      return;
-    }
+    //     if (!userExists) {
+    //       setHasPermission(false);
+    //       message.error(localStrings.Messages.YouHaveBeenRemoved);
+    //       setCurrentConversation(null);
+    //       fetchConversations();
+    //       return;
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.error("Error checking permission:", error);
+    //   return;
+    // }
     
     if (messageText.trim() && currentConversation && messageText.length <= 500) {
       sendMessage();
@@ -2639,22 +3166,22 @@ const MessagesFeature: React.FC = () => {
   }, []);
 
   return (
-    <Layout style={{ height: "calc(100vh - 64px)", background: backgroundColor }}>
+    <Layout style={{ height: "calc(100vh - 64px)", background: layoutBackground }}>
       {/* Conversations Sidebar */}
       {(showConversation || !isMobile) && (
         <Sider
           width={isMobile ? "100%" : 300}
           style={{
-            background: backgroundColor,
+            background: siderBackground,
             overflow: "auto",
-            borderRight: `1px solid ${lightGray}`,
+            borderRight: `1px solid ${borderColor}`,
             display: isMobile ? (showConversation ? "block" : "none") : "block"
           }}
         >
           <div style={{ padding: "16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Title level={4} style={{ margin: 0 }}>
-                {localStrings.Public.Messages}
+              <Title level={4} style={{ margin: 0, color: sidebarTextColor }}>
+                  {localStrings.Public.Messages}
               </Title>
               <div>
                 <Button
@@ -2669,8 +3196,11 @@ const MessagesFeature: React.FC = () => {
               placeholder={localStrings.Public.Search}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              style={{ marginTop: 16 }}
-              prefix={<SearchOutlined />}
+              style={{ 
+                marginTop: 16
+              }}
+              className={`themed-search-${currentTheme}`}
+              prefix={<SearchOutlined style={{ color: themeColors.search[currentTheme].iconColor }} />}
             />
           </div>
           <div style={{ height: "calc(100% - 130px)", overflow: "auto" }}>
@@ -2802,13 +3332,11 @@ const MessagesFeature: React.FC = () => {
 
                       return (
                         <List.Item
-                          onClick={() => {
-                            handleSelectConversation(item);
-                          }}
+                          onClick={() => handleSelectConversation(item)}
                           style={{
                             cursor: "pointer",
                             padding: "12px 16px",
-                            background: currentConversation?.id === item.id ? lightGray : "transparent",
+                            background: currentConversation?.id === item.id ? activeItemBackground : "transparent",
                             transition: "background 0.3s",
                           }}
                           key={item.id}
@@ -2820,7 +3348,7 @@ const MessagesFeature: React.FC = () => {
                                   src={avatarUrl}
                                   size={48}
                                   style={{
-                                    backgroundColor: !avatarUrl ? brandPrimary : undefined
+                                    backgroundColor: !avatarUrl ? avatarBackground : undefined
                                   }}
                                 >
                                   {!avatarUrl && avatarInitial}
@@ -2839,13 +3367,14 @@ const MessagesFeature: React.FC = () => {
                                 )}
                               </div>
                             }
-                            title={<Text strong>{item.name}</Text>}
+                            title={<Text strong style={{ color: sidebarTextColor }}>{item.name}</Text>}
                             description={
                               <Text
                                 type="secondary"
                                 ellipsis
                                 style={{
                                   maxWidth: '100%',
+                                  color: sidebarSecondaryTextColor
                                 }}
                               >
                                 {messageDisplay}
@@ -2854,7 +3383,7 @@ const MessagesFeature: React.FC = () => {
                           />
                           {lastMessage && (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                              <Text type="secondary" style={{ fontSize: '12px' }}>
+                              <Text type="secondary" style={{ fontSize: '12px', color: sidebarSecondaryTextColor }}>
                                 {lastMessageTime}
                               </Text>
                               
@@ -2875,22 +3404,22 @@ const MessagesFeature: React.FC = () => {
       {(!showConversation || !isMobile) && (
         <Layout style={{
           height: "100%",
-          background: backgroundColor,
+          background: layoutBackground,
           display: isMobile ? (showConversation ? "none" : "flex") : "flex"
         }}>
           {/* Chat Header */}
           <Header style={{
-            background: backgroundColor,
+            background: headerBackground,
             padding: "0 16px",
             height: "64px",
             lineHeight: "64px",
-            borderBottom: `1px solid ${lightGray}`,
+            borderBottom: `1px solid ${borderColor}`,
             display: "flex",
             alignItems: "center"
           }}>
             {isMobile && (
               <Button
-                icon={<ArrowLeftOutlined />}
+                icon={<ArrowLeftOutlined style={{ color: iconPrimaryColor }} />}
                 type="text"
                 onClick={handleBackToConversations}
                 style={{ marginRight: 8 }}
@@ -2935,9 +3464,9 @@ const MessagesFeature: React.FC = () => {
                 })()}
                 
                 <div style={{ marginLeft: 12, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <Text strong style={{ fontSize: 16, marginBottom: 2 }}>
-                    {currentConversation.name}
-                  </Text>
+                <Text strong style={{ fontSize: 16, marginBottom: 2, color: primaryTextColor }}>
+                  {currentConversation.name}
+                </Text>
                   {currentConversation.active_status && (
                     <div style={{ 
                       display: 'flex', 
@@ -2962,23 +3491,40 @@ const MessagesFeature: React.FC = () => {
                 {currentConversation && (
                   <Button 
                     type="text" 
-                    icon={<VideoCameraOutlined style={{ fontSize: 20 }} />} 
+                    icon={<VideoCameraOutlined style={{ fontSize: 20, color: iconPrimaryColor }} />} 
                     onClick={() => handleVideoCall(currentConversation)}
                     style={{ marginRight: 8 }}
                   />
                 )}
                 <Dropdown
                   overlay={
-                    <Menu>
+                    <Menu
+                      style={{
+                        backgroundColor: dropdownBg,
+                        border: `1px solid ${dropdownBorder}`,
+                        boxShadow: dropdownBoxShadow
+                      }}
+                      className={`themed-dropdown-${currentTheme}`}
+                    >
                       <Item 
                         key="edit" 
                         onClick={() => setEditConversationModalVisible(true)}
+                        style={{ 
+                          color: dropdownItemText,
+                          padding: "8px 16px" 
+                        }}
+                        className="dropdown-menu-item"
                       >
                         {localStrings.Messages.EditConversation}
                       </Item>
                       <Item 
                         key="addMember" 
                         onClick={handleOpenAddMemberModal}
+                        style={{ 
+                          color: dropdownItemText,
+                          padding: "8px 16px" 
+                        }}
+                        className="dropdown-menu-item"
                       >
                         {localStrings.Messages.AddMembers}
                       </Item>
@@ -2988,18 +3534,28 @@ const MessagesFeature: React.FC = () => {
                           key="delete" 
                           danger 
                           onClick={() => currentConversation?.id && handleDeleteConversation(currentConversation.id)}
+                          style={{ 
+                            padding: "8px 16px",
+                            color: dropdownDangerColor
+                          }}
+                          className="dropdown-menu-item-danger"
                         >
                           {localStrings.Messages.DeleteConversation}
                         </Item>
                       )}
                       {/* Chỉ hiện nút Leave nếu user không phải là owner, là group chat và có >2 thành viên */}
                       {currentConversation?.name && 
-                       !currentConversation.name.includes(" & ") && 
-                       userRole !== 0 && 
-                       existingMembers.length > 2 && (
+                      !currentConversation.name.includes(" & ") && 
+                      userRole !== 0 && 
+                      existingMembers.length > 2 && (
                         <Item 
                           key="leave" 
                           onClick={handleLeaveConversation}
+                          style={{ 
+                            color: dropdownItemText,
+                            padding: "8px 16px" 
+                          }}
+                          className="dropdown-menu-item"
                         >
                           {localStrings.Messages.LeaveConversation}
                         </Item>
@@ -3007,12 +3563,38 @@ const MessagesFeature: React.FC = () => {
                     </Menu>
                   }
                   trigger={['click']}
+                  getPopupContainer={(triggerNode) => {
+                    return triggerNode.parentNode as HTMLElement;
+                  }}
                 >
                   <Button 
                     type="text" 
-                    icon={<EllipsisOutlined style={{ fontSize: 20 }} />} 
+                    icon={<EllipsisOutlined style={{ fontSize: 20, color: iconPrimaryColor }} />} 
                   />
                 </Dropdown>
+
+                <style>{`
+                  .dropdown-menu-item:hover {
+                    background-color: ${dropdownItemHover} !important;
+                  }
+                  
+                  .dropdown-menu-item-danger:hover {
+                    background-color: ${dropdownDangerHoverBg} !important;
+                  }
+                  
+                  .themed-dropdown-${currentTheme} .ant-dropdown-menu-item {
+                    transition: background-color 0.3s ease;
+                  }
+                  
+                  .themed-dropdown-dark .ant-dropdown-menu {
+                    background-color: ${themeColors.dropdown.dark.background};
+                  }
+                  
+                  .themed-dropdown-light .ant-dropdown-menu {
+                    background-color: ${themeColors.dropdown.light.background};
+                  }
+                `}</style>
+
                 </div>
               </>
             ) : (
@@ -3035,7 +3617,8 @@ const MessagesFeature: React.FC = () => {
               display: "flex",
               flexDirection: "column",
               height: "calc(100% - 128px)",
-              position: "relative"
+              position: "relative",
+              background: layoutBackground
             }}
             ref={messageListRef}
             onScroll={handleScroll}
@@ -3169,7 +3752,7 @@ const MessagesFeature: React.FC = () => {
                 ) : (
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     {/* Load More Button - only show when we have messages and not at the end */}
-                    {messages.length > 0 && !isMessagesEnd && (
+                    {/* {messages.length > 0 && !isMessagesEnd && (
                       <div style={{ textAlign: "center", padding: "10px 0" }}>
                         <Button
                           onClick={loadMoreMessages}
@@ -3179,7 +3762,7 @@ const MessagesFeature: React.FC = () => {
                           {localStrings.Public.LoadMore}
                         </Button>
                       </div>
-                    )}
+                    )} */}
 
                     {/* Loading indicator when fetching more messages */}
                     {messagesLoading && messages.length > 0 && (
@@ -3239,8 +3822,8 @@ const MessagesFeature: React.FC = () => {
           {/* Message Input */}
           <div style={{
             padding: "12px 16px",
-            borderTop: `1px solid ${lightGray}`,
-            background: backgroundColor,
+            borderTop: `1px solid ${borderColor}`,
+            background: layoutBackground,
             display: "flex",
             flexDirection: "column",
           }}>
@@ -3265,7 +3848,7 @@ const MessagesFeature: React.FC = () => {
                   >
                     <Button
                       type="text"
-                      icon={<SmileOutlined style={{ fontSize: "20px", color: "#666" }} />}
+                      icon={<SmileOutlined style={{ fontSize: "20px", color: iconSecondaryColor }} />}
                       style={{ marginRight: 8 }}
                     />
                   </Popover>
@@ -3286,14 +3869,31 @@ const MessagesFeature: React.FC = () => {
                     style={{
                       borderRadius: 20,
                       padding: "8px 12px",
-                      flex: 1
+                      flex: 1,
+                      backgroundColor: inputBackground,
+                      color: inputTextColor,
+                      borderColor: inputBorderColor
                     }}
+                    className="message-input"
                   />
+
+                  <style>{`
+                    .message-input::placeholder {
+                      color: ${inputPlaceholderColor} !important;
+                    }
+                    .message-input:hover {
+                      border-color: ${themeColors.input[currentTheme].hoverBorderColor} !important;
+                    }
+                    .message-input:focus {
+                      border-color: ${themeColors.input[currentTheme].hoverBorderColor} !important;
+                      box-shadow: 0 0 0 2px rgba(${currentTheme === 'dark' ? '23, 125, 220' : '24, 144, 255'}, 0.2) !important;
+                    }
+                  `}</style>
 
                   <Button
                     type="primary"
                     shape="circle"
-                    icon={<SendOutlined />}
+                    icon={<SendOutlined style={{ color: iconActionColor }} />}
                     onClick={handleSendMessage}
                     style={{ marginLeft: 8 }}
                     disabled={!messageText.trim() || messageText.length > 500}
@@ -3306,7 +3906,9 @@ const MessagesFeature: React.FC = () => {
                   justifyContent: "flex-end",
                   fontSize: "12px",
                   marginTop: "4px",
-                  color: messageText.length > 500 ? "#ff4d4f" : "rgba(0, 0, 0, 0.45)"
+                  color: messageText.length > 500 
+                    ? themeColors.indicators[currentTheme].error 
+                    : themeColors.indicators[currentTheme].normal
                 }}>
                   {messageText.length}/500
                 </div>
