@@ -20,78 +20,76 @@ const themeColors = {
   messageBubble: {
     light: {
       sender: {
-        background: '#1890ff', // brandPrimary for light theme
+        background: '#1890ff', 
         color: '#fff',
       },
       receiver: {
-        background: '#E2E2E2', // lightGray for light theme
+        background: '#E2E2E2',
         color: 'inherit',
       }
     },
     dark: {
       sender: {
-        background: '#1890ff', // Keep blue background for dark theme too
-        color: '#fff',         // White text still works on blue
+        background: '#2f3f5c', 
+        color: '#fff',         
       },
       receiver: {
-        background: '#62676B', // Dark gray background
-        color: '#ffffff',      // White text for better visibility in dark mode
+        background: '#62676B',
+        color: '#ffffff',     
       }
     }
   },
   layout: {
     light: {
-      background: '#ffffff', // backgroundColor for light theme
-      siderBg: '#F6F6F6', // backGround for light theme
+      background: '#ffffff', 
+      siderBg: '#F6F6F6', 
       headerBg: '#ffffff', 
-      border: '#E2E2E2', // lightGray for light theme
-      activeItem: '#E2E2E2', // lightGray for light theme
+      border: '#E2E2E2', 
+      activeItem: '#E2E2E2', 
     },
     dark: {
-      background: '#202427', // backgroundColor for dark theme
-      siderBg: '#262930', // backGround for dark theme
+      background: '#262930', 
+      siderBg: '#202427', 
       headerBg: '#202427', 
-      border: '#62676B', // borderColor for dark theme
-      activeItem: '#31343B', // darkSlate for dark theme
+      border: '#62676B', 
+      activeItem: '#31343B', 
     }
   },
   text: {
     light: {
-      primary: '#000000',           // Black for light theme
-      secondary: 'rgba(0, 0, 0, 0.45)', // Darker gray for light theme
+      primary: '#000000',        
+      secondary: 'rgba(0, 0, 0, 0.45)', 
     },
     dark: {
-      primary: '#ffffff',           // Bright white for dark theme 
-      secondary: 'rgba(255, 255, 255, 0.85)', // Very light gray with higher opacity
+      primary: '#ffffff',       
+      secondary: 'rgba(255, 255, 255, 0.85)', 
     }
   },
-
   icons: {
     light: {
-      primary: '#000000',           // Dark icons for light theme
-      secondary: 'rgba(0, 0, 0, 0.65)', // Slightly lighter icons
-      action: '#1890ff',            // Blue for interactive icons
+      primary: '#000000',          
+      secondary: 'rgba(0, 0, 0, 0.65)', 
+      action: '#1890ff',           
     },
     dark: {
-      primary: '#ffffff',           // White icons for dark theme
-      secondary: 'rgba(255, 255, 255, 0.85)', // Light gray icons
-      action: '#40a9ff',            // Lighter blue for interactive icons
+      primary: '#ffffff',         
+      secondary: 'rgba(255, 255, 255, 0.85)', 
+      action: '#40a9ff',        
     }
   },
-
   sidebar: {
     light: {
       text: '#000000',
       secondaryText: 'rgba(0, 0, 0, 0.45)',
     },
     dark: {
-      text: '#ffffff',              // Pure white for main text
-      secondaryText: '#e0e0e0',     // Light gray for secondary text
+      text: '#ffffff',              
+      secondaryText: '#e0e0e0',    
     }
   },
   avatar: {
-    light: '#1890ff', // brandPrimary for light theme
-    dark: '#ffffff', // white for dark theme
+    light: '#1890ff',
+    dark: '#ffffff', 
   },
   button: {
     light: {
@@ -111,6 +109,38 @@ const themeColors = {
       background: '#262930',
       line: 'rgba(255, 255, 255, 0.1)',
       text: '#a0a0a0',
+    }
+  },
+  search: {
+    light: {
+      background: '#ffffff',
+      textColor: 'rgba(0, 0, 0, 0.85)',
+      placeholderColor: 'rgba(0, 0, 0, 0.45)',
+      borderColor: '#d9d9d9',
+      buttonBackground: '#ffffff',
+      buttonHoverBackground: '#f5f5f5',
+      iconColor: 'rgba(0, 0, 0, 0.45)'
+    },
+    dark: {
+      background: '#2d2d30',
+      textColor: 'rgba(255, 255, 255, 0.85)',
+      placeholderColor: 'rgba(255, 255, 255, 0.45)',
+      borderColor: '#3e3e42',
+      buttonBackground: '#3e3e42',
+      buttonHoverBackground: '#4e4e52',
+      iconColor: 'rgba(255, 255, 255, 0.65)'
+    }
+  },
+  indicators: {
+    light: {
+      normal: 'rgba(0, 0, 0, 0.45)',
+      warning: '#faad14',
+      error: '#ff4d4f'
+    },
+    dark: {
+      normal: 'rgba(255, 255, 255, 0.65)',
+      warning: '#faad14',
+      error: '#ff4d4f'
     }
   }
 };
@@ -2826,8 +2856,11 @@ const MessagesFeature: React.FC = () => {
               placeholder={localStrings.Public.Search}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              style={{ marginTop: 16 }}
-              prefix={<SearchOutlined style={{ color: iconSecondaryColor }} />}
+              style={{ 
+                marginTop: 16,
+                backgroundColor: themeColors.search[currentTheme].background
+              }}
+              prefix={<SearchOutlined style={{ color: themeColors.search[currentTheme].iconColor }} />}
             />
           </div>
           <div style={{ height: "calc(100% - 130px)", overflow: "auto" }}>
@@ -3463,9 +3496,9 @@ const MessagesFeature: React.FC = () => {
                   justifyContent: "flex-end",
                   fontSize: "12px",
                   marginTop: "4px",
-                  color: messageText.length > 500 ? 
-                    "#ff4d4f" : 
-                    themeColors.text[currentTheme].secondary
+                  color: messageText.length > 500 
+                    ? themeColors.indicators[currentTheme].error 
+                    : themeColors.indicators[currentTheme].normal
                 }}>
                   {messageText.length}/500
                 </div>
