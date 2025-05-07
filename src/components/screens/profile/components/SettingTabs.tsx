@@ -1,16 +1,17 @@
 "use client"
 import React, { useState } from 'react';
 import { useRouter } from "next/navigation"; // Sử dụng `next/navigation` thay vì `next/router
-import { Button, Modal, Radio, Space } from 'antd';
+import { Button, ConfigProvider, Modal, Radio, Space, Switch } from 'antd';
 import { useAuth } from '@/context/auth/useAuth';
 import ChangePassword from '../../changePassword/views/changePassword';
+import useColor from '@/hooks/useColor';
 
 const SettingsTab = ({ setSettingModal }: { setSettingModal: React.Dispatch<React.SetStateAction<boolean>> }) => {
   const router = useRouter();
   const { onLogout, changeLanguage, language, localStrings, theme, changeTheme } = useAuth();
   const [showLogout, setShowLogout] = useState(false);
   const [showLanguage, setShowLanguage] = useState(false);
-  const [showTheme, setShowTheme] = useState(false);
+  const { backgroundColor, brandPrimary, brandPrimaryTap } = useColor();
 
   const [showChangePassword, setShowChangePassword] = useState(false);
 
@@ -20,23 +21,9 @@ const SettingsTab = ({ setSettingModal }: { setSettingModal: React.Dispatch<Reac
     onLogout();
   }
 
-  const handleLanguageChange = () => {
-    setShowLanguage(false);
-  }
 
   const handleLogout = () => {
     setShowLogout(true);
-  };
-
-  const showLanguageOptions = () => {
-    setShowLanguage(true);
-  };
-
-  const handleThemeChange = () => {
-    setShowTheme(false);
-  }
-  const showThemeOptions = () => {
-    setShowTheme(true);
   };
 
 
@@ -46,6 +33,17 @@ const SettingsTab = ({ setSettingModal }: { setSettingModal: React.Dispatch<Reac
   }
 
   return (
+    <ConfigProvider 
+    theme={{
+      components: {
+        Button: {
+          colorBgContainer: backgroundColor,
+          colorPrimary: brandPrimary,
+          colorPrimaryHover: brandPrimaryTap,
+        },
+      },
+
+    }}>
     <div className="flex flex-col space-y-4 p-5 justify-center items-center">
       <Button
         className="w-full text-brandPrimary border-none"
@@ -74,50 +72,14 @@ const SettingsTab = ({ setSettingModal }: { setSettingModal: React.Dispatch<Reac
       >
         <ChangePassword setShowChangePassword={setShowChangePassword} />
       </Modal>
-      <Button
-        className="w-full text-brandPrimary border-none"
-        onClick={showLanguageOptions}
+      <div className="text-brandPrimary">
+        {localStrings.Public.Language} {language === 'vi' ? localStrings.Public.Vietnamese : localStrings.Public.English} <Switch defaultChecked onChange={changeLanguage} />
+      </div>
+     
+      <div className="text-brandPrimary"
       >
-        {localStrings.Public.Language}
-      </Button>
-      {/* //modal language  */}
-      <Modal centered title={localStrings.Public.Language} open={showLanguage} onCancel={handleLanguageChange} width="250px" footer={[
-        <Button key="cancel" onClick={handleLanguageChange}>
-          {localStrings.Public.Close}
-        </Button>,
-      ]}
-      >
-        <div className="space-y-2">
-          <Radio.Group value={language} onChange={changeLanguage}>
-            <Space direction="vertical">
-              <Radio value="en">{localStrings.Public.English}</Radio>
-              <Radio value="vi">{localStrings.Public.Vietnamese}</Radio>
-            </Space>
-          </Radio.Group>
-        </div>
-      </Modal>
-      <Button
-        className="w-full text-brandPrimary border-none"
-        onClick={showThemeOptions}
-      >
-        {localStrings.Public.Theme}
-      </Button>
-      {/* //modal language  */}
-      <Modal centered title={localStrings.Public.Theme} open={showTheme} onCancel={handleThemeChange} width="250px" footer={[
-        <Button key="cancel" onClick={handleThemeChange}>
-          {localStrings.Public.Close}
-        </Button>,
-      ]}
-      >
-        <div className="space-y-2">
-          <Radio.Group value={theme} onChange={(e) => changeTheme?.(e.target.value)}>
-            <Space direction="vertical">
-              <Radio value="light">{localStrings.Public.LightMode}</Radio>
-              <Radio value="dark">{localStrings.Public.DarkMode}</Radio>
-            </Space>
-          </Radio.Group>
-        </div>
-      </Modal>
+        {localStrings.Public.Theme} {theme === 'light' ? localStrings.Public.LightMode : localStrings.Public.DarkMode} <Switch defaultChecked onChange={(checked) => changeTheme?.(checked ? 'light' : 'dark')} />
+      </div>
 
       <Button
         className="w-full text-brandPrimary border-none"
@@ -132,6 +94,7 @@ const SettingsTab = ({ setSettingModal }: { setSettingModal: React.Dispatch<Reac
         </div>
       </Modal>
     </div>
+  </ConfigProvider>
   );
 };
 

@@ -9,6 +9,7 @@ import {
   Col,
   Spin,
   ConfigProvider,
+  Switch,
 } from "antd";
 import { GoogleOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
@@ -20,7 +21,7 @@ import { useState } from "react";
 import useColor from "@/hooks/useColor";
 
 const LoginPage = () => {
-  const { localStrings, changeLanguage, theme } = useAuth();
+  const { localStrings, changeLanguage, theme, changeTheme } = useAuth();
   const router = useRouter();
   const { backgroundColor, brandPrimary, brandPrimaryTap } = useColor();
   const loginViewModel = LoginViewModel(new AuthenRepo());
@@ -74,6 +75,23 @@ const LoginPage = () => {
   };
 
   return (
+          <ConfigProvider 
+            theme={{
+              components: {
+                Input: {
+                  colorBgContainer: backgroundColor,
+                  colorText: brandPrimary,
+                  colorBorder: brandPrimary,
+                  colorTextPlaceholder: "gray",
+                },
+                Button: {
+                  colorBgContainer: backgroundColor,
+                  colorPrimary: brandPrimary,
+                  colorPrimaryHover: brandPrimaryTap,
+                },
+              },
+            }}
+          >
     <Row className="min-h-screen" align={"middle"} justify={"center"}>
       <Col xs={0} lg={10} className="h-fit">
         <div className="flex justify-center">
@@ -86,10 +104,22 @@ const LoginPage = () => {
         </div>
       </Col>
       <Col xs={20} lg={10} className="h-fit">
+        <div className="flex justify-end mb-2">
+          <div className="text-brandPrimary">
+            {localStrings.Public.Theme}{" "}
+            {theme === "light"
+              ? localStrings.Public.LightMode
+              : localStrings.Public.DarkMode}{" "}
+            <Switch
+              defaultChecked
+              onChange={(checked) => changeTheme?.(checked ? "light" : "dark")}
+            />
+          </div>
+        </div>
         <Row justify="center" align={"middle"} className="w-full h-full">
           <div
-            className="w-full p-6 border border-gray-300 rounded-lg shadow-lg bg-white"
-            style={{ boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}
+            className="w-full p-6 border border-gray-300 rounded-lg shadow-lg "
+            style={{ boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", backgroundColor: backgroundColor }}
           >
             <Spin spinning={isLoggingIn} tip={localStrings.Public.LoginLoading}>
               <Form
@@ -102,12 +132,13 @@ const LoginPage = () => {
                 <Col span={24} className="h-fit pb-4">
                   <div className="flex justify-center">
                     <img
-                      src="/image/yourvibes_black.png"
+                       src={theme === "light" ? "/image/yourvibes_black.png" : "/image/yourvibes _white.png"} 
                       alt="YourVibes"
                       className="font-cursive text-black w-[60%] sm:w-[50%] md:w-[40%] lg:hidden block"
                     />
                   </div>
                 </Col>
+                
                 <Form.Item
                   name="email"
                   rules={[
@@ -152,7 +183,7 @@ const LoginPage = () => {
                   </a>
                 </div>
                 <Form.Item>
-                  <ConfigProvider theme={{ token: { colorPrimary: brandPrimary } }}>
+            
                     <Button
                       type="primary"
                       htmlType="submit"
@@ -160,9 +191,10 @@ const LoginPage = () => {
                       loading={loading}
                       disabled={isLoggingIn}
                     >
-                      <span style={{ color: backgroundColor }}>{localStrings.Login.LoginButton}</span>
+                      <span style={{ color: backgroundColor }}>
+                        {localStrings.Login.LoginButton}
+                      </span>
                     </Button>
-                  </ConfigProvider>
                 </Form.Item>
                 <div className="text-center text-sm">
                   <span>
@@ -192,26 +224,22 @@ const LoginPage = () => {
                 </div>
               </Form>
             </Spin>
-            {/* <Button
-              type="primary"
-              onClick={handleLanguageChange}
-              className="w-full mt-4 bg-black text-white py-2 rounded-md hover:bg-gray-800"
-              disabled={isLoggingIn}
-            >
-              {localStrings.Login.changeLanguage}
-            </Button> */}
             <Button
               type="primary"
-              // onClick={() => setTheme!(theme === "dark" ? "light" : "dark")}
+              onClick={handleLanguageChange}
               className="w-full mt-4 py-2 rounded-md hover:bg-gray-800"
-              // disabled={isLoggingIn}
-            >
-              {"Set Dark Theme"}
+              disabled={isLoggingIn}
+              >
+               <span style={{ color: backgroundColor }}>
+
+              {localStrings.Login.changeLanguage}
+               </span>
             </Button>
           </div>
         </Row>
       </Col>
     </Row>
+              </ConfigProvider>
   );
 };
 

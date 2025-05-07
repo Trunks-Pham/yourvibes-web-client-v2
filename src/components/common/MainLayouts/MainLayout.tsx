@@ -151,11 +151,18 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <ConfigProvider
       theme={{
+        token: {
+          colorText: brandPrimary,
+        },
         components: {
           Layout: {
             bodyBg: backGround,
           },
-
+          Modal: {
+            contentBg: backgroundColor,
+            headerBg: backgroundColor,
+            titleColor: brandPrimary,
+          },
         },
       }}
     >

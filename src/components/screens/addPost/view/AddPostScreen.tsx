@@ -62,7 +62,6 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
   const uploadButton = (
     <button
       style={{
-        background: menuItem,
         color: brandPrimary,
         borderRadius: 4,
         padding: 8,
