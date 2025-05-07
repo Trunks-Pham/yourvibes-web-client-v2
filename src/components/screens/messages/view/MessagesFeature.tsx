@@ -93,10 +93,22 @@ const themeColors = {
   },
   button: {
     light: {
-      background: '#f0f0f0',
+      defaultBg: '#ffffff',
+      defaultBorder: '#d9d9d9',
+      defaultText: 'rgba(0, 0, 0, 0.85)',
+      defaultHoverBg: '#fafafa',
+      primaryBg: '#1890ff',
+      primaryText: '#ffffff',
+      primaryHoverBg: '#40a9ff'
     },
     dark: {
-      background: '#31343B',
+      defaultBg: '#141414',
+      defaultBorder: '#434343',
+      defaultText: 'rgba(255, 255, 255, 0.85)',
+      defaultHoverBg: '#1f1f1f',
+      primaryBg: '#177ddc',
+      primaryText: '#ffffff',
+      primaryHoverBg: '#1f6bb4'
     }
   },
   dateSeparator: {
@@ -142,7 +154,84 @@ const themeColors = {
       warning: '#faad14',
       error: '#ff4d4f'
     }
-  }
+  },
+  
+  dropdown: {
+    light: {
+      background: '#ffffff',
+      itemHover: '#f5f5f5',
+      borderColor: '#d9d9d9',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+      textColor: '#000000',
+      dangerColor: '#ff4d4f',
+      dangerHoverBg: '#fff1f0'
+    },
+    dark: {
+      background: '#202427',
+      itemHover: '#2c3033',
+      borderColor: '#434343',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.45)',
+      textColor: '#ffffff',
+      dangerColor: '#ff7875',
+      dangerHoverBg: '#2a1215'
+    }
+  },
+  modal: {
+    light: {
+      background: '#ffffff',
+      headerBg: '#ffffff',
+      footerBg: '#ffffff',
+      titleColor: '#000000',
+      borderColor: '#e8e8e8',
+      boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08)',
+      maskBg: 'rgba(0, 0, 0, 0.45)'
+    },
+    dark: {
+      background: '#202427',
+      headerBg: '#202427',
+      footerBg: '#202427',
+      titleColor: '#ffffff',
+      borderColor: '#434343',
+      boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.48), 0 6px 16px 0 rgba(0, 0, 0, 0.32)',
+      maskBg: 'rgba(0, 0, 0, 0.65)'
+    }
+  },
+  
+  // Upload area colors
+  upload: {
+    light: {
+      background: '#fafafa',
+      hoverBg: '#f5f5f5',
+      borderColor: '#d9d9d9',
+      textColor: 'rgba(0, 0, 0, 0.85)',
+      iconColor: '#1890ff'
+    },
+    dark: {
+      background: '#141414',
+      hoverBg: '#1f1f1f',
+      borderColor: '#434343',
+      textColor: 'rgba(255, 255, 255, 0.85)',
+      iconColor: '#177ddc'
+    }
+  },
+  
+  // Form input colors
+  input: {
+    light: {
+      background: '#ffffff',
+      borderColor: '#d9d9d9',
+      hoverBorderColor: '#40a9ff',
+      placeholderColor: 'rgba(0, 0, 0, 0.45)',
+      textColor: 'rgba(0, 0, 0, 0.85)'
+    },
+    dark: {
+      background: '#141414',
+      borderColor: '#434343',
+      hoverBorderColor: '#177ddc',
+      placeholderColor: 'rgba(255, 255, 255, 0.45)',
+      textColor: 'rgba(255, 255, 255, 0.85)'
+    }
+  },
 };
 
 interface AddMemberModalProps {
@@ -179,8 +268,35 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   const [activeTab, setActiveTab] = useState<string>("addMembers");
   const [existingMembersWithRole, setExistingMembersWithRole] = useState<ConversationMember[]>([]);
   const currentTheme = theme || 'light';
+  
+  // Theme variables
   const avatarBackground = themeColors.avatar[currentTheme];
   const primaryTextColor = themeColors.text[currentTheme].primary;
+  const secondaryTextColor = themeColors.text[currentTheme].secondary;
+  const borderColor = themeColors.layout[currentTheme].border;
+  
+  // Enhanced theming variables
+  const modalBackground = currentTheme === 'dark' ? themeColors.layout[currentTheme].siderBg : '#ffffff';
+  const modalTitleColor = currentTheme === 'dark' ? '#ffffff' : '#000000';
+  const modalHeaderBg = currentTheme === 'dark' ? themeColors.layout[currentTheme].headerBg : '#ffffff';
+  const cancelButtonBg = currentTheme === 'dark' ? '#2d2d30' : '#fff';
+  const cancelButtonText = currentTheme === 'dark' ? '#ffffff' : '#000000';
+  const cancelButtonBorder = currentTheme === 'dark' ? '#6e6e6e' : '#d9d9d9';
+  const listItemHoverBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+  const listItemSelectedBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.05)';
+  const listBackground = currentTheme === 'dark' ? '#1f1f1f' : '#ffffff';
+  const warningBgColor = currentTheme === 'dark' ? '#2b2111' : '#fffbe6';
+  const warningBorderColor = currentTheme === 'dark' ? '#644a05' : '#ffe58f';
+  const warningTextColor = currentTheme === 'dark' ? '#faad14' : '#d48806';
+  const infoBgColor = currentTheme === 'dark' ? '#111a2c' : '#e6f4ff';
+  const infoBorderColor = currentTheme === 'dark' ? '#15395b' : '#91d5ff';
+  const infoTextColor = currentTheme === 'dark' ? '#40a9ff' : '#1890ff';
+  const tabBgColor = currentTheme === 'dark' ? '#202427' : '#ffffff';
+  const tabActiveColor = currentTheme === 'dark' ? '#177ddc' : '#1890ff';
+  const checkboxColor = currentTheme === 'dark' ? '#177ddc' : '#1890ff';
+  const ownerBadgeBg = currentTheme === 'dark' ? '#177ddc' : '#1890ff';
+  const memberBadgeBg = currentTheme === 'dark' ? '#333' : '#f5f5f5';
+  const memberBadgeText = currentTheme === 'dark' ? '#e0e0e0' : '#555';
 
   useEffect(() => {
     if (visible && user?.id) {
@@ -371,7 +487,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   const tabItems = [
     {
       key: 'addMembers',
-      label: localStrings.Messages.AddMembers,
+      label: <span style={{ color: primaryTextColor }}>{localStrings.Messages.AddMembers}</span>,
       children: (
         <div>
           {loading ? (
@@ -383,9 +499,10 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
               style={{ 
                 maxHeight: 300, 
                 overflow: "auto", 
-                border: "1px solid #d9d9d9", 
+                border: `1px solid ${borderColor}`, 
                 borderRadius: 4,
-                padding: "8px 0"
+                padding: "8px 0",
+                backgroundColor: listBackground
               }}
               dataSource={friends}
               renderItem={friend => (
@@ -395,8 +512,9 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                   style={{ 
                     cursor: "pointer", 
                     padding: "8px 16px",
-                    background: selectedFriends.includes(friend.id!) ? "rgba(0, 0, 0, 0.05)" : "transparent"
+                    background: selectedFriends.includes(friend.id!) ? listItemSelectedBg : "transparent"
                   }}
+                  className="friend-list-item"
                 >
                   <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
                     <Checkbox 
@@ -412,7 +530,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                     >
                       {!friend.avatar_url && (friend.name?.charAt(0) || "").toUpperCase()}
                     </Avatar>
-                    <span style={{ marginLeft: 12 }}>
+                    <span style={{ marginLeft: 12, color: primaryTextColor }}>
                       {`${friend.family_name || ''} ${friend.name || ''}`}
                     </span>
                     {friend.active_status && (
@@ -427,7 +545,9 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                   </div>
                 </List.Item>
               )}
-              locale={{ emptyText: localStrings.Messages.NoFriendsToAdd }}
+              locale={{ 
+                emptyText: <div style={{ color: secondaryTextColor }}>{localStrings.Messages.NoFriendsToAdd}</div> 
+              }}
             />
           )}
         </div>
@@ -435,37 +555,37 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
     },
     {
       key: 'currentMembers',
-      label: localStrings.Messages.CurrentMembers,
+      label: <span style={{ color: primaryTextColor }}>{localStrings.Messages.CurrentMembers}</span>,
       children: (
         <div>
           {userRole === 0 && (
             <div style={{ 
               padding: "8px", 
-              background: "#fffbe6", 
+              background: warningBgColor, 
               borderRadius: "4px",
               marginBottom: "16px",
               display: "flex",
               alignItems: "center",
-              border: "1px solid #ffe58f"
+              border: `1px solid ${warningBorderColor}`
             }}>
-              <span style={{ color: "#d48806" }}>
+              <span style={{ color: warningTextColor }}>
                 {localStrings.Messages.OwnerCannotLeaveNote}
               </span>
             </div>
           )}
           
-          {/* Thêm thông báo cho conversation 1-1 */}
+          {/* One-on-one conversation note */}
           {isOneOnOneConversation && userRole === 0 && (
             <div style={{ 
               padding: "8px", 
-              background: "#e6f4ff", 
+              background: infoBgColor, 
               borderRadius: "4px",
               marginBottom: "16px",
               display: "flex",
               alignItems: "center",
-              border: "1px solid #91d5ff"
+              border: `1px solid ${infoBorderColor}`
             }}>
-              <span style={{ color: "#1890ff" }}>
+              <span style={{ color: infoTextColor }}>
                 {localStrings.Messages.OneOnOneChatNote}
               </span>
             </div>
@@ -475,16 +595,16 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
             style={{ 
               maxHeight: 300, 
               overflow: "auto", 
-              border: "1px solid #d9d9d9", 
+              border: `1px solid ${borderColor}`, 
               borderRadius: 4,
-              padding: "8px 0"
+              padding: "8px 0",
+              backgroundColor: listBackground
             }}
             dataSource={existingMembers}
             renderItem={(member: ConversationMember) => {
               const memberRole = member.conversation_role;
               const isCurrentUser = member.id === user?.id;
               const canTransferOwnership = userRole === 0 && memberRole !== 0 && !isCurrentUser;
-
               const canRemoveMember = userRole === 0 && !isCurrentUser && !isOneOnOneConversation;
       
               return (
@@ -508,7 +628,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                       >
                         {!member.avatar_url && (member.name?.charAt(0) || "").toUpperCase()}
                       </Avatar>
-                      <span style={{ marginLeft: 12 }}>
+                      <span style={{ marginLeft: 12, color: primaryTextColor }}>
                         {`${member.family_name || ''} ${member.name || ''}`}
                         {member.id === user?.id ? ` (${localStrings.Messages.You})` : ''}
                       </span>
@@ -519,8 +639,8 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                           borderRadius: "12px",
                           fontSize: "12px",
                           fontWeight: "bold",
-                          backgroundColor: memberRole === 0 ? '#1890ff' : '#f5f5f5',
-                          color: memberRole === 0 ? 'white' : '#555'
+                          backgroundColor: memberRole === 0 ? ownerBadgeBg : memberBadgeBg,
+                          color: memberRole === 0 ? 'white' : memberBadgeText
                         }}>
                           {memberRole === 0 ? 'Owner' : 'Member'}
                         </span>
@@ -551,7 +671,9 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                 </List.Item>
               );
             }}
-            locale={{ emptyText: localStrings.Messages.NoMembersInConversation }}
+            locale={{ 
+              emptyText: <div style={{ color: secondaryTextColor }}>{localStrings.Messages.NoMembersInConversation}</div> 
+            }}
           />
         </div>
       ),
@@ -561,7 +683,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   return (
     <Modal
       open={visible}
-      title={localStrings.Messages.ManageMembers}
+      title={<span style={{ color: modalTitleColor }}>{localStrings.Messages.ManageMembers}</span>}
       onCancel={onCancel}
       okText={localStrings.Messages.Add}
       cancelText={localStrings.Public.Cancel}
@@ -570,12 +692,82 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
       okButtonProps={{ 
         disabled: selectedFriends.length === 0 || activeTab === "currentMembers"
       }}
+      styles={{ 
+        content: { 
+          backgroundColor: modalBackground,
+        },
+        header: {
+          backgroundColor: modalHeaderBg,
+          borderBottom: `1px solid ${borderColor}`
+        },
+        footer: {
+          backgroundColor: modalBackground,
+          borderTop: `1px solid ${borderColor}`
+        },
+        mask: {
+          backgroundColor: currentTheme === 'dark' ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)'
+        }
+      }}
+      cancelButtonProps={{
+        style: {
+          backgroundColor: cancelButtonBg,
+          color: cancelButtonText,
+          borderColor: cancelButtonBorder
+        }
+      }}
+      closeIcon={<CloseOutlined style={{ color: primaryTextColor }} />}
     >
       <Tabs 
         activeKey={activeTab} 
         onChange={setActiveTab}
         items={tabItems}
+        style={{
+          color: primaryTextColor,
+          backgroundColor: tabBgColor
+        }}
       />
+      <style>{`
+        .friend-list-item:hover {
+          background-color: ${listItemHoverBg} !important;
+        }
+        .ant-modal .ant-form-item-label > label {
+          color: ${primaryTextColor};
+        }
+        .ant-checkbox-wrapper {
+          color: ${primaryTextColor};
+        }
+        .ant-list-empty-text {
+          color: ${secondaryTextColor};
+        }
+        .ant-modal-content {
+          background-color: ${modalBackground};
+        }
+        .ant-modal-title {
+          color: ${modalTitleColor};
+          background-color: ${modalHeaderBg};
+        }
+        .ant-tabs-tab {
+          color: ${secondaryTextColor} !important;
+        }
+        .ant-tabs-tab:hover {
+          color: ${tabActiveColor} !important;
+        }
+        .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+          color: ${tabActiveColor} !important;
+        }
+        .ant-tabs-ink-bar {
+          background: ${tabActiveColor} !important;
+        }
+        .ant-checkbox-checked .ant-checkbox-inner {
+          background-color: ${checkboxColor};
+          border-color: ${checkboxColor};
+        }
+        .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+        .ant-checkbox:hover .ant-checkbox-inner,
+        .ant-checkbox-input:focus + .ant-checkbox-inner {
+          border-color: ${checkboxColor};
+        }
+      `}</style>
     </Modal>
   );
 };
@@ -646,12 +838,36 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
   onUpdateConversation,
   currentConversation
 }) => {
-  const { localStrings } = useAuth();
+  const { localStrings, theme } = useAuth();
   const { brandPrimary } = useColor();
   const [form] = Form.useForm();
   const [updating, setUpdating] = useState(false);
   const [conversationImage, setConversationImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const currentTheme = theme || 'light';
+  
+  // Get theme colors
+  const primaryTextColor = themeColors.text[currentTheme].primary;
+  const secondaryTextColor = themeColors.text[currentTheme].secondary;
+  const modalBackground = themeColors.modal[currentTheme].background;
+  const modalHeaderBg = themeColors.modal[currentTheme].headerBg;
+  const modalFooterBg = themeColors.modal[currentTheme].footerBg;
+  const modalTitleColor = themeColors.modal[currentTheme].titleColor;
+  const modalBorderColor = themeColors.modal[currentTheme].borderColor;
+  const uploadBg = themeColors.upload[currentTheme].background;
+  const uploadHoverBg = themeColors.upload[currentTheme].hoverBg;
+  const uploadBorderColor = themeColors.upload[currentTheme].borderColor;
+  const uploadTextColor = themeColors.upload[currentTheme].textColor;
+  const uploadIconColor = themeColors.upload[currentTheme].iconColor;
+  const inputBg = themeColors.input[currentTheme].background;
+  const inputBorderColor = themeColors.input[currentTheme].borderColor;
+  const inputTextColor = themeColors.input[currentTheme].textColor;
+  const inputPlaceholderColor = themeColors.input[currentTheme].placeholderColor;
+  
+  // Button colors
+  const defaultButtonBg = themeColors.button[currentTheme].defaultBg;
+  const defaultButtonBorder = themeColors.button[currentTheme].defaultBorder;
+  const defaultButtonText = themeColors.button[currentTheme].defaultText;
 
   useEffect(() => {
     if (visible && currentConversation) {
@@ -736,10 +952,18 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
   return (
     <Modal
       open={visible}
-      title={localStrings.Messages.EditConversation}
+      title={<span style={{ color: modalTitleColor }}>{localStrings.Messages.EditConversation}</span>}
       onCancel={onCancel}
       footer={[
-        <Button key="cancel" onClick={onCancel}>
+        <Button 
+          key="cancel" 
+          onClick={onCancel}
+          style={{
+            backgroundColor: defaultButtonBg,
+            color: defaultButtonText,
+            borderColor: defaultButtonBorder
+          }}
+        >
           {localStrings.Public.Cancel}
         </Button>,
         <Button 
@@ -751,20 +975,45 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
           {localStrings.Messages.Update}
         </Button>
       ]}
+      styles={{ 
+        content: { 
+          backgroundColor: modalBackground,
+        },
+        header: {
+          backgroundColor: modalHeaderBg,
+          borderBottom: `1px solid ${modalBorderColor}`,
+          color: modalTitleColor
+        },
+        footer: {
+          backgroundColor: modalFooterBg,
+          borderTop: `1px solid ${modalBorderColor}`
+        },
+        mask: {
+          backgroundColor: themeColors.modal[currentTheme].maskBg
+        }
+      }}
+      closeIcon={<CloseOutlined style={{ color: primaryTextColor }} />}
     >
       <Form form={form} layout="vertical">
         <Form.Item 
           name="name" 
-          label={localStrings.Messages.ConversationName}
+          label={<span style={{ color: primaryTextColor }}>{localStrings.Messages.ConversationName}</span>}
           rules={[{ required: true, message: localStrings.Messages.ConversationNameRequired}]}
         >
-          <Input placeholder={localStrings.Messages.GroupName} />
+          <Input 
+            placeholder={localStrings.Messages.GroupName} 
+            style={{
+              backgroundColor: inputBg,
+              borderColor: inputBorderColor,
+              color: inputTextColor
+            }}
+          />
         </Form.Item>
         
         {/* Image Upload Section */}
         <Form.Item 
           name="image" 
-          label={localStrings.Messages?.ConversationImage}
+          label={<span style={{ color: primaryTextColor }}>{localStrings.Messages?.ConversationImage}</span>}
         >
           <Dragger
             name="avatar"
@@ -775,6 +1024,10 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
               handleImageUpload(info);
             }}
             accept="image/*"
+            style={{
+              backgroundColor: uploadBg,
+              borderColor: uploadBorderColor
+            }}
           >
             {imagePreview ? (
               <div style={{ 
@@ -806,7 +1059,8 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
                     top: 5, 
                     right: 5, 
                     zIndex: 10,
-                    background: 'rgba(255, 255, 255, 0.7)'
+                    background: currentTheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.7)',
+                    color: primaryTextColor
                   }}
                 >
                   {localStrings.Messages.Remove}
@@ -815,12 +1069,12 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
             ) : (
               <div>
                 <p className="ant-upload-drag-icon">
-                  <InboxOutlined />
+                  <InboxOutlined style={{ color: uploadIconColor }} />
                 </p>
-                <p className="ant-upload-text">
+                <p className="ant-upload-text" style={{ color: uploadTextColor }}>
                   {localStrings.Messages?.ClickOrDragImageToUpload}
                 </p>
-                <p className="ant-upload-hint">
+                <p className="ant-upload-hint" style={{ color: secondaryTextColor }}>
                   {localStrings.Messages?.SupportSingleImageUpload}
                 </p>
               </div>
@@ -869,7 +1123,7 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
     ? themeColors.avatar[currentTheme] 
     : undefined;
     
-  const deleteButtonBackground = themeColors.button[currentTheme].background;
+  const deleteButtonBackground = themeColors.button[currentTheme].defaultBg;
   
   const menuItems = [
     {
@@ -1008,7 +1262,7 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   onCreateConversation,
   onConversationCreated, 
 }) => {
-  const { user, localStrings, theme  } = useAuth();
+  const { user, localStrings, theme } = useAuth();
   const { brandPrimary } = useColor();
   const [form] = Form.useForm();
   const [friends, setFriends] = useState<FriendResponseModel[]>([]);
@@ -1020,6 +1274,22 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   const currentTheme = theme || 'light';
   const avatarBackground = themeColors.avatar[currentTheme];
   const primaryTextColor = themeColors.text[currentTheme].primary;
+  const secondaryTextColor = themeColors.text[currentTheme].secondary;
+  const borderColor = themeColors.layout[currentTheme].border;
+  
+  const modalBackground = currentTheme === 'dark' ? themeColors.layout[currentTheme].siderBg : '#ffffff';
+  const modalTitleColor = currentTheme === 'dark' ? '#ffffff' : '#000000';
+  const modalHeaderBg = currentTheme === 'dark' ? themeColors.layout[currentTheme].headerBg : '#ffffff';
+  const inputBackground = currentTheme === 'dark' ? '#2d2d30' : '#ffffff';
+  const inputBorder = currentTheme === 'dark' ? '#3e3e42' : '#d9d9d9';
+  const inputPlaceholderColor = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.45)';
+  const cancelButtonBg = currentTheme === 'dark' ? '#2d2d30' : '#fff';
+  const cancelButtonText = currentTheme === 'dark' ? '#ffffff' : '#000000';
+  const cancelButtonBorder = currentTheme === 'dark' ? '#6e6e6e' : '#d9d9d9';
+  const listItemHoverBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+  const listItemSelectedBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.05)';
+  const listBackground = currentTheme === 'dark' ? '#1f1f1f' : '#ffffff';
+  const warningTextColor = currentTheme === 'dark' ? '#faad14' : '#fa8c16';
 
   useEffect(() => {
     if (visible && user?.id) {
@@ -1142,10 +1412,18 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   return (
     <Modal
       open={visible}
-      title={localStrings.Messages.NewConversation}
+      title={<span style={{ color: modalTitleColor }}>{localStrings.Messages.NewConversation}</span>}
       onCancel={onCancel}
       footer={[
-        <Button key="cancel" onClick={onCancel}>
+        <Button 
+          key="cancel" 
+          onClick={onCancel}
+          style={{
+            backgroundColor: cancelButtonBg,
+            color: cancelButtonText,
+            borderColor: cancelButtonBorder
+          }}
+        >
           {localStrings.Public.Cancel}
         </Button>,
         <Button 
@@ -1158,11 +1436,28 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
           {localStrings.Messages.Create}
         </Button>
       ]}
+      styles={{ 
+        content: { 
+          backgroundColor: modalBackground,
+        },
+        header: {
+          backgroundColor: modalHeaderBg,
+          borderBottom: `1px solid ${borderColor}`
+        },
+        footer: {
+          backgroundColor: modalBackground,
+          borderTop: `1px solid ${borderColor}`
+        },
+        mask: {
+          backgroundColor: currentTheme === 'dark' ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)'
+        }
+      }}
+      closeIcon={<CloseOutlined style={{ color: primaryTextColor }} />}
     >
       <Form form={form} layout="vertical">
         <Form.Item 
             name="name" 
-            label={localStrings.Messages.ConversationName}
+            label={<span style={{ color: primaryTextColor }}>{localStrings.Messages.ConversationName}</span>}
             rules={[
               {
                 validator: (_, value) => {
@@ -1173,25 +1468,30 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
                 },
               },
             ]}
-          >
-            <Input 
-              placeholder={
-                selectedFriends.length > 1 
-                  ? localStrings.Messages.GroupNameRequired 
-                  : localStrings.Messages.OptionalGroupName
-              } 
-            />
+        >
+          <Input 
+            placeholder={
+              selectedFriends.length > 1 
+                ? localStrings.Messages.GroupNameRequired 
+                : localStrings.Messages.OptionalGroupName
+            } 
+            style={{
+              backgroundColor: inputBackground,
+              color: primaryTextColor,
+              borderColor: inputBorder
+            }}
+          />
         </Form.Item>
 
         {selectedFriends.length > 1 && (
-          <div style={{ marginBottom: 16, color: '#fa8c16' }}>
+          <div style={{ marginBottom: 16, color: warningTextColor }}>
             {localStrings.Messages.GroupNameRequiredNote}
           </div>
         )}
         
-        {/* Image Upload Section */}
+        {/* Friends List Section */}
         <div style={{ marginBottom: 16 }}>
-          <label style={{ display: "block", marginBottom: 8 }}>
+          <label style={{ display: "block", marginBottom: 8, color: primaryTextColor }}>
             {localStrings.Public.Messages}
           </label>
           
@@ -1204,9 +1504,10 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
               style={{ 
                 maxHeight: 300, 
                 overflow: "auto", 
-                border: "1px solid #d9d9d9", 
+                border: `1px solid ${borderColor}`, 
                 borderRadius: 4,
-                padding: "8px 0"
+                padding: "8px 0",
+                backgroundColor: listBackground
               }}
               dataSource={friends}
               renderItem={friend => (
@@ -1216,8 +1517,9 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
                   style={{ 
                     cursor: "pointer", 
                     padding: "8px 16px",
-                    background: selectedFriends.includes(friend.id!) ? "rgba(0, 0, 0, 0.05)" : "transparent"
+                    background: selectedFriends.includes(friend.id!) ? listItemSelectedBg : "transparent",
                   }}
+                  className="friend-list-item"
                 >
                   <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
                     <Checkbox 
@@ -1228,22 +1530,48 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
                       src={friend.avatar_url} 
                       style={{ 
                         marginLeft: 8,
-                        backgroundColor: !friend.avatar_url ? brandPrimary : undefined 
+                        backgroundColor: !friend.avatar_url ? avatarBackground : undefined 
                       }}
                     >
                       {!friend.avatar_url && (friend.name?.charAt(0) || "").toUpperCase()}
                     </Avatar>
-                    <span style={{ marginLeft: 12 }}>
+                    <span style={{ marginLeft: 12, color: primaryTextColor }}>
                       {`${friend.family_name || ''} ${friend.name || ''}`}
                     </span>
                   </div>
                 </List.Item>
               )}
-              locale={{ emptyText: localStrings.Messages.NoFriendsFound}}
+              locale={{ 
+                emptyText: <div style={{ color: secondaryTextColor }}>{localStrings.Messages.NoFriendsFound}</div> 
+              }}
             />
           )}
         </div>
       </Form>
+      <style>{`
+        .friend-list-item:hover {
+          background-color: ${listItemHoverBg} !important;
+        }
+        .ant-modal .ant-form-item-label > label {
+          color: ${primaryTextColor};
+        }
+        .ant-checkbox-wrapper {
+          color: ${primaryTextColor};
+        }
+        .ant-list-empty-text {
+          color: ${secondaryTextColor};
+        }
+        .ant-input::placeholder {
+          color: ${inputPlaceholderColor};
+        }
+        .ant-modal-content {
+          background-color: ${modalBackground};
+        }
+        .ant-modal-title {
+          color: ${modalTitleColor};
+          background-color: ${modalHeaderBg};
+        }
+      `}</style>
     </Modal>
   );
 };
@@ -1286,6 +1614,7 @@ const MessagesFeature: React.FC = () => {
   const iconPrimaryColor = themeColors.icons[currentTheme].primary;
   const iconSecondaryColor = themeColors.icons[currentTheme].secondary;
   const iconActionColor = themeColors.icons[currentTheme].action;
+  
 
   const {
     fetchConversations,
@@ -2857,9 +3186,9 @@ const MessagesFeature: React.FC = () => {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               style={{ 
-                marginTop: 16,
-                backgroundColor: themeColors.search[currentTheme].background
+                marginTop: 16
               }}
+              className={`themed-search-${currentTheme}`}
               prefix={<SearchOutlined style={{ color: themeColors.search[currentTheme].iconColor }} />}
             />
           </div>
