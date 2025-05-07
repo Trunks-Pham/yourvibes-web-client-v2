@@ -127,7 +127,14 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
         </div>
       </div>
 
-      <Upload
+<ConfigProvider
+  theme={{
+    components: {
+      Upload: {
+        lineType: "none",
+      }}
+  }}>
+     <Upload
         className="pt-4"
         accept=".jpg, .jpeg, .gif, .png, .svg, .mp4, .mov"
         listType="picture-card"
@@ -150,6 +157,8 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
           src={viewModel.previewImage}
         />
       )}
+  </ConfigProvider>
+     
 
       <div
         style={{

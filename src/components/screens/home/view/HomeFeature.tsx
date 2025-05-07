@@ -296,7 +296,7 @@ const Homepage = () => {
             scrollbarWidth: "none",
           }}
         >
-          {friends.length > 0 ? (
+          {friends && friends.length > 0 ? (
             friends.map((user) => (
               <div
                 key={user.id}

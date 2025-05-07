@@ -289,7 +289,9 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
     return null;
 
   return (
-    <div
+    <div>
+      {friendSuggestions.length > 0 && (
+       <div
       className="friend-suggestions"
       style={{
         padding: "15px",
@@ -496,7 +498,9 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
           </ConfigProvider>
         </>
       )}
+    </div>)}
     </div>
+   
   );
 };
 
