@@ -123,11 +123,6 @@ const PostList = ({
             next={loadMorePosts}
             hasMore={hasMore}
             loader={<Skeleton avatar paragraph={{ rows: 4 }} />}
-            endMessage={
-              <p style={{ textAlign: "center" }}>
-                {/* <b>{localStrings.Public.NoMorePosts}</b> */}
-              </p>
-            }
           >
             {posts.map((item) => (
               <div

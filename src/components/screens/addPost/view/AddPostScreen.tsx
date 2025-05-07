@@ -62,8 +62,6 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
   const uploadButton = (
     <button
       style={{
-        border: `1px solid ${borderColor}`,
-        background: menuItem,
         color: brandPrimary,
         borderRadius: 4,
         padding: 8,
@@ -107,12 +105,6 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
             colorBorder: borderColor,
             colorBgElevated: menuItem,
             colorPrimary: brandPrimary,
-          },
-          Button: {
-            defaultBg: menuItem,
-            defaultColor: brandPrimary,
-            defaultBorderColor: borderColor, 
-            primaryColor: backgroundColor,
           },
           Upload: {
             colorBorder: borderColor,
@@ -170,7 +162,7 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
           onChange={viewModel.handleChange}
           onPreview={viewModel.handlePreview}
           beforeUpload={() => false}
-          style={{ backgroundColor: menuItem}}
+          style={{ backgroundColor: menuItem, borderColor: borderColor }}
         >
           {viewModel.fileList.length >= 8 ? null : uploadButton}
         </Upload>
@@ -217,12 +209,16 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
           />
 
           <Button
-            style={{ marginLeft: "auto", backgroundColor: brandPrimary, borderColor: brandPrimary }}
+            style={{ marginLeft: "auto", backgroundColor: brandPrimary, borderColor: brandPrimary,  }}
             type="primary"
             onClick={handleSubmit}
             disabled={!isContentLengthValid() && viewModel.selectedMediaFiles.length === 0}
           >
+            <div style={{ color: backgroundColor }}>
+
             {viewModel.createLoading ? <Spin indicator={whiteSpinner} /> : localStrings.AddPost.PostNow}
+
+            </div>
           </Button>
         </div>
       </div>
