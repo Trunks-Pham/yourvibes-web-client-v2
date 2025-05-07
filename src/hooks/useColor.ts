@@ -13,7 +13,8 @@ export const Color = {
   charcoalBlue: "#262930",
   gunmetal: "#202427",
   steelGray: "#62676B",
-  darkSlate:"#31343B"
+  darkSlate:"#31343B",
+  grayD:"#2D3037",
 }
 
 
@@ -30,7 +31,7 @@ const useColor = () => {
   const colorOnl = Color.limeGreen
   const borderColor = Color.steelGray
   const darkSlate = Color.darkSlate
-
+  const [backgroundAddPost, setBackgroundAddPost] = useState(Color.white);
 
 
   useEffect(() => {
@@ -40,12 +41,14 @@ const useColor = () => {
       setBackgroundColor(Color.gunmetal);
       setBackground(Color.charcoalBlue);
       setMenuItem(Color.steelGray);
+      setBackgroundAddPost(Color.grayD);
     } else { // light
       setBrandPrimary(Color.black);
       setBrandPrimaryTap(Color.darkGray);
       setBackgroundColor(Color.white);
       setBackground(Color.veryLightGray);
       setMenuItem(Color.white);
+      setBackgroundAddPost(Color.white);
     }
   }
   , [theme]);
@@ -61,7 +64,8 @@ const useColor = () => {
     borderColor,
     menuItem,
     darkSlate,
-    darkGray
+    darkGray,
+    backgroundAddPost,
   }
 }
 

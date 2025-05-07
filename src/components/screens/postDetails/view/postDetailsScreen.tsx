@@ -1,16 +1,7 @@
-"use client";
-
 import React, { useEffect, useRef, useState } from "react";
 import Post from "@/components/common/post/views/Post";
-import { Avatar, Button, Col, Row, Typography, Modal } from "antd";
-import {
-  FaEdit,
-  FaHeart,
-  FaReply,
-  FaTrash,
-  FaFlag,
-  FaArrowLeft,
-} from "react-icons/fa";
+import { Typography, Modal, Spin } from "antd";
+import { FaArrowLeft } from "react-icons/fa";
 import PostDetailsViewModel from "@/components/screens/postDetails/viewModel/postDetailsViewModel";
 import { useAuth } from "@/context/auth/useAuth";
 import useColor from "@/hooks/useColor";
@@ -59,8 +50,12 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
     setLikedComment,
     likedComment,
     setNewComment,
+    loadMoreComments,
+    isLoading,
+    hasMore,
+    isPosting,
   } = PostDetailsViewModel(postId || "", defaultPostRepo);
-const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
+  const { backgroundColor, brandPrimary, brandPrimaryTap } = useColor();
   const [post, setPost] = useState<PostResponseModel | null>(null);
   const [loading, setLoading] = useState(false);
   const { localStrings } = useAuth();
@@ -72,6 +67,7 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
   const { showModal, setShowModal } = ReportViewModel();
   const [currentCommentId, setCurrentCommentId] = useState<string>("");
   const [editCommnetId, setEditCommentId] = useState<string>("");
+  const observerRef = useRef<HTMLDivElement | null>(null);
 
   const [showEmojiPicker, setShowEmojiPicker] = useState({
     reply: false,
@@ -106,7 +102,7 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
       if (!post.error) {
         setPost(post.data);
       }
-    } catch (error) { 
+    } catch (error) {
     } finally {
       setLoading(false);
     }
@@ -125,6 +121,27 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
       });
     }
   }, [postId, comments]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          loadMoreComments();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observer.unobserve(observerRef.current);
+      }
+    };
+  }, [hasMore, isLoading, loadMoreComments]);
 
   const handleClickOutside = (event: MouseEvent) => {
     if (
@@ -185,10 +202,13 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
         </div>
       )}
       <div className="container mx-auto flex flex-col xl:flex-row gap-6">
-          <Post noComment={true} post={post || undefined}>
-            {post?.parent_post && <Post post={post?.parent_post} isParentPost />}
-          </Post>
-        <div className="mt-[15px] comments-container flex-1 p-6 rounded-lg shadow-md"style={{ backgroundColor: backgroundColor }}>
+        <Post noComment={true} post={post || undefined}>
+          {post?.parent_post && <Post post={post?.parent_post} isParentPost />}
+        </Post>
+        <div
+          className="mt-[15px] comments-container flex-1 p-6 rounded-lg shadow-md"
+          style={{ backgroundColor: backgroundColor }}
+        >
           <span className="text-lg font-semibold" style={{ color: brandPrimary }}>
             {localStrings.Public.Comment}
           </span>
@@ -219,9 +239,18 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
                 setReplyModalVisible={setReplyModalVisible}
                 setSelectedCommentId={setSelectedCommentId}
                 postId={postId || ""}
-                likeCount={likeCount} // Truyền toàn bộ object likeCount
+                likeCount={likeCount}
               />
             ))}
+            {hasMore && (
+              <div ref={observerRef} className="text-center py-4">
+                {isLoading ? (
+                  <Spin tip="Đang tải..." />
+                ) : (
+                  "Cuộn để tải thêm bình luận"
+                )}
+              </div>
+            )}
           </div>
           <div className="add-comment mt-2">
             <div className="relative">
@@ -234,6 +263,7 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
                 }
                 value={newComment}
                 onChange={handleTextChange}
+                disabled={isPosting}
               />
               <Text
                 type={newComment.length > 500 ? "danger" : "secondary"}
@@ -247,6 +277,7 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
                   setShowEmojiPicker((prev) => ({ ...prev, comment: !prev.comment }))
                 }
                 className="absolute right-3 top-4 text-lg bg-gray-200 rounded-full hover:bg-gray-300 p-1"
+                disabled={isPosting}
               >
                 😊
               </button>
@@ -263,15 +294,21 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
                 />
               </div>
             )}
-            <button
-              onClick={handlePostAction}
-              className="post-btn mt-4 w-full py-2 rounded-lg hover:bg-gray-200 transition duration-300"
-              disabled={!isContentLengthValid(newComment)}
-              style={{backgroundColor: brandPrimary, color: backgroundColor}}
-            >
-              {localStrings.Public.Comment ||
-                (replyToCommentId || replyToReplyId ? "Reply" : "Post")}
-            </button>
+            <div className="relative">
+              <button
+                onClick={handlePostAction}
+                className="post-btn mt-4 w-full py-2 rounded-lg hover:bg-gray-200 transition duration-300"
+                disabled={!isContentLengthValid(newComment) || isPosting}
+                style={{ backgroundColor: brandPrimary, color: backgroundColor }}
+              >
+                {isPosting ? (
+                  <Spin size="small" tip="Đang đăng bình luận..." />
+                ) : (
+                  localStrings.Public.Comment ||
+                  (replyToCommentId || replyToReplyId ? "Reply" : "Post")
+                )}
+              </button>
+            </div>
           </div>
           {isReplyModalVisible && (
             <Modal
@@ -294,7 +331,7 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
               }}
               cancelText={localStrings.Public.Cancel}
               okText={localStrings.Public.Reply}
-              okButtonProps={{ disabled: !isContentLengthValid(replyContent) }}
+              okButtonProps={{ disabled: !isContentLengthValid(replyContent) || isPosting }}
               styles={{ body: { padding: "16px" } }}
             >
               <div className="relative">
@@ -304,6 +341,7 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
                   placeholder={`${localStrings.Public.ReplyClick}`}
                   onChange={(e) => setReplyContent(e.target.value)}
                   style={{ border: "0.5px solid gray", width: "100%" }}
+                  disabled={isPosting}
                 />
                 <Text
                   type={replyContent.length > 500 ? "danger" : "secondary"}
@@ -317,6 +355,7 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
                     setShowEmojiPicker((prev) => ({ ...prev, reply: !prev.reply }))
                   }
                   className="absolute right-3 top-4 text-lg bg-gray-200 rounded-full hover:bg-gray-300 p-1"
+                  disabled={isPosting}
                 >
                   😊
                 </button>
@@ -331,6 +370,11 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
                     width={400}
                     height={320}
                   />
+                </div>
+              )}
+              {isPosting && (
+                <div className="text-center mt-4">
+                  <Spin tip="Đang đăng bình luận..." />
                 </div>
               )}
             </Modal>

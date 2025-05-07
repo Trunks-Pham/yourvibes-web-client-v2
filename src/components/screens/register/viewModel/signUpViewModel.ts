@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { useAuth } from "@/context/auth/useAuth";
 import { message } from "antd";
 import { CustomStatusCode } from "@/utils/helper/CustomStatus";
+import { useRouter } from "next/navigation";
 const customParseFormat = require("dayjs/plugin/customParseFormat");
 dayjs.extend(customParseFormat);
 
@@ -14,6 +15,7 @@ const SignUpViewModel = (repo: AuthenRepo) => {
   const [loading, setLoading] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const { localStrings } = useAuth();
+  const router = useRouter();
 
   const handleSignUp = async (data: RegisterRequestModel) => {
     try {
@@ -34,7 +36,8 @@ const SignUpViewModel = (repo: AuthenRepo) => {
 
       if (response && !response?.error) {
         message.success(`${localStrings.SignUp.SignUpSuccess}`);
-        return true; // Trả về true để báo hiệu thành công
+        // return true; // Trả về true để báo hiệu thành công
+        router.push("/login");
       }else {
         if (response?.error?.code === CustomStatusCode.InvalidOTP){
           message.error(`${localStrings.SignUp.OTPExpired}`)}
