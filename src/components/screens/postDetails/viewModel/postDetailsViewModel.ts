@@ -26,9 +26,10 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
   const { user, localStrings } = useAuth();
   const [replyContent, setReplyContent] = useState("");
   const [visibleReplies, setVisibleReplies] = useState<{ [key: string]: boolean }>({});
-  const [page, setPage] = useState(1); // Theo dõi trang hiện tại
-  const [hasMore, setHasMore] = useState(true); // Kiểm tra còn bình luận để tải
-  const [isLoading, setIsLoading] = useState(false); // Trạng thái đang tải
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPosting, setIsPosting] = useState(false); // Thêm trạng thái isPosting
 
   const toggleRepliesVisibility = (commentId: string) => {
     setVisibleReplies((prev) => ({
@@ -73,7 +74,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
       if (response && response?.data) {
         const newComments = response.data;
         if (newComments.length < 10) {
-          setHasMore(false); // Không còn bình luận để tải
+          setHasMore(false);
         }
         setComments((prev) => (append ? [...prev, ...newComments] : newComments));
         const initialLikeCount: { [key: string]: number } = {};
@@ -101,7 +102,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
   const loadMoreComments = () => {
     setPage((prev) => {
       const nextPage = prev + 1;
-      fetchComments(nextPage, true); // Tải trang tiếp theo và nối dữ liệu
+      fetchComments(nextPage, true);
       return nextPage;
     });
   };
@@ -132,7 +133,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
   };
 
   useEffect(() => {
-    fetchComments(1); // Tải trang đầu tiên khi khởi tạo
+    fetchComments(1);
   }, []);
 
   const handleLike = async (commentId: string) => {
@@ -205,7 +206,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
           );
           setComments(updatedComments);
         }
-        fetchComments(1); // Làm mới danh sách bình luận
+        fetchComments(1);
       }
     } catch (error) {}
   };
@@ -250,6 +251,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
         post_id: postId,
         content: comment,
       };
+      setIsPosting(true); // Bắt đầu hiển thị loader
       try {
         const response = await defaultCommentRepo.createComment(commentData);
         if (!response.error) {
@@ -264,6 +266,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
         message.error({ content: localStrings.PostDetails.CommentFailed });
       } finally {
         setNewComment("");
+        setIsPosting(false); // Ẩn loader
       }
     }
   };
@@ -276,6 +279,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
         content: comment,
         parent_id: parentId,
       };
+      setIsPosting(true); // Bắt đầu hiển thị loader
       try {
         const response = await defaultCommentRepo.createComment(commentData);
         if (!response.error) {
@@ -297,6 +301,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
       } finally {
         setNewComment("");
         setReplyToReplyId(null);
+        setIsPosting(false); // Ẩn loader
       }
     }
   };
@@ -369,6 +374,7 @@ const PostDetailsViewModel = (postId: string, repo: PostRepo) => {
     loadMoreComments,
     isLoading,
     hasMore,
+    isPosting, // Trả về isPosting
   };
 };
 
