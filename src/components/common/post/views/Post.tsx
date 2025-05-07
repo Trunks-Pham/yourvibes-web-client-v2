@@ -38,15 +38,12 @@ import { BsFillPeopleFill } from "react-icons/bs";
 import { IoShareSocialOutline } from "react-icons/io5";
 import EditPostViewModel from "@/components/features/editpost/viewModel/EditPostViewModel";
 import { defaultPostRepo } from "@/api/features/post/PostRepo";
-import MediaView from "@/components/foundation/MediaView";
-import HomeViewModel from "@/components/screens/home/viewModel/HomeViewModel";
-import { defaultNewFeedRepo } from "@/api/features/newFeed/NewFeedRepo";
+import MediaView from "@/components/foundation/MediaView"; 
 import EditPostScreen from "@/components/features/editpost/view/EditPostScreen";
 import PostDetailsScreen from "@/components/screens/postDetails/view/postDetailsScreen";
 import { LikeUsersModel } from "@/api/features/post/models/LikeUsersModel";
 import ReportViewModel from "@/components/screens/report/ViewModel/reportViewModel";
 import ReportScreen from "@/components/screens/report/views/Report";
-import { defaultFriendRepo } from "@/api/features/friends/FriendRepo";
 
 interface IPost {
   post?: PostResponseModel;
@@ -70,11 +67,11 @@ const Post: React.FC<IPost> = React.memo(
     children,
     noComment = false,
     fetchUserPosts,
-    onDeletePost = () => { },
-    onDeleteNewFeed = () => { },
+    onDeletePost = () => {},
+    onDeleteNewFeed = () => {},
   }) => {
     const router = useRouter();
-    const { brandPrimary, brandPrimaryTap, backgroundColor, borderColor } =
+    const { brandPrimary, brandPrimaryTap, backgroundColor, borderColor, menuItem, backgroundAddPost } =
       useColor();
     const { user, localStrings } = useAuth();
     const [shareForm] = Form.useForm();
@@ -85,10 +82,10 @@ const Post: React.FC<IPost> = React.memo(
       likedPost,
       setLikedPost,
       sharePost,
-      shareLoading, 
+      shareLoading,
       fetchUserLikePosts,
       userLikePost,
-    } = EditPostViewModel(defaultPostRepo, post?.id || "", post?.id || ""); 
+    } = EditPostViewModel(defaultPostRepo, post?.id || "", post?.id || "");
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
     const [sharePostPrivacy, setSharePostPrivacy] = useState(Privacy.PUBLIC);
     const [shareContent, setShareContent] = useState("");
@@ -173,6 +170,8 @@ const Post: React.FC<IPost> = React.memo(
                 onOk: async () => {
                   await onDeletePost(post?.id as string);
                 },
+                okButtonProps: { style: { backgroundColor: brandPrimary, borderColor: brandPrimary } },
+                cancelButtonProps: { style: { borderColor: borderColor } },
               });
             },
           },
@@ -206,12 +205,16 @@ const Post: React.FC<IPost> = React.memo(
                 content: localStrings.DeletePost.DeleteConfirm,
                 okText: localStrings.Public.Confirm,
                 cancelText: localStrings.Public.Cancel,
-                onOk: () => { onDeleteNewFeed(post?.id as string); },
+                onOk: () => {
+                  onDeleteNewFeed(post?.id as string);
+                },
+                okButtonProps: { style: { backgroundColor: brandPrimary, borderColor: brandPrimary } },
+                cancelButtonProps: { style: { borderColor: borderColor } },
               });
             },
           },
         ];
-    }, [user, likedPost]);
+    }, [user, likedPost, brandPrimary, borderColor]);
 
     useEffect(() => {
       setLikedPost(post);
@@ -228,7 +231,7 @@ const Post: React.FC<IPost> = React.memo(
               alignItems: "center",
               paddingTop: 10,
               paddingBottom: 10,
-              borderBottom: "1px solid #e0e0e0",
+              borderBottom: `1px solid ${borderColor}`,
             }}
           >
             <button
@@ -249,19 +252,19 @@ const Post: React.FC<IPost> = React.memo(
                   width: 40,
                   height: 40,
                   borderRadius: 20,
-                  backgroundColor: "#e0e0e0",
+                  backgroundColor: borderColor,
                   marginRight: 10,
                 }}
                 alt={`${like.family_name} ${like.name}`}
               />
-              <span style={{ fontSize: 16, color: "black" }}>
+              <span style={{ fontSize: 16, color: brandPrimary }}>
                 {like.family_name} {like.name}
               </span>
             </button>
           </div>
         );
       },
-      [userLikePost]
+      [userLikePost, brandPrimary, borderColor]
     );
 
     useEffect(() => {
@@ -281,15 +284,41 @@ const Post: React.FC<IPost> = React.memo(
     const currentCharCount = shareContent.length;
 
     return (
-        <ConfigProvider theme={{
-        components:{
-          Card:{
-            actionsBg: backgroundColor,
-            headerBg: backgroundColor,
-            colorBgContainer: backgroundColor,
+      <ConfigProvider
+        theme={{
+          components: {
+            Card: {
+              actionsBg: backgroundColor,
+              headerBg: backgroundColor,
+              colorBgContainer: backgroundColor,
+            },
+            Modal: {
+              contentBg: backgroundColor,
+              headerBg: backgroundColor,
+              titleColor: brandPrimary,
+              colorText: brandPrimary,
+              colorIcon: brandPrimaryTap,
+            },
+            Button: {
+              defaultBg: backgroundColor,
+              defaultColor: brandPrimary,
+              defaultBorderColor: borderColor, 
+              primaryColor: backgroundColor,
+            },
+            Input: {
+              colorBgContainer: backgroundColor,
+              colorText: brandPrimary,
+              colorBorder: borderColor,
+              colorTextPlaceholder: 'gray',
+            },
+            Select: {
+              colorBgContainer: backgroundColor,
+              colorText: brandPrimary,
+              colorBorder: borderColor,
+            },
           },
-
-        } }}>
+        }}
+      >
         <Card
           style={{
             marginTop: 15,
@@ -298,20 +327,20 @@ const Post: React.FC<IPost> = React.memo(
             width: "100%",
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
             borderRadius: 8,
-            
           }}
           title={
-            <Row
-              gutter={[8, 8]}
-              className="m-2"
-            >
+            <Row gutter={[8, 8]} className="m-2">
               <Col
                 xs={4}
                 md={3}
                 className="hover:cursor-pointer"
                 onClick={() => router.push(`/user/${likedPost?.user?.id}`)}
               >
-                <Avatar src={likedPost?.user?.avatar_url} shape="circle" size={{ xs: 40, sm: 40, md: 50, lg: 50, xl: 50, xxl: 50 }} />
+                <Avatar
+                  src={likedPost?.user?.avatar_url}
+                  shape="circle"
+                  size={{ xs: 40, sm: 40, md: 50, lg: 50, xl: 50, xxl: 50 }}
+                />
               </Col>
               <Col xs={18} md={20}>
                 <Row>
@@ -320,7 +349,7 @@ const Post: React.FC<IPost> = React.memo(
                     className="hover:cursor-pointer hover:underline"
                     onClick={() => router.push(`/user/${likedPost?.user?.id}`)}
                   >
-                    <span style={{ fontWeight: "bold", fontSize: 14, color: brandPrimary}}>
+                    <span style={{ fontWeight: "bold", fontSize: 14, color: brandPrimary }}>
                       {likedPost?.user?.family_name} {likedPost?.user?.name}
                     </span>
                   </Col>
@@ -358,13 +387,9 @@ const Post: React.FC<IPost> = React.memo(
                 </Row>
               </Col>
               {isParentPost || noFooter ? null : (
-                <Col
-                  xs={2}
-                  md={1}
-                  className="hover:cursor-pointer"
-                >
+                <Col xs={2} md={1} className="hover:cursor-pointer">
                   <Dropdown trigger={["click"]} menu={{ items }}>
-                    <HiDotsVertical size={16} />
+                    <HiDotsVertical size={16} color={brandPrimary} />
                   </Dropdown>
                   <Modal
                     centered
@@ -383,61 +408,66 @@ const Post: React.FC<IPost> = React.memo(
             isParentPost || noFooter
               ? undefined
               : [
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-around",
-                    alignItems: "center",
-                    width: "100%",
-                  }}
-                >
-                  <Row align={"middle"} justify={"center"}>
-                    {renderLikeIcon()}
-                    <span
-                      style={{ color: brandPrimary }}
-                      className="ml-2"
-                      onClick={() => {
-                        fetchUserLikePosts(likedPost!.id as string);
-                        setIsVisible(true);
-                      }}
-                    >
-                      {likedPost?.like_count}
-                    </span>
-                  </Row>
-
-                  {!noComment && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-around",
+                      alignItems: "center",
+                      width: "100%",
+                    }}
+                  >
                     <Row align={"middle"} justify={"center"}>
-                      <FaRegComments
-                        size={24}
-                        color={brandPrimary}
-                        onClick={() => setIsCommentModalVisible(true)}
-                      />
-                      <span style={{ color: brandPrimary }} className="ml-2">
-                        {likedPost?.comment_count}
+                      {renderLikeIcon()}
+                      <span
+                        style={{ color: brandPrimary }}
+                        className="ml-2"
+                        onClick={() => {
+                          fetchUserLikePosts(likedPost!.id as string);
+                          setIsVisible(true);
+                        }}
+                      >
+                        {likedPost?.like_count}
                       </span>
                     </Row>
-                  )}
 
-                  <Row align={"middle"} justify={"center"}>
-                    <IoShareSocialOutline
-                      size={24}
-                      color={brandPrimary}
-                      onClick={() => setIsShareModalVisible(true)}
-                    />
-                  </Row>
-                </div>,
-              ]
+                    {!noComment && (
+                      <Row align={"middle"} justify={"center"}>
+                        <FaRegComments
+                          size={24}
+                          color={brandPrimary}
+                          onClick={() => setIsCommentModalVisible(true)}
+                        />
+                        <span style={{ color: brandPrimary }} className="ml-2">
+                          {likedPost?.comment_count}
+                        </span>
+                      </Row>
+                    )}
+
+                    <Row align={"middle"} justify={"center"}>
+                      <IoShareSocialOutline
+                        size={24}
+                        color={brandPrimary}
+                        onClick={() => setIsShareModalVisible(true)}
+                      />
+                    </Row>
+                  </div>,
+                ]
           }
         >
-          <Row gutter={[8, 8]} className="mx-2"
+          <Row
+            gutter={[8, 8]}
+            className="mx-2"
             onClick={() => {
               setIsCommentModalVisible(false);
               router.push(`/postDetails?postId=${likedPost?.id}`);
-            }}>
+            }}
+          >
             {!isParentPost && children ? (
               <Col span={24}>
                 {likedPost?.content && (
-                  <span className="pl-2" style={{color: brandPrimary}}>{likedPost?.content}</span>
+                  <span className="pl-2" style={{ color: brandPrimary }}>
+                    {likedPost?.content}
+                  </span>
                 )}
                 {children}
               </Col>
@@ -450,7 +480,7 @@ const Post: React.FC<IPost> = React.memo(
                   <div
                     style={{
                       padding: 10,
-                      borderColor: "#000",
+                      borderColor: borderColor,
                       borderWidth: 1,
                       borderRadius: 5,
                     }}
@@ -471,7 +501,9 @@ const Post: React.FC<IPost> = React.memo(
             ) : (
               <Col span={24}>
                 {likedPost?.content && (
-                  <span className="pl-0.3" style={{color: brandPrimary}}>{likedPost?.content}</span>
+                  <span className="pl-0.3" style={{ color: brandPrimary }}>
+                    {likedPost?.content}
+                  </span>
                 )}
                 {likedPost?.media && likedPost?.media?.length > 0 && (
                   <MediaView mediaItems={likedPost?.media} />
@@ -488,9 +520,14 @@ const Post: React.FC<IPost> = React.memo(
             onCancel={() => setIsEditModalVisible(false)}
           >
             {post?.id ? (
-              <EditPostScreen id={post.id} postId={post.id} onEditPostSuccess={() => setIsEditModalVisible(false)} fetchUserPosts={fetchUserPosts} />
+              <EditPostScreen
+                id={post.id}
+                postId={post.id}
+                onEditPostSuccess={() => setIsEditModalVisible(false)}
+                fetchUserPosts={fetchUserPosts}
+              />
             ) : (
-              <div>No post ID available</div>
+              <div style={{ color: brandPrimary }}>No post ID available</div>
             )}
           </Modal>
           <Modal
@@ -501,11 +538,12 @@ const Post: React.FC<IPost> = React.memo(
             onCancel={() => setIsCommentModalVisible(false)}
             width="90vw"
             style={{
-              maxWidth: '1200px',
+              maxWidth: "1200px",
             }}
             bodyStyle={{
-              maxHeight: '80vh',
-              overflowY: 'auto',
+              maxHeight: "80vh",
+              overflowY: "auto",
+              backgroundColor: backgroundColor,
             }}
           >
             <PostDetailsScreen postId={likedPost?.id} isModal={true} />
@@ -515,7 +553,11 @@ const Post: React.FC<IPost> = React.memo(
             centered
             onCancel={() => setIsShareModalVisible(false)}
             footer={[
-              <Button key="back" onClick={() => setIsShareModalVisible(false)}>
+              <Button
+                key="back"
+                onClick={() => setIsShareModalVisible(false)}
+                style={{ borderColor: borderColor, color: brandPrimary }}
+              >
                 {localStrings.Public.Cancel}
               </Button>,
               <Button
@@ -524,8 +566,13 @@ const Post: React.FC<IPost> = React.memo(
                 loading={shareLoading}
                 onClick={handleSubmitShare}
                 disabled={!isContentLengthValid()}
+                style={{ backgroundColor: brandPrimary, borderColor: brandPrimary }}
               >
-                {shareLoading ? <Spin style={{ color: "white" }} /> : localStrings.Public.Conform}
+                {shareLoading ? (
+                  <Spin style={{ color: backgroundColor }} />
+                ) : (
+                  localStrings.Public.Conform
+                )}
               </Button>,
             ]}
           >
@@ -534,8 +581,9 @@ const Post: React.FC<IPost> = React.memo(
                 style={{
                   width: "100%",
                   padding: 16,
-                  border: "1px solid #ddd",
+                  border: `1px solid ${borderColor}`,
                   borderRadius: 4,
+                  backgroundColor: backgroundColor,
                 }}
               >
                 <Row gutter={[8, 8]}>
@@ -548,8 +596,13 @@ const Post: React.FC<IPost> = React.memo(
                   </Col>
                   <Col xs={16} md={19}>
                     <Row>
-                      <Col span={24} className="hover:cursor-pointer hover:underline">
-                        <span style={{ fontWeight: "bold", fontSize: 14 }}>
+                      <Col
+                        span={24}
+                        className="hover:cursor-pointer hover:underline"
+                      >
+                        <span
+                          style={{ fontWeight: "bold", fontSize: 14, color: brandPrimary }}
+                        >
                           {likedPost?.user?.family_name} {likedPost?.user?.name}
                         </span>
                       </Col>
@@ -589,7 +642,7 @@ const Post: React.FC<IPost> = React.memo(
                 </Row>
                 {likedPost?.content && (
                   <Form.Item>
-                    <span>{likedPost?.content}</span>
+                    <span style={{ color: brandPrimary }}>{likedPost?.content}</span>
                   </Form.Item>
                 )}
                 {likedPost?.media && likedPost?.media?.length > 0 && (
@@ -598,15 +651,16 @@ const Post: React.FC<IPost> = React.memo(
                   </Form.Item>
                 )}
                 <Form.Item>
-                  <TextArea
+                <TextArea
                     value={shareContent}
                     onChange={(e) => setShareContent(e.target.value)}
                     placeholder={localStrings.Post.ShareContent}
                     autoSize={{ minRows: 3, maxRows: 5 }}
+                    style={{ backgroundColor: backgroundAddPost, color: brandPrimary, borderColor: borderColor }}
                   />
                   <Text
                     type={currentCharCount > 10000 ? "danger" : "secondary"}
-                    style={{ float: "right" }}
+                    style={{ float: "right", color: brandPrimaryTap }}
                   >
                     {currentCharCount}/{localStrings.Post.CharacterLimit}
                   </Text>
@@ -616,11 +670,12 @@ const Post: React.FC<IPost> = React.memo(
               <Form.Item
                 name="sharePostPrivacy"
                 label={localStrings.ObjectPostPrivacy.PostPrivacy}
+                labelCol={{ style: { color: brandPrimary } }}
               >
                 <Select
                   value={sharePostPrivacy}
                   onChange={(value) => setSharePostPrivacy(value)}
-                  style={{ width: 120 }}
+                  style={{ width: 120, backgroundColor: menuItem, color: brandPrimary }}
                   defaultValue={Privacy.PUBLIC}
                 >
                   <Select.Option value={Privacy.PUBLIC}>
@@ -639,7 +694,7 @@ const Post: React.FC<IPost> = React.memo(
           <Modal
             title={
               <div style={{ textAlign: "center" }}>
-                <span style={{ fontWeight: "bold" }}>
+                <span style={{ fontWeight: "bold", color: brandPrimary }}>
                   {localStrings.Public.UserLikePost}
                 </span>
               </div>
@@ -655,6 +710,7 @@ const Post: React.FC<IPost> = React.memo(
                 maxHeight: 500,
                 overflowY: "auto",
                 padding: 20,
+                backgroundColor: backgroundColor,
               }}
             >
               {isLoading ? (
@@ -667,7 +723,7 @@ const Post: React.FC<IPost> = React.memo(
                 </div>
               ) : (
                 <div style={{ textAlign: "center" }}>
-                  <span style={{ marginLeft: 10, fontSize: 16 }}>
+                  <span style={{ marginLeft: 10, fontSize: 16, color: brandPrimary }}>
                     {localStrings.Public.NoUserLikePost}
                   </span>
                 </div>
@@ -675,7 +731,7 @@ const Post: React.FC<IPost> = React.memo(
             </div>
           </Modal>
         </Card>
-        </ConfigProvider>
+      </ConfigProvider>
     );
   }
 );

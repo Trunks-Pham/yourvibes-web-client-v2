@@ -1,16 +1,7 @@
-"use client";
-
 import React, { useEffect, useRef, useState } from "react";
 import Post from "@/components/common/post/views/Post";
-import { Avatar, Button, Col, Row, Typography, Modal } from "antd";
-import {
-  FaEdit,
-  FaHeart,
-  FaReply,
-  FaTrash,
-  FaFlag,
-  FaArrowLeft,
-} from "react-icons/fa";
+import { Typography, Modal } from "antd";
+import { FaArrowLeft } from "react-icons/fa";
 import PostDetailsViewModel from "@/components/screens/postDetails/viewModel/postDetailsViewModel";
 import { useAuth } from "@/context/auth/useAuth";
 import useColor from "@/hooks/useColor";
@@ -59,8 +50,11 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
     setLikedComment,
     likedComment,
     setNewComment,
+    loadMoreComments, // Thêm loadMoreComments
+    isLoading,
+    hasMore,
   } = PostDetailsViewModel(postId || "", defaultPostRepo);
-const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
+  const { backgroundColor, brandPrimary, brandPrimaryTap } = useColor();
   const [post, setPost] = useState<PostResponseModel | null>(null);
   const [loading, setLoading] = useState(false);
   const { localStrings } = useAuth();
@@ -72,6 +66,7 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
   const { showModal, setShowModal } = ReportViewModel();
   const [currentCommentId, setCurrentCommentId] = useState<string>("");
   const [editCommnetId, setEditCommentId] = useState<string>("");
+  const observerRef = useRef<HTMLDivElement | null>(null); // Ref cho phần tử cuối danh sách
 
   const [showEmojiPicker, setShowEmojiPicker] = useState({
     reply: false,
@@ -106,7 +101,7 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
       if (!post.error) {
         setPost(post.data);
       }
-    } catch (error) { 
+    } catch (error) {
     } finally {
       setLoading(false);
     }
@@ -125,6 +120,28 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
       });
     }
   }, [postId, comments]);
+
+  // Thiết lập IntersectionObserver để phát hiện khi cuộn đến cuối
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          loadMoreComments();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observer.unobserve(observerRef.current);
+      }
+    };
+  }, [hasMore, isLoading, loadMoreComments]);
 
   const handleClickOutside = (event: MouseEvent) => {
     if (
@@ -185,10 +202,13 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
         </div>
       )}
       <div className="container mx-auto flex flex-col xl:flex-row gap-6">
-          <Post noComment={true} post={post || undefined}>
-            {post?.parent_post && <Post post={post?.parent_post} isParentPost />}
-          </Post>
-        <div className="mt-[15px] comments-container flex-1 p-6 rounded-lg shadow-md"style={{ backgroundColor: backgroundColor }}>
+        <Post noComment={true} post={post || undefined}>
+          {post?.parent_post && <Post post={post?.parent_post} isParentPost />}
+        </Post>
+        <div
+          className="mt-[15px] comments-container flex-1 p-6 rounded-lg shadow-md"
+          style={{ backgroundColor: backgroundColor }}
+        >
           <span className="text-lg font-semibold" style={{ color: brandPrimary }}>
             {localStrings.Public.Comment}
           </span>
@@ -219,9 +239,15 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
                 setReplyModalVisible={setReplyModalVisible}
                 setSelectedCommentId={setSelectedCommentId}
                 postId={postId || ""}
-                likeCount={likeCount} // Truyền toàn bộ object likeCount
+                likeCount={likeCount}
               />
             ))}
+            {/* Phần tử để kích hoạt IntersectionObserver */}
+            {hasMore && (
+              <div ref={observerRef} className="text-center py-4">
+                {isLoading ? "Đang tải..." : "Cuộn để tải thêm bình luận"}
+              </div>
+            )}
           </div>
           <div className="add-comment mt-2">
             <div className="relative">
@@ -267,7 +293,7 @@ const {backgroundColor, brandPrimary, brandPrimaryTap,} = useColor();
               onClick={handlePostAction}
               className="post-btn mt-4 w-full py-2 rounded-lg hover:bg-gray-200 transition duration-300"
               disabled={!isContentLengthValid(newComment)}
-              style={{backgroundColor: brandPrimary, color: backgroundColor}}
+              style={{ backgroundColor: brandPrimary, color: backgroundColor }}
             >
               {localStrings.Public.Comment ||
                 (replyToCommentId || replyToReplyId ? "Reply" : "Post")}
