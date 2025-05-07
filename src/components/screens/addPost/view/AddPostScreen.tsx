@@ -170,7 +170,7 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
           onChange={viewModel.handleChange}
           onPreview={viewModel.handlePreview}
           beforeUpload={() => false}
-          style={{ backgroundColor: menuItem, borderColor: borderColor }}
+          style={{ backgroundColor: menuItem}}
         >
           {viewModel.fileList.length >= 8 ? null : uploadButton}
         </Upload>

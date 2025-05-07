@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Post from "@/components/common/post/views/Post";
-import { Typography, Modal } from "antd";
+import { Typography, Modal, Spin } from "antd";
 import { FaArrowLeft } from "react-icons/fa";
 import PostDetailsViewModel from "@/components/screens/postDetails/viewModel/postDetailsViewModel";
 import { useAuth } from "@/context/auth/useAuth";
@@ -50,9 +50,10 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
     setLikedComment,
     likedComment,
     setNewComment,
-    loadMoreComments, // Thêm loadMoreComments
+    loadMoreComments,
     isLoading,
     hasMore,
+    isPosting,
   } = PostDetailsViewModel(postId || "", defaultPostRepo);
   const { backgroundColor, brandPrimary, brandPrimaryTap } = useColor();
   const [post, setPost] = useState<PostResponseModel | null>(null);
@@ -66,7 +67,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
   const { showModal, setShowModal } = ReportViewModel();
   const [currentCommentId, setCurrentCommentId] = useState<string>("");
   const [editCommnetId, setEditCommentId] = useState<string>("");
-  const observerRef = useRef<HTMLDivElement | null>(null); // Ref cho phần tử cuối danh sách
+  const observerRef = useRef<HTMLDivElement | null>(null);
 
   const [showEmojiPicker, setShowEmojiPicker] = useState({
     reply: false,
@@ -121,7 +122,6 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
     }
   }, [postId, comments]);
 
-  // Thiết lập IntersectionObserver để phát hiện khi cuộn đến cuối
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -242,10 +242,13 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 likeCount={likeCount}
               />
             ))}
-            {/* Phần tử để kích hoạt IntersectionObserver */}
             {hasMore && (
               <div ref={observerRef} className="text-center py-4">
-                {isLoading ? "Đang tải..." : "Cuộn để tải thêm bình luận"}
+                {isLoading ? (
+                  <Spin tip="Đang tải..." />
+                ) : (
+                  "Cuộn để tải thêm bình luận"
+                )}
               </div>
             )}
           </div>
@@ -260,6 +263,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 }
                 value={newComment}
                 onChange={handleTextChange}
+                disabled={isPosting}
               />
               <Text
                 type={newComment.length > 500 ? "danger" : "secondary"}
@@ -273,6 +277,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                   setShowEmojiPicker((prev) => ({ ...prev, comment: !prev.comment }))
                 }
                 className="absolute right-3 top-4 text-lg bg-gray-200 rounded-full hover:bg-gray-300 p-1"
+                disabled={isPosting}
               >
                 😊
               </button>
@@ -289,15 +294,21 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 />
               </div>
             )}
-            <button
-              onClick={handlePostAction}
-              className="post-btn mt-4 w-full py-2 rounded-lg hover:bg-gray-200 transition duration-300"
-              disabled={!isContentLengthValid(newComment)}
-              style={{ backgroundColor: brandPrimary, color: backgroundColor }}
-            >
-              {localStrings.Public.Comment ||
-                (replyToCommentId || replyToReplyId ? "Reply" : "Post")}
-            </button>
+            <div className="relative">
+              <button
+                onClick={handlePostAction}
+                className="post-btn mt-4 w-full py-2 rounded-lg hover:bg-gray-200 transition duration-300"
+                disabled={!isContentLengthValid(newComment) || isPosting}
+                style={{ backgroundColor: brandPrimary, color: backgroundColor }}
+              >
+                {isPosting ? (
+                  <Spin size="small" tip="Đang đăng bình luận..." />
+                ) : (
+                  localStrings.Public.Comment ||
+                  (replyToCommentId || replyToReplyId ? "Reply" : "Post")
+                )}
+              </button>
+            </div>
           </div>
           {isReplyModalVisible && (
             <Modal
@@ -320,7 +331,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
               }}
               cancelText={localStrings.Public.Cancel}
               okText={localStrings.Public.Reply}
-              okButtonProps={{ disabled: !isContentLengthValid(replyContent) }}
+              okButtonProps={{ disabled: !isContentLengthValid(replyContent) || isPosting }}
               styles={{ body: { padding: "16px" } }}
             >
               <div className="relative">
@@ -330,6 +341,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                   placeholder={`${localStrings.Public.ReplyClick}`}
                   onChange={(e) => setReplyContent(e.target.value)}
                   style={{ border: "0.5px solid gray", width: "100%" }}
+                  disabled={isPosting}
                 />
                 <Text
                   type={replyContent.length > 500 ? "danger" : "secondary"}
@@ -343,6 +355,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                     setShowEmojiPicker((prev) => ({ ...prev, reply: !prev.reply }))
                   }
                   className="absolute right-3 top-4 text-lg bg-gray-200 rounded-full hover:bg-gray-300 p-1"
+                  disabled={isPosting}
                 >
                   😊
                 </button>
@@ -357,6 +370,11 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                     width={400}
                     height={320}
                   />
+                </div>
+              )}
+              {isPosting && (
+                <div className="text-center mt-4">
+                  <Spin tip="Đang đăng bình luận..." />
                 </div>
               )}
             </Modal>
