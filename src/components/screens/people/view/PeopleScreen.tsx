@@ -70,7 +70,7 @@ const PeopleScreens: React.FC = () => {
                           className="text-base font-medium text-gray-900 truncate cursor-pointer hover:text-gray-600"
                           onClick={() => router.push(`/user/${request.from_user.id}`)}
                         >
-                          {request.from_user.name} {request.from_user.family_name}
+                         {request.from_user.family_name} {request.from_user.name} 
                         </h3>
                       </div>
                     </div>

@@ -65,7 +65,7 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
       try {
         const requestData: NewFeedRequestModel = { limit: 10, page: pageNum };
         const response = await defaultNewFeedRepo.getSuggestion(requestData);
-        if (response.code === 20001) {
+        if (response.code === 20001 && Array.isArray(response.data)) {
           const suggestionsWithStatus = response.data.map(
             (suggestion: SuggestionUserModel) => ({
               ...suggestion,
@@ -88,7 +88,7 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
           throw new Error(response.message);
         }
       } catch (error: any) {
-        message.error(error?.error?.message_detail || error?.message);
+        // message.error(error?.error?.message_detail || error?.message);
       } finally {
         setLoading(false);
       }

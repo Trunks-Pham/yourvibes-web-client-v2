@@ -60,7 +60,7 @@ interface MappedAd extends AdvertisePostResponseModel {
 
 const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => void; post?: any }) => {
   const { localStrings } = useAuth();
-  const {backgroundColor, brandPrimary} = useColor();
+  const { backgroundColor, brandPrimary } = useColor();
 
   const chartData = ad;
   const data = {
@@ -262,7 +262,7 @@ const AdsManagementFeature = () => {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const { localStrings, user } = useAuth();
   const repo: PostRepo = defaultPostRepo;
-  const { backgroundColor, brandPrimary, darkSlate } = useColor();
+  const { backgroundColor, brandPrimary, brandPrimaryTap } = useColor();
 
   const debouncedSetSearchTerm = useMemo(
     () => debounce((value: string) => setSearchTerm(value), 300),
@@ -355,33 +355,55 @@ const AdsManagementFeature = () => {
         </div>
       </div>
 
-      <Modal
-        title={<div style={{ textAlign: "center", fontSize: 24, fontWeight: "bold" }}>{localStrings.Ads.SelectAds}</div>}
-        open={isPostListModalVisible}
-        onCancel={() => setIsPostListModalVisible(false)}
-        footer={null}
-        width={700}
-        centered
-        bodyStyle={{ maxHeight: "1500px", overflowY: "auto", padding: "16px" }}
+      <ConfigProvider
+        theme={{
+          components: {
+            Modal: {
+              contentBg: backgroundColor,
+              headerBg: backgroundColor,
+              titleColor: brandPrimary,
+              colorText: brandPrimary,
+              colorIcon: brandPrimaryTap,
+              colorIconHover: brandPrimary,
+              borderRadius: 12,
+            },
+          },
+        }}
       >
-        <div style={{ maxHeight: "1500px", overflowY: "auto", padding: "8px" }}>
-          {isLoadingModalPosts ? (
-            <div className="flex justify-center">
-              <Spin />
+        <Modal
+          title={
+            <div
+              style={{ textAlign: "center", fontSize: 24, fontWeight: "bold", color: brandPrimary }}
+            >
+              {localStrings.Ads.SelectAds}
             </div>
-          ) : (
-            <PostList
-              loading={false}
-              posts={modalPosts}
-              loadMorePosts={fetchNonAdPosts}
-              user={{ id: user?.id || "", name: "", family_name: "", avatar_url: "" }}
-              fetchUserPosts={fetchNonAdPosts}
-              hasMore={modalPosts.length % 10 === 0}
-              setPosts={setModalPosts}
-            />
-          )}
-        </div>
-      </Modal>
+          }
+          open={isPostListModalVisible}
+          onCancel={() => setIsPostListModalVisible(false)}
+          footer={null}
+          width={700}
+          centered
+          bodyStyle={{ maxHeight: "1500px", overflowY: "auto", padding: "16px" }}
+        >
+          <div style={{ maxHeight: "1500px", overflowY: "auto", padding: "8px" }}>
+            {isLoadingModalPosts ? (
+              <div className="flex justify-center">
+                <Spin />
+              </div>
+            ) : (
+              <PostList
+                loading={false}
+                posts={modalPosts}
+                loadMorePosts={fetchNonAdPosts}
+                user={{ id: user?.id || "", name: "", family_name: "", avatar_url: "" }}
+                fetchUserPosts={fetchNonAdPosts}
+                hasMore={modalPosts.length % 10 === 0}
+                setPosts={setModalPosts}
+              />
+            )}
+          </div>
+        </Modal>
+      </ConfigProvider>
 
       <div className="mb-6">
         <input
@@ -415,14 +437,17 @@ const AdsManagementFeature = () => {
                 <div
                   key={postId}
                   className="group p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 cursor-pointer hover:border-blue-300"
-                  style={{backgroundColor: backgroundColor}}
+                  style={{ backgroundColor: backgroundColor }}
                 >
                   <div
                     className="w-full max-w-full flex justify-center items-center rounded-lg overflow-hidden bg-gray-50"
                     style={{ height: "180px" }}
                   >
                     {post && (post.is_advertisement === 1 || post.is_advertisement === 2) ? (
-                      <div className="w-full h-full flex flex-col justify-between p-2" style={{ backgroundColor: backgroundColor, color: brandPrimary }}>
+                      <div
+                        className="w-full h-full flex flex-col justify-between p-2"
+                        style={{ backgroundColor: backgroundColor, color: brandPrimary }}
+                      >
                         {post.content && (
                           <h3 className="text-sm font-semibold line-clamp-2">{post.content}</h3>
                         )}
@@ -453,22 +478,37 @@ const AdsManagementFeature = () => {
                   </div>
 
                   <div className="mt-3 space-y-2">
-                    <div className="mt-2 text-xs space-y-1" style={{color: brandPrimary}}>
+                    <div className="mt-2 text-xs space-y-1" style={{ color: brandPrimary }}>
                       {firstAd?.start_date && (
                         <p>
-                          <span className="font-semibold">{localStrings.Ads.StartDay}:</span>{" "}
+                          <span
+                            className="font-semibold"
+                            style={{ color: brandPrimary }}
+                          >
+                            {localStrings.Ads.StartDay}:
+                          </span>{" "}
                           {firstAd.start_date}
                         </p>
                       )}
                       {firstAd?.end_date && (
                         <p>
-                          <span className="font-semibold">{localStrings.Ads.EndDay}:</span>{" "}
+                          <span
+                            className="font-semibold"
+                            style={{ color: brandPrimary }}
+                          >
+                            {localStrings.Ads.EndDay}:
+                          </span>{" "}
                           {firstAd.end_date}
                         </p>
                       )}
                       {firstAd?.bill?.price !== undefined && (
                         <p>
-                          <span className="font-semibold">{localStrings.Ads.Grant}:</span>{" "}
+                          <span
+                            className="font-semibold"
+                            style={{ color: brandPrimary }}
+                          >
+                            {localStrings.Ads.Grant}:
+                          </span>{" "}
                           {CurrencyFormat(firstAd.bill.price)}
                         </p>
                       )}
@@ -502,49 +542,61 @@ const AdsManagementFeature = () => {
       {selectedAd && selectedAd.post_id && (
         <AdDetailsModal ad={selectedAd} onClose={closeModal} post={postDetails[selectedAd.post_id]} />
       )}
-  <ConfigProvider theme={{ token: {
-   colorText: brandPrimary
-  }, components: { Modal: { contentBg: backgroundColor, headerBg: backgroundColor, titleColor: brandPrimary } } }}>
-      <Modal
-        title={`${localStrings.Ads.HistoryforPost}: ${
-          selectedPostId && postDetails[selectedPostId]?.content
-            ? postDetails[selectedPostId].content
-            : localStrings.Ads.NoAdsHistory
-        }`}
-        open={isHistoryModalVisible}
-        onCancel={closeHistoryModal}
-        footer={null}
-        width={700}
-        bodyStyle={{ maxHeight: "600px", overflowY: "auto", padding: "16px" }}
+
+      <ConfigProvider
+        theme={{
+          token: {
+            colorText: brandPrimary,
+          },
+          components: {
+            Modal: {
+              contentBg: backgroundColor,
+              headerBg: backgroundColor,
+              titleColor: brandPrimary,
+            },
+          },
+        }}
       >
-        <div className="space-y-3">
-          {selectedPostId && groupedAds[selectedPostId] ? (
-            groupedAds[selectedPostId].map((ad) => (
-              <div
-                key={ad.id}
-                className="p-3 border rounded-lg  hover:border-blue-300 cursor-pointer"
-                onClick={() => openModal(ad)}
-              >
-                <p>
-                  <strong>{localStrings.Ads.StartDay}:</strong> {ad.start_date}
-                </p>
-                <p>
-                  <strong>{localStrings.Ads.EndDay}:</strong> {ad.end_date}
-                </p>
-                <p>
-                  <strong>{localStrings.Ads.Grant}:</strong>{" "}
-                  {ad.bill?.price ? CurrencyFormat(ad.bill.price) : "N/A"}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p>{localStrings.Ads.NoHistoryFound}</p>
-          )}
-        </div>
-      </Modal>
+        <Modal
+          title={`${localStrings.Ads.HistoryforPost}: ${
+            selectedPostId && postDetails[selectedPostId]?.content
+              ? postDetails[selectedPostId].content
+              : localStrings.Ads.NoAdsHistory
+          }`}
+          open={isHistoryModalVisible}
+          onCancel={closeHistoryModal}
+          footer={null}
+          width={700}
+          bodyStyle={{ maxHeight: "600px", overflowY: "auto", padding: "16px" }}
+        >
+          <div className="space-y-3">
+            {selectedPostId && groupedAds[selectedPostId] ? (
+              groupedAds[selectedPostId].map((ad) => (
+                <div
+                  key={ad.id}
+                  className="p-3 border rounded-lg hover:border-blue-300 cursor-pointer"
+                  onClick={() => openModal(ad)}
+                >
+                  <p>
+                    <strong>{localStrings.Ads.StartDay}:</strong> {ad.start_date}
+                  </p>
+                  <p>
+                    <strong>{localStrings.Ads.EndDay}:</strong> {ad.end_date}
+                  </p>
+                  <p>
+                    <strong>{localStrings.Ads.Grant}:</strong>{" "}
+                    {ad.bill?.price ? CurrencyFormat(ad.bill.price) : "N/A"}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p>{localStrings.Ads.NoHistoryFound}</p>
+            )}
+          </div>
+        </Modal>
       </ConfigProvider>
     </div>
   );
 };
 
-export default AdsManagementFeature;
+export default AdsManagementFeature; 

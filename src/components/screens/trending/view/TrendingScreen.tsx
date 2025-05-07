@@ -83,7 +83,7 @@ const TrendingScreen = () => {
             </div>
           ) : birthdayFriends.length > 0 ? (
             <div>
-              {birthdayFriends.map((friend) => {
+              {birthdayFriends?.map((friend) => {
                 return (
                   <div
                     key={friend.id}
@@ -204,7 +204,7 @@ const TrendingScreen = () => {
           }}
         >
           {friends && friends.length > 0 ? (
-                  friends.map((user) => (
+                  friends?.map((user) => (
                 <div
                 key={user.id}
                 style={{

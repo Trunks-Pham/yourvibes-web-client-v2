@@ -204,7 +204,7 @@ const AboutTab = ({
                     </div>
                   </div>
                   <div className="grid grid-cols-4 md:grid-cols-5 xl:grid-cols-4 gap-2">
-                    {friends.slice(0, friendsToShow).map((friend, index) => (
+                    {friends && friends.slice(0, friendsToShow).map((friend, index) => (
                        <div
                        key={index}
                        className="mb-2 mx-1 flex flex-col items-center text-center"

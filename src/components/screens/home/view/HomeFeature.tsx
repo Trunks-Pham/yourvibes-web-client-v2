@@ -8,7 +8,7 @@ import { defaultNewFeedRepo } from "@/api/features/newFeed/NewFeedRepo";
 import { defaultFriendRepo } from "@/api/features/friends/FriendRepo";
 import { useAuth } from "@/context/auth/useAuth";
 import { useRouter } from "next/navigation";
-import { Avatar, Empty, Modal, Skeleton, Spin } from "antd";
+import { Avatar, Empty, Modal, Skeleton, Spin, ConfigProvider } from "antd";
 import AddPostScreen from "../../addPost/view/AddPostScreen";
 import ProfileViewModel from "../../profile/viewModel/ProfileViewModel";
 import { LoadingOutlined } from "@ant-design/icons";
@@ -116,7 +116,7 @@ const Homepage = () => {
         </div>
         <Modal
           centered
-          title={localStrings.AddPost.NewPost}
+          title={<span style={{ color: brandPrimary }}>{localStrings.AddPost.NewPost}</span>}
           open={isModalVisible}
           onCancel={handleModalClose}
           width={800}
@@ -160,7 +160,7 @@ const Homepage = () => {
             letterSpacing: "0.5px",
           }}
         >
-          {localStrings.Public.Birtday}
+          {localStrings.Public.Birthday}
         </span>
         <div
           style={{
@@ -169,14 +169,13 @@ const Homepage = () => {
             maxHeight: "calc(100vh - 200px)",
           }}
         >
-          {/* Phần hiển thị bạn bè có sinh nhật */}
           {loadingBirthday ? (
             <div style={{ textAlign: "center", padding: "12px" }}>
               <Spin indicator={<LoadingOutlined spin />} size="small" />
             </div>
           ) : birthdayFriends.length > 0 ? (
             <div>
-              {birthdayFriends.map((friend) => {
+              {birthdayFriends?.map((friend) => {
                 return (
                   <div
                     key={friend.id}
@@ -219,7 +218,6 @@ const Homepage = () => {
                         style={{
                           fontWeight: "600",
                           fontSize: 15,
-                          // color: "#1f2937",
                           color: brandPrimary,
                           display: "block",
                         }}
@@ -230,7 +228,6 @@ const Homepage = () => {
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          // color: "#4b5563",
                           color: brandPrimaryTap,
                           fontSize: 13,
                           fontWeight: "500",
@@ -269,7 +266,6 @@ const Homepage = () => {
             <div
               style={{
                 fontSize: 13,
-                // color: "#6b7280",
                 padding: "12px",
                 textAlign: "center",
                 backgroundColor: backgroundColor,
@@ -297,12 +293,12 @@ const Homepage = () => {
           }}
         >
           {friends && friends.length > 0 ? (
-            friends.map((user) => (
+            friends?.map((user) => (
               <div
                 key={user.id}
                 style={{
                   display: "flex",
-                  alignItems: "center",
+                  alignItems: "center warn",
                   padding: "8px 12px",
                   margin: "6px 0 10px 0",
                   cursor: "pointer",
@@ -358,19 +354,16 @@ const Homepage = () => {
                     marginLeft: 12,
                     fontWeight: "600",
                     fontSize: 14,
-                    // color: "#1f2937",
                   }}
                 >
                   {user.family_name + " " + user.name}
                 </span>
               </div>
             ))
-
           ) : (
             <div
               style={{
                 textAlign: "center",
-                // color: "#6b7280",
                 fontSize: 12,
                 padding: "12px",
               }}
@@ -407,7 +400,6 @@ const Homepage = () => {
     }
   };
 
-  // Thêm keyframes cho animation
   useEffect(() => {
     const styleSheet = document.createElement("style");
     styleSheet.type = "text/css";
@@ -430,73 +422,87 @@ const Homepage = () => {
   }, []);
 
   return (
-    <div
-      className="lg:flex mt-4"
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onMouseMove={handleMouseMove}
-      ref={scrollContainerRef}
+    <ConfigProvider
+      theme={{
+        components: {
+          Modal: {
+            contentBg: backgroundColor,
+            headerBg: backgroundColor,
+            titleColor: brandPrimary,
+            colorText: brandPrimary,
+            colorIcon: brandPrimaryTap,
+          },
+        },
+      }}
     >
-      {loading ? (
-        <div className="flex-auto w-auto flex items-center justify-center">
-          <Spin indicator={<LoadingOutlined spin />} size="large" />
-        </div>
-      ) : (
-        <>
-          <div className="flex-auto w-auto flex flex-col items-center justify-center">
-            {renderAddPost()}
-            <div style={{ width: "100%", maxWidth: "600px" }}>
-              <FriendSuggestions postIndex={0} />
-            </div>
-            <div style={{ width: "100%" }}>
-              {newFeeds?.length > 0 ? (
-                <InfiniteScroll
-                  className="flex flex-col items-center"
-                  dataLength={newFeeds.length}
-                  next={loadMoreNewFeeds}
-                  hasMore={hasMore}
-                  loader={
-                    <Spin indicator={<LoadingOutlined spin />} size="large" />
-                  }
-                >
-                  {newFeeds.map((item, index) => (
-                    <div
-                      key={item?.id}
-                      style={{ width: "100%", maxWidth: "600px" }}
-                    >
-                      <Post
-                        post={item}
-                        onDeleteNewFeed={handleDeleteNewFeed}
-                        onDeletePost={deletePost}
-                      >
-                        {item?.parent_post && (
-                          <Post post={item?.parent_post} isParentPost />
-                        )}
-                      </Post>
-                    </div>
-                  ))}
-                </InfiniteScroll>
-              ) : (
-                <div className="w-full h-screen flex justify-center items-center">
-                  <Empty
-                    description={
-                      <span style={{ color: "gray", fontSize: 16 }}>
-                        {localStrings.Post.NoPosts}
-                      </span>
+      <div
+        className="lg:flex mt-4"
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        ref={scrollContainerRef}
+      >
+        {loading ? (
+          <div className="flex-auto w-auto flex items-center justify-center">
+            <Spin indicator={<LoadingOutlined spin />} size="large" />
+          </div>
+        ) : (
+          <>
+            <div className="flex-auto w-auto flex flex-col items-center justify-center">
+              {renderAddPost()}
+              <div style={{ width: "100%", maxWidth: "600px" }}>
+                <FriendSuggestions postIndex={0} />
+              </div>
+              <div style={{ width: "100%" }}>
+                {newFeeds?.length > 0 ? (
+                  <InfiniteScroll
+                    className="flex flex-col items-center"
+                    dataLength={newFeeds.length}
+                    next={loadMoreNewFeeds}
+                    hasMore={hasMore}
+                    loader={
+                      <Spin indicator={<LoadingOutlined spin />} size="large" />
                     }
-                  />
-                </div>
-              )}
+                  >
+                    {newFeeds.map((item, index) => (
+                      <div
+                        key={item?.id}
+                        style={{ width: "100%", maxWidth: "600px" }}
+                      >
+                        <Post
+                          post={item}
+                          onDeleteNewFeed={handleDeleteNewFeed}
+                          onDeletePost={deletePost}
+                        >
+                          {item?.parent_post && (
+                            <Post post={item?.parent_post} isParentPost />
+                          )}
+                        </Post>
+                      </div>
+                    ))}
+                  </InfiniteScroll>
+                ) : (
+                  <div className="w-full h-screen flex justify-center items-center">
+                    <Empty
+                      description={
+                        <span style={{ color: "gray", fontSize: 16 }}>
+                          {localStrings.Post.NoPosts}
+                        </span>
+                      }
+                    />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="flex-initial w-[320px] hidden xl:block">
-            {renderFriends()}
-          </div>
-        </>
-      )}
-    </div>
+            <div className="flex-initial w-[320px] hidden xl:block">
+              {renderFriends()}
+            </div>
+          </>
+        )}
+      </div>
+    </ConfigProvider>
   );
 };
 
-export default Homepage;
+export default Homepage; 
