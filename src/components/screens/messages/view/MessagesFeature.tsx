@@ -20,8 +20,8 @@ const themeColors = {
   messageBubble: {
     light: {
       sender: {
-        background: '#1890ff', 
-        color: '#fff',
+        background: '#e0f0ff', 
+        color: '#000',
       },
       receiver: {
         background: '#E2E2E2',
@@ -69,12 +69,14 @@ const themeColors = {
     light: {
       primary: '#000000',          
       secondary: 'rgba(0, 0, 0, 0.65)', 
-      action: '#1890ff',           
+      action: '#1890ff',  
+      delete: '#2f3f5c',         
     },
     dark: {
       primary: '#ffffff',         
       secondary: 'rgba(255, 255, 255, 0.85)', 
-      action: '#40a9ff',        
+      action: '#40a9ff',   
+      delete: '#ffffff'      
     }
   },
   sidebar: {
@@ -197,7 +199,6 @@ const themeColors = {
     }
   },
   
-  // Upload area colors
   upload: {
     light: {
       background: '#fafafa',
@@ -215,7 +216,6 @@ const themeColors = {
     }
   },
   
-  // Form input colors
   input: {
     light: {
       background: '#ffffff',
@@ -1124,6 +1124,7 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
     : undefined;
     
   const deleteButtonBackground = themeColors.button[currentTheme].defaultBg;
+  const deleteIconColor = currentTheme === 'dark' ? '#ffffff' : '#2f3f5c';
   
   const menuItems = [
     {
@@ -1175,7 +1176,7 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
                 background: deleteButtonBackground
               }}
             >
-              <DeleteOutlined style={{ fontSize: 16 }} />
+              <DeleteOutlined style={{ fontSize: 16, color: themeColors.icons[currentTheme].delete }} />
             </div>
           </Popconfirm>
         </div>
