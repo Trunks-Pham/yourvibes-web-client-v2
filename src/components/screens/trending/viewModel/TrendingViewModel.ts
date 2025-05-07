@@ -50,8 +50,10 @@ const TrendingViewModel = (postRepo: PostRepo, friendRepo: FriendRepo) => {
   };
 
   const loadMoreTrendingPosts = async () => {
-    if (!hasMore || loading) return;
-    await fetchTrendingPosts(page + 1);
+    if (!loading && hasMore) {
+      setPage((prevPage) => prevPage + 1);
+      fetchTrendingPosts(page + 1);
+    }
   };
 
   // Thêm hàm lấy danh sách bạn bè có sinh nhật

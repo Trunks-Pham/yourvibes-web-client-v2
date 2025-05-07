@@ -175,7 +175,7 @@ const Homepage = () => {
             </div>
           ) : birthdayFriends.length > 0 ? (
             <div>
-              {birthdayFriends.map((friend) => {
+              {birthdayFriends?.map((friend) => {
                 return (
                   <div
                     key={friend.id}
@@ -292,8 +292,8 @@ const Homepage = () => {
             scrollbarWidth: "none",
           }}
         >
-          {friends.length > 0 ? (
-            friends.map((user) => (
+          {friends && friends.length > 0 ? (
+            friends?.map((user) => (
               <div
                 key={user.id}
                 style={{

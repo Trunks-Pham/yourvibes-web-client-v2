@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Spin, Empty, Avatar } from "antd";
+import { Spin, Empty, Avatar, Skeleton } from "antd";
 import InfiniteScroll from "react-infinite-scroll-component";
 import Post from "@/components/common/post/views/Post";
 import TrendingViewModel from "@/components/screens/trending/viewModel/TrendingViewModel";
@@ -83,7 +83,7 @@ const TrendingScreen = () => {
             </div>
           ) : birthdayFriends.length > 0 ? (
             <div>
-              {birthdayFriends.map((friend) => {
+              {birthdayFriends?.map((friend) => {
                 return (
                   <div
                     key={friend.id}
@@ -203,8 +203,8 @@ const TrendingScreen = () => {
             scrollbarWidth: "none",
           }}
         >
-          {friends.length > 0 ? (
-                  friends.map((user) => (
+          {friends && friends.length > 0 ? (
+                  friends?.map((user) => (
                 <div
                 key={user.id}
                 style={{
@@ -314,27 +314,20 @@ const TrendingScreen = () => {
 
   return (
     <div className="lg:flex mt-4">
-      {loading ? (
+      {/* {loading ? (
         <div className="flex justify-center items-center fixed inset-0 bg-gray">
           <Spin size="large" tip="Loading" style={{ color: "#4B5563" }} />
         </div>
       ) : (
-        <>
+        <> */}
           <div className="flex-auto w-auto flex flex-col items-center justify-center">
             <div style={{ width: "100%", maxWidth: "600px" }}>
               {trendingPosts.length > 0 ? (
                 <InfiniteScroll
-                  className="flex flex-col items-center"
                   dataLength={trendingPosts.length}
                   next={loadMoreTrendingPosts}
                   hasMore={hasMore}
-                  loader={
-                    <Spin
-                      size="large"
-                      tip="Loading"
-                      style={{ marginTop: 20, color: "#4B5563" }}
-                    />
-                  }
+                  loader={<Skeleton avatar paragraph={{ rows: 4 }} />}
                 >
                   {trendingPosts.map((post) => (
                     <Post
@@ -360,8 +353,8 @@ const TrendingScreen = () => {
           <div className="flex-initial w-[320px] hidden xl:block">
             {renderFriends()}
           </div>
-        </>
-      )}
+        {/* </>
+      )} */}
     </div>
   );
 };
