@@ -102,7 +102,7 @@ export const useMessagesViewModel = () => {
       setTimeout(() => {
         messageViewModel.scrollToBottom();
         markConversationAsRead(latestMessage.conversation_id);
-      }, 100);
+      }, 1000);
     } else {
       incrementUnreadCount(latestMessage.conversation_id);
     }
