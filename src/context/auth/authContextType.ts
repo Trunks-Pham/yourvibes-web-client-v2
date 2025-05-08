@@ -16,4 +16,5 @@ export interface AuthContextType {
   isLoginUser: (userId: string) => boolean;
   theme?: "light" | "dark";
   changeTheme?: (theme: "light" | "dark") => void;
+  // Noti: any
 }

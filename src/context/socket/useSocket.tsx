@@ -1,11 +1,13 @@
 "use client";
-import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { SocketContextType } from "./socketContextType";
 import { useAuth } from "../auth/useAuth";
 import { MessageWebSocketResponseModel } from "@/api/features/messages/models/MessageModel";
 import useTypeNotification from "@/hooks/useTypeNotification";
 import { ApiPath } from "@/api/ApiPath";
-import { Avatar, notification } from "antd";
+import { Avatar, notification, theme } from "antd";
+import useColor from "@/hooks/useColor";
+import { log } from "console";
 
 const WebSocketContext = createContext<SocketContextType | undefined>(undefined);
 
@@ -14,6 +16,7 @@ export const WebSocketProvider: React.FC<{
   onStatusUpdate?: (userId: string, active_status: boolean) => void;
 }> = ({ children, onStatusUpdate }) => {
   const { user, localStrings } = useAuth();
+  const {backgroundColor, brandPrimary, theme} = useColor();
   const [socketMessages, setSocketMessages] = useState<MessageWebSocketResponseModel[]>([]);
   const processedMessagesRef = useRef<Set<string>>(new Set());
 
@@ -122,31 +125,53 @@ export const WebSocketProvider: React.FC<{
           const truncatedContent =
             messageContent.length > 50 ? `${messageContent.substring(0, 47)}...` : messageContent;
 
-          notification.open({
-            message: `${message?.user?.family_name || ""} ${message?.user?.name || ""} đã gửi tin nhắn`,
-            placement: "topRight",
-            duration: 5,
-            className: "custom-notification",
-            style: {
-              borderRadius: "8px",
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-              backgroundColor: "#f8f9fa",
-              border: "1px solid #e9ecef",
-            },
-            icon: (
-              <Avatar
-                src={message.user?.avatar_url}
-                size="small"
-                style={{
-                  backgroundColor: !message.user?.avatar_url ? "#1890ff" : undefined,
-                }}
-              >
-                {!message.user?.avatar_url && (message.user?.name?.charAt(0) || "U")}
-              </Avatar>
-            ),
-            description: truncatedContent,
-            key: `message-${message.conversation_id}-${Date.now()}`,
-          });
+            notification.open({
+              message: (
+                <div style={{ display: "flex", alignItems: "flex-start", backgroundColor: backgroundColor }}>
+                  <Avatar
+                    src={message.user?.avatar_url}
+                    size={40}
+                    style={{
+                      backgroundColor: !message.user?.avatar_url ? "#1890ff" : undefined,
+                      marginRight: 12,
+                      marginTop: 4,
+                    }}
+                  >
+                    {!message.user?.avatar_url && (message.user?.name?.charAt(0) || "U")}
+                  </Avatar>
+                  <div style={{ maxWidth: 250, color: brandPrimary }}>
+                    <div
+                      style={{
+                        fontWeight: 500,
+                        marginBottom: 4,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {`${message?.user?.family_name || ""} ${message?.user?.name || ""} đã gửi tin nhắn`}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: "#555",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {truncatedContent}
+                    </div>
+                  </div>
+                </div>
+              ),
+              placement: "topRight",
+              duration: 1000,
+              description: null,
+              key: `message-${message.conversation_id}-${Date.now()}`,
+            });
+            
+            
         }
       } catch (error) {
         console.error("Error processing WebSocket message:", error);
@@ -172,6 +197,19 @@ export const WebSocketProvider: React.FC<{
     };
   };
 
+  // const Noti = useCallback(() => {
+  //   console.log("theme", theme);
+    
+  //   console.log("backgroundColor", backgroundColor);
+  //   notification.open({
+  //     message: "Notification Title",
+  //     description: "This is the content of the notification.",
+  //     placement: "topRight",
+  //     duration: 1,
+  //     style: { backgroundColor: backgroundColor },
+  //   })
+  // }, [backgroundColor, theme]);
+
   const connectSocketNotification = () => {
     if (!user?.id || wsNotificationRef.current) return;
 
@@ -185,7 +223,9 @@ export const WebSocketProvider: React.FC<{
     ws.onmessage = (e) => {
       try {
         const notificationData = JSON.parse(e.data);
-        const { from: userName, content, notification_type: type } = notificationData;
+
+        
+        const { from: userName, content, notification_type: type, from_url: avatar_url } = notificationData;
         const notificationContent = mapNotifiCationContent(type);
 
         const getDescription = (content: string) => {
@@ -202,13 +242,39 @@ export const WebSocketProvider: React.FC<{
         };
 
         const key = `notification-${Date.now()}`;
-        notification.open({
-          message: `${userName} ${notificationContent}`,
-          description: getDescription(content),
-          placement: "topRight",
-          key,
-          duration: 5,
-        });
+        console.log("theme", theme);
+        
+        console.log("backgroundColor", backgroundColor);
+        
+        // Noti();
+        // notification.open({
+        //   message: (
+        //     <div style={{ display: "flex", alignItems: "center", backgroundColor: "red" }}>
+        //       <Avatar
+        //         src={avatar_url}
+        //         size={40}
+        //         style={{
+        //           backgroundColor: !avatar_url ? "#1890ff" : undefined,
+        //           marginRight: 8,
+        //           flexShrink: 0, // Ngăn avatar bị co lại
+        //         }}
+        //       />
+        //       <div style={{ flex: 1, overflow: "hidden", color: brandPrimary }}>
+        //         <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        //           {`${userName} ${notificationContent}`}
+        //         </div>
+        //         <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        //           {getDescription(content)}
+        //         </div>
+        //       </div>
+        //     </div>
+        //   ),
+        //   placement: "topRight",
+        //   key,
+        //   duration: 1000,
+        //   style: { backgroundColor: "red" },
+        // });
+
       } catch (error) {
         console.error("Error processing notification:", error);
       }

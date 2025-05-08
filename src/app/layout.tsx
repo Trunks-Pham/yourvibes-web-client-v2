@@ -5,7 +5,8 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "./globals.css";
 import { ConfigProvider } from "antd";
 import { WebSocketProvider } from "@/context/socket/useSocket";
-
+import useColor from "@/hooks/useColor";
+import ThemeProvider from "@/components/common/Theme/theme";
 
 export const metadata: Metadata = {
   title: "YourVibes",
@@ -17,28 +18,18 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // const { brandPrimary } = useColor();
   return (
     <html lang="en">
       <AntdRegistry>
-        <ConfigProvider
-          theme={{
-            token: { colorPrimary: "#000000" },
-            components: {
-              Select: {
-                optionSelectedColor: "#fff",
-              }
-            }
-          }}
-        >
-          <AuthProvider>
-            <WebSocketProvider>
-                <PostProvider>
-                  <body>{children}</body>
-                </PostProvider>
-            </WebSocketProvider>
-          </AuthProvider>
-        </ConfigProvider>
+        <AuthProvider>
+          <WebSocketProvider>
+            <PostProvider>
+              <ThemeProvider>
+                <body>{children}</body>
+              </ThemeProvider>
+            </PostProvider>
+          </WebSocketProvider>
+        </AuthProvider>
       </AntdRegistry>
     </html>
   );
