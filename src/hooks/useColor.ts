@@ -54,6 +54,7 @@ const useColor = () => {
   , [theme]);
 
   return {
+    theme,
     brandPrimary,
     brandPrimaryTap,
     backgroundColor,
