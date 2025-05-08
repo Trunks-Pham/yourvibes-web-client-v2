@@ -40,14 +40,14 @@ const useColor = () => {
       setBrandPrimaryTap(Color.lightGray);
       setBackgroundColor(Color.gunmetal);
       setBackground(Color.charcoalBlue);
-      setMenuItem(Color.steelGray);
+      setMenuItem(Color.darkSlate);
       setBackgroundAddPost(Color.grayD);
     } else { // light
       setBrandPrimary(Color.black);
       setBrandPrimaryTap(Color.darkGray);
       setBackgroundColor(Color.white);
       setBackground(Color.veryLightGray);
-      setMenuItem(Color.white);
+      setMenuItem(Color.lightGray);
       setBackgroundAddPost(Color.white);
     }
   }

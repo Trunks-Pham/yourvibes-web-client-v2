@@ -96,7 +96,7 @@ const LoginPage = () => {
       <Col xs={0} lg={10} className="h-fit">
         <div className="flex justify-center">
           <img
-            src="/image/yourvibes_black.png"
+           src={theme === "light" ? "/image/yourvibes_black.png" : "/image/yourvibes _white.png"} 
             alt="YourVibes"
             className="font-cursive text-black"
             width={300}
@@ -112,7 +112,7 @@ const LoginPage = () => {
               : localStrings.Public.DarkMode}{" "}
             <Switch
               defaultChecked
-              onChange={(checked) => changeTheme?.(checked ? "light" : "dark")}
+              onChange={(checked) => changeTheme?.(checked ? "dark" : "light")}
             />
           </div>
         </div>

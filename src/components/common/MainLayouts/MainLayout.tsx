@@ -25,7 +25,7 @@ const { useBreakpoint } = Grid;
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [visible, setVisible] = useState(false);
-  const { backgroundColor, backGround, brandPrimary,menuItem, darkSlate } = useColor();
+  const { backgroundColor, backGround, brandPrimary,menuItem, darkSlate, brandPrimaryTap } = useColor();
   const { user, localStrings, onLogout, theme } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -78,9 +78,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   const { nav } = content;
-  // const boxShadowActive = theme === "dark"
-  // ? "0 4px 8px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25)"
-  // : "0 4px 8px rgba(180, 180, 180, 0.4), 0 2px 4px rgba(200, 200, 200, 0.3)";
   const boxShadowActive = theme === "dark"
   ? "0 4px 12px rgba(0, 0, 0, 0.35)"
  : "0 4px 8px rgba(180, 180, 180, 0.4), 0 2px 4px rgba(200, 200, 200, 0.3)";
@@ -148,6 +145,16 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     };
   }, [collapsed]);
 
+  const [menuUpdateTrigger, setMenuUpdateTrigger] = useState(0);
+
+useEffect(() => {
+  if (!settingModal && !notificationModal && !logoutModal) {
+    // Khi tất cả modal đều đã đóng, trigger update
+    setMenuUpdateTrigger(prev => prev + 1);
+  }
+}, [settingModal, notificationModal, logoutModal]);
+
+
   return (
     <ConfigProvider
       theme={{
@@ -174,8 +181,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               siderBg: backGround,
             },
             Menu: {
-              itemActiveBg: menuItem,
-              itemSelectedBg: darkSlate,
+              itemActiveBg: darkSlate,
+              itemSelectedBg: menuItem,
               colorBgContainer: backGround,
               lineWidth: 0,
               itemBorderRadius: 5,
@@ -206,6 +213,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         >
           <div className="demo-logo-vertical" />
           <Menu
+          key={menuUpdateTrigger} // Thêm key để buộc re-render
             mode="inline"
             className="flex flex-col justify-center h-full"
             items={nav.map((item, index) => {
@@ -215,11 +223,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 label: (
                     <div
                       className="flex items-center gap-4 w-full h-full px-4 pl-8"
-                      style={{
-                        backgroundColor: actived ? menuItem : "transparent",
-                        color: brandPrimary,
-
-                      }}
                       onClick={() => {
                         handleItemClick(item.link);
                         !screens.lg && handleMenuClick();
@@ -419,7 +422,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       {settingModal && (
         <Modal
           open={settingModal}
-          onCancel={() => setSettingModal(false)}
+          onCancel={() => {setSettingModal(false) }}
           footer={null}
           width={500}
           centered

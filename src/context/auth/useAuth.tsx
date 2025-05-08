@@ -95,9 +95,11 @@ class AuthManager {
     }
   }
 
-  public changeTheme(theme: "light" | "dark") {
+  public changeTheme() {
     if (typeof window !== 'undefined' && window.localStorage) {
+      const theme = this.theme === "light" ? "dark" : "light";
       localStorage.setItem("theme", theme);
+      document.documentElement.className = theme;
       this.theme = theme;
       this.notifyListeners();
     }
