@@ -22,20 +22,24 @@ const themeColors = {
       sender: {
         background: '#e0f0ff', 
         color: '#000',
+        timestampColor: '#003366',
       },
       receiver: {
         background: '#E2E2E2',
         color: 'inherit',
+        timestampColor: 'rgba(0, 0, 0, 0.85)',
       }
     },
     dark: {
       sender: {
         background: '#2f3f5c', 
-        color: '#fff',         
+        color: '#fff',
+        timestampColor: 'rgba(255, 255, 255, 0.9)',
       },
       receiver: {
         background: '#62676B',
-        color: '#ffffff',     
+        color: '#ffffff',
+        timestampColor: 'rgba(255, 255, 255, 0.85)', 
       }
     }
   },
@@ -1118,6 +1122,10 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
   const messageColor = isMyMessage 
     ? themeColors.messageBubble[currentTheme].sender.color 
     : themeColors.messageBubble[currentTheme].receiver.color;
+
+  const timestampColor = isMyMessage 
+    ? themeColors.messageBubble[currentTheme].sender.timestampColor 
+    : themeColors.messageBubble[currentTheme].receiver.timestampColor;  
     
   const avatarBackground = !message.user?.avatar_url 
     ? themeColors.avatar[currentTheme] 
@@ -1230,16 +1238,16 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
         </div>
         
         {/* Timestamp */}
-        <div style={{ fontSize: 10, textAlign: "right", marginTop: 4, opacity: 0.7 }}>
+        <div style={{ fontSize: 10, textAlign: "right", marginTop: 4 }}>
           {message.isTemporary ? (
-            <span style={{ color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit" }}>
+            <span>
             </span>
           ) : (
             <span style={{ 
-              color: isMyMessage ? "rgba(255, 255, 255, 0.7)" : "inherit",
+              color: timestampColor,
               display: "flex",
               alignItems: "center",
-              justifyContent: "flex-end"
+              justifyContent: "flex-end",
             }}>
               {formatMessageTime(message.created_at || '')}
             </span>
@@ -3318,18 +3326,16 @@ const MessagesFeature: React.FC = () => {
                         ? actualMessages.find(msg => msg.user_id !== user?.id)?.user
                         : null;
 
-                      let avatarUrl = item.image;
+                        let avatarUrl = item.image || item.avatar;
 
                       if (isOneOnOneChat && !item.image && otherUser?.avatar_url) {
                         avatarUrl = otherUser.avatar_url;
-                      }
+                      }                      
 
                       const avatarInitial = isOneOnOneChat && otherUser?.name
                         ? otherUser.name.charAt(0).toUpperCase()
                         : item.name?.charAt(0).toUpperCase();
                       
-
-
                       return (
                         <List.Item
                           onClick={() => handleSelectConversation(item)}
@@ -3440,7 +3446,7 @@ const MessagesFeature: React.FC = () => {
                     ? actualMessages.find(msg => msg.user_id !== user?.id)?.user
                     : null;
 
-                  let avatarUrl = currentConversation.image;
+                  let avatarUrl = currentConversation.image || currentConversation.avatar;
 
                   if (isOneOnOneChat && !currentConversation.image && otherUser?.avatar_url) {
                     avatarUrl = otherUser.avatar_url;
