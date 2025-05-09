@@ -262,6 +262,8 @@ export const ENGLocalizedStrings = {
     No: "No",
     CommentNotFound: "Comment not found!",
     CommentLimit: "500 characters",
+    LoadMore: "Load more ...",
+    ScrollLoading: "Scroll to load more comments",
   },
   Profile: {
     Posts: {

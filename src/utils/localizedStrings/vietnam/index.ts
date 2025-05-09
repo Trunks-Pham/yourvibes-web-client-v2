@@ -259,6 +259,8 @@ export const VnLocalizedStrings = {
     No: "Không",
     CommentNotFound: "Không tìm thấy bình luận!",
     CommentLimit: "500 ký tự!",
+    LoadMore: "Đang tải thêm bình luận ...",
+    ScrollLoading: "Cuộn để tải thêm bình luận",
   },
   Profile: {
     Posts: {
