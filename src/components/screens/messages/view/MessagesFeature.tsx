@@ -9,7 +9,7 @@ import { FriendResponseModel } from '@/api/features/profile/model/FriendReponseM
 import { useAuth } from '@/context/auth/useAuth';
 import { useWebSocket } from '@/context/socket/useSocket';
 import useColor from '@/hooks/useColor';
-import { EllipsisOutlined, DeleteOutlined, InboxOutlined, SendOutlined, SearchOutlined, ArrowLeftOutlined, PlusOutlined, SmileOutlined, VideoCameraOutlined, CloseOutlined } from '@ant-design/icons';
+import { EllipsisOutlined, DeleteOutlined, InboxOutlined, SendOutlined, SearchOutlined, ArrowLeftOutlined, PlusOutlined, SmileOutlined, VideoCameraOutlined, CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Empty, Layout, Skeleton, Typography, Popover, Menu, Dropdown, Popconfirm, Input, Button, Upload, Modal, Form, List, Avatar, Spin, message, Checkbox, Tabs } from 'antd';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useSearchParams } from 'next/navigation';
@@ -236,6 +236,52 @@ const themeColors = {
       textColor: 'rgba(255, 255, 255, 0.85)'
     }
   },
+  notification: {
+    light: {
+      error: {
+        background: '#fff2f0',
+        borderColor: '#ffccc7',
+        textColor: '#ff4d4f'
+      },
+      warning: {
+        background: '#fffbe6',
+        borderColor: '#ffe58f',
+        textColor: '#faad14'
+      },
+      info: {
+        background: '#e6f7ff',
+        borderColor: '#91d5ff',
+        textColor: '#1890ff'
+      },
+      success: {
+        background: '#f6ffed',
+        borderColor: '#b7eb8f',
+        textColor: '#52c41a'
+      }
+    },
+    dark: {
+      error: {
+        background: '#2a1215',
+        borderColor: '#5c2223',
+        textColor: '#ff7875'
+      },
+      warning: {
+        background: '#2b2111',
+        borderColor: '#594214',
+        textColor: '#faad14'
+      },
+      info: {
+        background: '#111d2c',
+        borderColor: '#153450',
+        textColor: '#40a9ff'
+      },
+      success: {
+        background: '#162312',
+        borderColor: '#274916',
+        textColor: '#73d13d'
+      }
+    }
+  }
 };
 
 interface AddMemberModalProps {
@@ -1299,6 +1345,12 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   const listItemSelectedBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.05)';
   const listBackground = currentTheme === 'dark' ? '#1f1f1f' : '#ffffff';
   const warningTextColor = currentTheme === 'dark' ? '#faad14' : '#fa8c16';
+  const errorBackground = themeColors.notification[currentTheme].error.background;
+  const errorBorderColor = themeColors.notification[currentTheme].error.borderColor;
+  const errorTextColor = themeColors.notification[currentTheme].error.textColor;
+  const infoBackground = themeColors.notification[currentTheme].info.background;
+  const infoBorderColor = themeColors.notification[currentTheme].info.borderColor; 
+  const infoTextColor = themeColors.notification[currentTheme].info.textColor;
 
   useEffect(() => {
     if (visible && user?.id) {
@@ -1343,14 +1395,37 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
       const values = form.getFieldsValue();
       
       if (selectedFriends.length === 0) {
-        message.warning(localStrings.Messages.SelectAtLeastOneFriend);
+        message.warning({
+          content: localStrings.Messages.SelectAtLeastOneFriend || "Vui lòng chọn ít nhất một người bạn",
+          style: {
+            backgroundColor: themeColors.notification[currentTheme].warning.background,
+            border: `1px solid ${themeColors.notification[currentTheme].warning.borderColor}`,
+            color: themeColors.notification[currentTheme].warning.textColor,
+            borderRadius: '4px',
+            padding: '10px 16px'
+          }
+        });
+        return;
+      }
+      
+      if (values.name && values.name.length > 30) {
+        message.error({
+          content: localStrings.Messages.GroupNameTooLong || "Tên nhóm không được vượt quá 30 ký tự",
+          style: {
+            backgroundColor: themeColors.notification[currentTheme].error.background,
+            border: `1px solid ${themeColors.notification[currentTheme].error.borderColor}`,
+            color: themeColors.notification[currentTheme].error.textColor,
+            borderRadius: '4px',
+            padding: '10px 16px'
+          }
+        });
         return;
       }
       
       if (selectedFriends.length > 1 && !values.name) {
         form.setFields([{
           name: 'name',
-          errors: [localStrings.Messages.GroupNameRequired]
+          errors: [localStrings.Messages.GroupNameRequired || "Nhóm chat cần có tên"]
         }]);
         return;
       }
@@ -1373,28 +1448,93 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
         ...selectedFriends
       ];
       
-      const newConversation = await onCreateConversation(
-        conversationName, 
-        conversationImage || undefined, 
-        userIdsToAdd
-      );
-      
-      if (newConversation && newConversation.id) {
-        form.resetFields();
-        setSelectedFriends([]);
-        setConversationImage(null);
-        setImagePreview(null);
-
-        if (onConversationCreated) {
-          onConversationCreated(newConversation);
-        }
+      try {
+        const newConversation = await onCreateConversation(
+          conversationName, 
+          conversationImage || undefined, 
+          userIdsToAdd
+        );
         
-        onCancel();
+        if (newConversation && newConversation.id) {
+          message.success({
+            content: localStrings.Messages.ConversationCreated || "Cuộc trò chuyện đã được tạo thành công",
+            style: {
+              backgroundColor: themeColors.notification[currentTheme].success.background,
+              border: `1px solid ${themeColors.notification[currentTheme].success.borderColor}`,
+              color: themeColors.notification[currentTheme].success.textColor,
+              borderRadius: '4px',
+              padding: '10px 16px'
+            }
+          });
+          
+          form.resetFields();
+          setSelectedFriends([]);
+          setConversationImage(null);
+          setImagePreview(null);
+  
+          if (onConversationCreated) {
+            onConversationCreated(newConversation);
+          }
+          
+          onCancel();
+        }
+      } catch (error: any) {
+        console.error("Error creating conversation:", error);
+        
+        if (error?.error?.code === 50004 && error.error.message_detail?.includes("Name: the length must be between")) {
+          message.error({
+            content: localStrings.Messages.GroupNameTooLong || "Tên nhóm không được vượt quá 30 ký tự",
+            style: {
+              backgroundColor: themeColors.notification[currentTheme].error.background,
+              border: `1px solid ${themeColors.notification[currentTheme].error.borderColor}`,
+              color: themeColors.notification[currentTheme].error.textColor,
+              borderRadius: '4px',
+              padding: '10px 16px'
+            }
+          });
+        } 
+        else if (error?.error?.code === 50028 && error.error.message === "Conversation has already exist") {
+          const existingConversationId = error.error.message_detail;
+          
+          message.info({
+            content: localStrings.Messages.ConversationAlreadyExists,
+            style: {
+              backgroundColor: themeColors.notification[currentTheme].info.background,
+              border: `1px solid ${themeColors.notification[currentTheme].info.borderColor}`,
+              color: themeColors.notification[currentTheme].info.textColor,
+              borderRadius: '4px',
+              padding: '10px 16px'
+            }
+          });
+          
+          onCancel();
+          
+          if (onConversationCreated && existingConversationId) {
+            const tempConversation: ConversationResponseModel = {
+              id: existingConversationId
+            };
+            
+            setTimeout(() => {
+              onConversationCreated(tempConversation);
+            }, 500);
+          }
+        } else {
+          message.error({
+            content: error?.error?.message || localStrings.Messages.GroupCreationFailed || "Không thể tạo cuộc trò chuyện",
+            style: {
+              backgroundColor: themeColors.notification[currentTheme].error.background,
+              border: `1px solid ${themeColors.notification[currentTheme].error.borderColor}`,
+              color: themeColors.notification[currentTheme].error.textColor,
+              borderRadius: '4px',
+              padding: '10px 16px'
+            }
+          });
+        }
+      } finally {
+        setCreating(false);
       }
     } catch (error) {
-      console.error("Error creating conversation:", error);
-    } finally {
-      setCreating(false);
+      console.error("Error in form validation:", error);
     }
   };
 

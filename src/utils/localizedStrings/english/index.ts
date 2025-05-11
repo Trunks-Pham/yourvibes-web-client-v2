@@ -530,6 +530,9 @@ export const ENGLocalizedStrings = {
     CannotRemoveYourself: "Cannot remove yourself",
     OneOnOneChatNote: "📝 Note: In a one-on-one chat, you cannot remove the other member.",
     YouHaveBeenRemoved: "You Have Been Removed",
+    ConversationAlreadyExists: "Conversation Already Exists",
+    GroupNameTooLong:"Group Name Must Not Exceed 30 characters",
+    ConversationCreated: "Conversation Created",
 
   },
   People: {
