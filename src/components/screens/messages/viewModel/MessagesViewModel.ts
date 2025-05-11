@@ -123,7 +123,13 @@ export const useMessagesViewModel = () => {
     }
     
     updateConversationOrder(latestMessage.conversation_id);
-
+  
+    if (currentConversation?.id === latestMessage.conversation_id) {
+      setTimeout(() => {
+        messageViewModel.scrollToBottom();
+        markConversationAsRead(latestMessage.conversation_id);
+      }, 1000);
+    }
   }, [socketMessages, currentConversation?.id, messages, markConversationAsRead, addNewMessage, updateConversationOrder, messageViewModel.scrollToBottom]);
 
   useEffect(() => {

@@ -208,47 +208,6 @@ export const useConversationViewModel = () => {
     }
   }, [user?.id, currentConversation?.id, fetchConversations, localStrings.Public.Error]);
 
-  const hasUnreadMessages = useCallback((conversationId: string): boolean => {
-    if (!conversationId) return false;
-    
-    const detail = conversationDetails[conversationId];
-    return detail && detail.last_mess_status === false;
-  }, [conversationDetails]);
-
-  const updateConversationReadStatus = useCallback((conversationId: string) => {
-    if (!conversationId) return;
-    
-    setConversationDetails(prev => {
-      const detail = prev[conversationId];
-      if (!detail) return prev;
-      
-      return {
-        ...prev,
-        [conversationId]: {
-          ...detail,
-          last_mess_status: true 
-        }
-      };
-    });
-  }, []);
-
-  const markNewMessageUnread = useCallback((conversationId: string) => {
-    if (!conversationId || conversationId === currentConversation?.id) return;
-    
-    setConversationDetails(prev => {
-      const detail = prev[conversationId];
-      if (!detail) return prev;
-      
-      return {
-        ...prev,
-        [conversationId]: {
-          ...detail,
-          last_mess_status: false 
-        }
-      };
-    });
-  }, [currentConversation?.id]);
-
   return {
     // State
     conversations,
@@ -268,9 +227,6 @@ export const useConversationViewModel = () => {
     deleteConversation,
     addNewConversation,
     updateConversationOrder,
-    hasUnreadMessages,
-    updateConversationReadStatus,
-    markNewMessageUnread,
     setConversations,
   };
 };
