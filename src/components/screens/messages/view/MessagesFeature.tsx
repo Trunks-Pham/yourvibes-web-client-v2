@@ -3443,15 +3443,13 @@ const MessagesFeature: React.FC = () => {
                         ? (lastMessage.content.length > 50 ? lastMessage.content.substring(0, 47) + '...' : lastMessage.content)
                         : (localStrings.Messages.StartConversation);
                       
-                      const senderName = lastMessage?.user_id === user?.id 
+                      const senderName = item.user_id === user?.id 
                         ? (localStrings.Messages.You) 
-                        : lastMessage?.user 
-                          ? `${lastMessage.user.family_name || ''} ${lastMessage.user.name || ''}`.trim()
-                          : '';
+                        : '';
 
-                      const messageDisplay = lastMessage
-                        ? (senderName ? `${senderName}: ${messagePreview}` : messagePreview)
-                        : messagePreview;
+                      const messageDisplay = item.last_message 
+                        ? (item.last_message_status === false ? `${item.last_message}` : `${item.last_message}`)
+                        : (localStrings.Messages.StartConversation);
 
                       const lastMessageTime = lastMessage?.created_at
                         ? formatMessageTime(lastMessage.created_at)
