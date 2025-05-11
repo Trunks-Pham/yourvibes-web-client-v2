@@ -36,30 +36,6 @@ export const useConversationViewModel = () => {
     });
   }, []);
 
-  const resetUnreadCount = useCallback((conversationId: string) => {
-    setUnreadCountMap(prev => {
-      const newMap = { ...prev };
-      newMap[conversationId] = 0;
-      return newMap;
-    });
-  }, []);
-
-  const incrementUnreadCount = useCallback((conversationId: string) => {
-    setUnreadCountMap(prev => {
-      if (typeof prev[conversationId] === 'undefined') {
-        return {
-          ...prev,
-          [conversationId]: 1
-        };
-      }
-      
-      return {
-        ...prev,
-        [conversationId]: prev[conversationId] + 1
-      };
-    });
-  }, []);
-
   const updateConversationOrder = useCallback((conversationId: string) => {
     if (!conversationId) return;
     
@@ -260,8 +236,5 @@ export const useConversationViewModel = () => {
     addNewConversation,
     updateConversationOrder,
     setConversations,
-    unreadCountMap,
-    resetUnreadCount,
-    incrementUnreadCount,
   };
 };

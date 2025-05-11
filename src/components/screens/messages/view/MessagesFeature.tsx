@@ -1790,17 +1790,13 @@ const MessagesFeature: React.FC = () => {
     setMessageText,
     setCurrentConversation,
     sendMessage,
-    fetchMessages,
     messageListRef,
     handleScroll,
     getMessagesForConversation,
     initialMessagesLoaded,
-    markConversationAsRead,
     addConversationMembers,
     leaveConversation,
     getCurrentUserRole,
-    unreadCountMap,
-    resetUnreadCount,
   } = useMessagesViewModel();
 
   const [isMobile, setIsMobile] = useState(false);
@@ -1874,26 +1870,6 @@ const MessagesFeature: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (currentConversation?.id) {
-      markConversationAsRead(currentConversation.id);
-    }
-  }, [currentConversation?.id]);
-  
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && currentConversation?.id) {
-        markConversationAsRead(currentConversation.id);
-      }
-    };
-  
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [currentConversation?.id, markConversationAsRead]);
-
-  useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -1923,22 +1899,29 @@ const MessagesFeature: React.FC = () => {
     }
   }, [currentConversation?.id, fetchConversations, getCurrentUserRole]);
   
-const handleSelectConversation = (conversation: ConversationResponseModel) => {
-  if (currentConversation?.id === conversation.id) {
-    return;
-  }
-
-  if (conversation.id) {
-    resetUnreadCount(conversation.id);
-  }
+  const handleSelectConversation = (conversation: ConversationResponseModel) => {
+    if (currentConversation?.id === conversation.id) {
+      return;
+    }
   
-  setCurrentConversation(conversation);
-
-  if (conversation.id) {
-    markConversationAsRead(conversation.id);
-  }
-};
+    setCurrentConversation(conversation);
+    setHasPermission(true);
   
+    // setTimeout(() => {
+    //   if (conversation.id) {
+    //     fetchMessages(conversation.id);
+    //   }
+    // }, 200);
+  };
+  
+  // useEffect(() => {
+  //   if (conversationIdFromUrl && conversations.length > 0) {
+  //     const selectedConversation = conversations.find(conv => conv.id === conversationIdFromUrl);
+  //     if (selectedConversation && selectedConversation.id !== currentConversation?.id) {
+  //       handleSelectConversation(selectedConversation);
+  //     }
+  //   }
+  // }, [conversationIdFromUrl, conversations, currentConversation?.id, handleSelectConversation]);
 
   const onEmojiClick = (emojiData: EmojiClickData) => {
     setMessageText(prev => prev + emojiData.emoji);
@@ -1946,6 +1929,28 @@ const handleSelectConversation = (conversation: ConversationResponseModel) => {
 
   const handleSendMessage = async () => {
     if (!user?.id || !currentConversation?.id) return;
+    
+    // try {
+    //   const response = await defaultMessagesRepo.getConversationDetailByUserID({
+    //     conversation_id: currentConversation.id
+    //   });
+      
+    //   if (response.data) {
+    //     const members = Array.isArray(response.data) ? response.data : [response.data];
+    //     const userExists = members.some(member => member.user_id === user.id);
+        
+    //     if (!userExists) {
+    //       setHasPermission(false);
+    //       message.error(localStrings.Messages.YouHaveBeenRemoved);
+    //       setCurrentConversation(null);
+    //       fetchConversations();
+    //       return;
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.error("Error checking permission:", error);
+    //   return;
+    // }
     
     if (messageText.trim() && currentConversation && messageText.length <= 500) {
       sendMessage();
@@ -3481,38 +3486,21 @@ const handleSelectConversation = (conversation: ConversationResponseModel) => {
                                 ellipsis
                                 style={{
                                   maxWidth: '100%',
-                                  color: unreadCountMap[item.id || ''] > 0 ? brandPrimary : sidebarSecondaryTextColor,
-                                  fontWeight: unreadCountMap[item.id || ''] > 0 ? 'bold' : 'normal'
+                                  color: sidebarSecondaryTextColor
                                 }}
                               >
                                 {messageDisplay}
                               </Text>
                             }
                           />
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                            <Text type="secondary" style={{ fontSize: '12px', color: sidebarSecondaryTextColor }}>
-                              {lastMessageTime}
-                            </Text>
-                            
-                            {/* Chỉ báo tin nhắn chưa đọc */}
-                            {unreadCountMap[item.id || ''] > 0 && (
-                              <span style={{
-                                minWidth: 20,
-                                height: 20,
-                                borderRadius: 10,
-                                backgroundColor: brandPrimary,
-                                color: 'white',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                fontSize: '12px',
-                                marginTop: 4,
-                                padding: '0 6px'
-                              }}>
-                                {unreadCountMap[item.id || '']}
-                              </span>
-                            )}
-                          </div>
+                          {lastMessage && (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                              <Text type="secondary" style={{ fontSize: '12px', color: sidebarSecondaryTextColor }}>
+                                {lastMessageTime}
+                              </Text>
+                              
+                            </div>
+                          )}
                         </List.Item>
                       );
                     }}
