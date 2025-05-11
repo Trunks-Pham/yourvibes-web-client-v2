@@ -1244,7 +1244,13 @@ return (
         
         {/* Reply button - show on hover for any message */}
         {hovering && !message.isTemporary && (
-          <div style={{ display: "flex", alignItems: "center", marginRight: "8px" }}>
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center",
+            marginRight: isMyMessage ? "0" : "8px",
+            marginLeft: isMyMessage ? "8px" : "0",
+            order: isMyMessage ? -1 : 1  
+          }}>
             <div
               style={{
                 cursor: "pointer",
