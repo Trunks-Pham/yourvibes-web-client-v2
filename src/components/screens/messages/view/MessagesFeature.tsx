@@ -1802,8 +1802,6 @@ const MessagesFeature: React.FC = () => {
     markConversationAsRead,
     addConversationMembers,
     leaveConversation,
-    unreadMessageCounts,
-    resetUnreadCount,
     getCurrentUserRole,
     isUserConversationOwner,
   } = useMessagesViewModel();
@@ -1881,7 +1879,6 @@ const MessagesFeature: React.FC = () => {
   useEffect(() => {
     if (currentConversation?.id) {
       markConversationAsRead(currentConversation.id);
-      resetUnreadCount(currentConversation.id);
     }
   }, [currentConversation?.id]);
   

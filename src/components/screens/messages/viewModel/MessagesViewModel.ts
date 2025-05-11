@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useAuth } from "@/context/auth/useAuth";
 import { ConversationResponseModel } from "@/api/features/messages/models/ConversationModel";
 import { FriendResponseModel } from "@/api/features/profile/model/FriendReponseModel";
 import { MessageResponseModel } from "@/api/features/messages/models/MessageModel";
@@ -10,6 +11,7 @@ import { useConversationDetailViewModel } from "./ConversationDetailViewModel";
 import { useWebSocket } from "@/context/socket/useSocket";
 
 export const useMessagesViewModel = () => {
+  const { user, localStrings } = useAuth();
   const messageViewModel = useMessageViewModel();
   const conversationViewModel = useConversationViewModel();
   const conversationDetailViewModel = useConversationDetailViewModel();
@@ -31,7 +33,6 @@ export const useMessagesViewModel = () => {
     searchText, setSearchText, setCurrentConversation,
     fetchConversations, createConversation, updateConversation, 
     deleteConversation, addNewConversation, updateConversationOrder,
-    unreadMessageCounts, incrementUnreadCount, resetUnreadCount
   } = conversationViewModel;
 
   const {
@@ -95,18 +96,35 @@ export const useMessagesViewModel = () => {
     };
   
     addNewMessage(latestMessage.conversation_id, messageModel);
+
+    const conversationToUpdate = conversations.find(conv => conv.id === latestMessage.conversation_id);
+    if (conversationToUpdate) {
+      let formattedLastMessage = latestMessage.content;
+      if (latestMessage.user_id !== user?.id) {
+        const senderName = latestMessage.user ? 
+          `${latestMessage.user.name || ''}: ` : 
+          '';
+        formattedLastMessage = senderName + formattedLastMessage;
+      } else {
+        formattedLastMessage = `${localStrings.Messages.You}: ${formattedLastMessage}`;
+      }
+      
+      const updatedConversation = {
+        ...conversationToUpdate,
+        last_message: formattedLastMessage,
+        last_message_status: currentConversation?.id !== latestMessage.conversation_id,
+        updated_at: new Date().toISOString()
+      };
+      
+      const updatedConversations = conversations.filter(conv => conv.id !== latestMessage.conversation_id);
+      updatedConversations.unshift(updatedConversation); 
+      
+      conversationViewModel.setConversations(updatedConversations);
+    }
     
     updateConversationOrder(latestMessage.conversation_id);
-  
-    if (currentConversation?.id === latestMessage.conversation_id) {
-      setTimeout(() => {
-        messageViewModel.scrollToBottom();
-        markConversationAsRead(latestMessage.conversation_id);
-      }, 1000);
-    } else {
-      incrementUnreadCount(latestMessage.conversation_id);
-    }
-  }, [socketMessages, currentConversation?.id, messages, markConversationAsRead, addNewMessage, updateConversationOrder, incrementUnreadCount, messageViewModel.scrollToBottom]);
+
+  }, [socketMessages, currentConversation?.id, messages, markConversationAsRead, addNewMessage, updateConversationOrder, messageViewModel.scrollToBottom]);
 
   useEffect(() => {
     const handleNewConversation = (event: CustomEvent) => {
@@ -125,9 +143,8 @@ export const useMessagesViewModel = () => {
   useEffect(() => {
     if (currentConversation?.id) {
       markConversationAsRead(currentConversation.id);
-      resetUnreadCount(currentConversation.id);
     }
-  }, [currentConversation?.id, markConversationAsRead, resetUnreadCount]);
+  }, [currentConversation?.id, markConversationAsRead]);
 
   const fetchExistingMembers = useCallback(async (conversationId: string) => {
     const members = await fetchConversationMembers(conversationId);
@@ -148,11 +165,10 @@ export const useMessagesViewModel = () => {
   
     if (conversation.id) {
       markConversationAsRead(conversation.id);
-      resetUnreadCount(conversation.id);
       
       fetchMessages(conversation.id);
     }
-  }, [currentConversation?.id, setCurrentConversation, markConversationAsRead, resetUnreadCount, fetchMessages]);
+  }, [currentConversation?.id, setCurrentConversation, markConversationAsRead, fetchMessages]);
 
   const handleSendMessage = useCallback(() => {
     if (!currentConversation?.id) return;
@@ -218,8 +234,6 @@ return {
   fetchExistingMembers,
   getMessagesForConversation,
   handleSelectConversation,
-  unreadMessageCounts,
-  resetUnreadCount,
   getCurrentUserRole,
   isUserConversationOwner,
 };

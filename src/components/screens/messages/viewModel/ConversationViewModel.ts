@@ -15,7 +15,6 @@ export const useConversationViewModel = () => {
   const [conversationsLoading, setConversationsLoading] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>("");
   const [conversationDetails, setConversationDetails] = useState<Record<string, ConversationDetailResponseModel>>({});
-  const [unreadMessageCounts, setUnreadMessageCounts] = useState<Record<string, number>>({});
   
   const processedConversationsRef = useRef<Set<string>>(new Set());
 
@@ -250,24 +249,6 @@ export const useConversationViewModel = () => {
     });
   }, [currentConversation?.id]);
 
-  const incrementUnreadCount = useCallback((conversationId: string) => {
-    if (!conversationId || conversationId === currentConversation?.id) return;
-    
-    setUnreadMessageCounts(prev => ({
-      ...prev,
-      [conversationId]: (prev[conversationId] || 0) + 1
-    }));
-  }, [currentConversation?.id]);
-
-  const resetUnreadCount = useCallback((conversationId: string) => {
-    if (!conversationId) return;
-    
-    setUnreadMessageCounts(prev => ({
-      ...prev,
-      [conversationId]: 0
-    }));
-  }, []);
-
   return {
     // State
     conversations,
@@ -275,12 +256,10 @@ export const useConversationViewModel = () => {
     conversationsLoading,
     searchText,
     conversationDetails,
-    unreadMessageCounts,
     
     // Setters
     setSearchText,
     setCurrentConversation,
-    setUnreadMessageCounts,
     
     // Actions
     fetchConversations,
@@ -292,7 +271,6 @@ export const useConversationViewModel = () => {
     hasUnreadMessages,
     updateConversationReadStatus,
     markNewMessageUnread,
-    incrementUnreadCount,
-    resetUnreadCount,
+    setConversations,
   };
 };
