@@ -3988,37 +3988,37 @@ const MessagesFeature: React.FC = () => {
             {currentConversation && (
               <>
               {replyToMessage && (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              padding: "8px 12px",
+              backgroundColor: currentTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+              borderRadius: "4px",
+              marginBottom: "8px"
+            }}>
               <div style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "8px 12px",
-                backgroundColor: currentTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                borderRadius: "4px",
-                marginBottom: "8px"
+                flex: 1,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                color: primaryTextColor
               }}>
-                <div style={{
-                  flex: 1,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  color: primaryTextColor
-                }}>
-                  <span style={{ fontWeight: "bold" }}>
-                    {localStrings.Messages.ReplyingTo} 
-                    {replyToMessage.user_id === user?.id ? 
-                      ` ${localStrings.Messages.Yourself}` : 
-                      ` ${replyToMessage.user?.family_name || ''} ${replyToMessage.user?.name || ''}`}:
-                  </span> {" "}
-                  {replyToMessage.content}
-                </div>
-                <Button
-                  type="text"
-                  icon={<CloseOutlined />}
-                  onClick={cancelReply}
-                  style={{ marginLeft: "8px" }}
-                />
+                <span style={{ fontWeight: "bold" }}>
+                  {localStrings.Messages.ReplyingTo} 
+                  {replyToMessage.user_id === user?.id ? 
+                    ` ${localStrings.Messages.Yourself}` : 
+                    ` ${replyToMessage.user?.family_name || ''} ${replyToMessage.user?.name || ''}`}:
+                </span> {" "}
+                {replyToMessage.content}
               </div>
-            )}
+              <Button
+                type="text"
+                icon={<CloseOutlined />}
+                onClick={cancelReply}
+                style={{ marginLeft: "8px" }}
+              />
+            </div>
+          )}
                 <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
                   <Popover
                     content={
