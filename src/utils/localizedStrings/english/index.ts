@@ -8,7 +8,7 @@ export const ENGLocalizedStrings = {
     Back: "Back",
     Save: "Save",
     Close: "Close",
-    Language: "Language: English",
+    Language: "Language:",
     Post: "Post",
     Friend: "Friends",
     Username: "Username",
@@ -93,7 +93,7 @@ export const ENGLocalizedStrings = {
     ConfirmLogoutMessage: "Are you sure you want to log out?",
     ConfirmLogout: "Confirm Logout",
     Logout: "Logout",
-    Theme: "Theme",
+    Theme: "Theme:",
     DarkMode: "Dark Mode",
     LightMode: "Light Mode",
   },
@@ -262,6 +262,8 @@ export const ENGLocalizedStrings = {
     No: "No",
     CommentNotFound: "Comment not found!",
     CommentLimit: "500 characters",
+    LoadMore: "Load more ...",
+    ScrollLoading: "Scroll to load more comments",
   },
   Profile: {
     Posts: {

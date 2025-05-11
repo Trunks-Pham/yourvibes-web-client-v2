@@ -42,7 +42,6 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
     toggleRepliesVisibility,
     handleReplyClick,
     handleShowEditModal,
-    handleOutsideClick,
     setVisibleReplies,
     visibleReplies,
     fetchComments,
@@ -55,7 +54,21 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
     hasMore,
     isPosting,
   } = PostDetailsViewModel(postId || "", defaultPostRepo);
-  const { backgroundColor, brandPrimary, brandPrimaryTap } = useColor();
+  const {
+    theme,
+    brandPrimary,
+    brandPrimaryTap,
+    backgroundColor,
+    lightGray,
+    borderBirth,
+    colorOnl,
+    backGround,
+    borderColor,
+    menuItem,
+    darkSlate,
+    darkGray,
+    backgroundAddPost,
+  } = useColor();
   const [post, setPost] = useState<PostResponseModel | null>(null);
   const [loading, setLoading] = useState(false);
   const { localStrings } = useAuth();
@@ -239,15 +252,15 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 setReplyModalVisible={setReplyModalVisible}
                 setSelectedCommentId={setSelectedCommentId}
                 postId={postId || ""}
-                likeCount={likeCount}
+                likeCount={likeCount || 0}
               />
             ))}
             {hasMore && (
               <div ref={observerRef} className="text-center py-4">
                 {isLoading ? (
-                  <Spin tip="Đang tải..." />
+                  <Spin tip={localStrings.PostDetails.LoadMore}/>
                 ) : (
-                  "Cuộn để tải thêm bình luận"
+                  <Text style={{ color: brandPrimary }}>{localStrings.PostDetails.ScrollLoading}</Text>
                 )}
               </div>
             )}
@@ -255,7 +268,7 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
           <div className="add-comment mt-2">
             <div className="relative">
               <textarea
-                className="comment-input w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm pr-10"
+                className="comment-input w-full p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm pr-10"
                 placeholder={
                   replyToCommentId || replyToReplyId
                     ? `${localStrings.Public.ReplyClick}`
@@ -264,10 +277,15 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 value={newComment}
                 onChange={handleTextChange}
                 disabled={isPosting}
+                style={{
+                  backgroundColor: backgroundAddPost,
+                  color: brandPrimary,
+                  border: `1px solid ${borderColor}`,
+                }}
               />
               <Text
                 type={newComment.length > 500 ? "danger" : "secondary"}
-                style={{ float: "right", marginTop: 4 }}
+                style={{ float: "right", marginTop: 4, color: newComment.length > 500 ? borderBirth : darkGray }}
               >
                 {newComment.length}/{localStrings.PostDetails.CommentLimit}
               </Text>
@@ -276,8 +294,14 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                 onClick={() =>
                   setShowEmojiPicker((prev) => ({ ...prev, comment: !prev.comment }))
                 }
-                className="absolute right-3 top-4 text-lg bg-gray-200 rounded-full hover:bg-gray-300 p-1"
+                className="absolute right-3 top-4 text-lg rounded-full p-1"
                 disabled={isPosting}
+                style={{
+                  backgroundColor: lightGray,
+                  color: brandPrimary,
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = darkGray)}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = lightGray)}
               >
                 😊
               </button>
@@ -285,7 +309,8 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
             {showEmojiPicker.comment && (
               <div
                 ref={emojiPickerRefComment}
-                className="absolute bottom-1 xl:top-1 right-3 z-10 bg-white border border-gray-300 rounded-lg shadow-md"
+                className="absolute bottom-1 xl:top-1 right-3 z-10 rounded-lg shadow-md"
+                style={{ backgroundColor: backgroundColor, border: `1px solid ${borderColor}` }}
               >
                 <EmojiPicker
                   onEmojiClick={(emojiObject) => handleEmojiClick(emojiObject)}
@@ -297,9 +322,22 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
             <div className="relative">
               <button
                 onClick={handlePostAction}
-                className="post-btn mt-4 w-full py-2 rounded-lg hover:bg-gray-200 transition duration-300"
+                className="post-btn mt-4 w-full py-2 rounded-lg transition duration-300"
                 disabled={!isContentLengthValid(newComment) || isPosting}
-                style={{ backgroundColor: brandPrimary, color: backgroundColor }}
+                style={{
+                  backgroundColor: isContentLengthValid(newComment) && !isPosting ? brandPrimary : darkGray,
+                  color: backgroundColor,
+                }}
+                onMouseEnter={(e) =>
+                  isContentLengthValid(newComment) && !isPosting
+                    ? (e.currentTarget.style.backgroundColor = brandPrimaryTap)
+                    : null
+                }
+                onMouseLeave={(e) =>
+                  isContentLengthValid(newComment) && !isPosting
+                    ? (e.currentTarget.style.backgroundColor = brandPrimary)
+                    : null
+                }
               >
                 {isPosting ? (
                   <Spin size="small" tip="Đang đăng bình luận..." />
@@ -331,21 +369,44 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
               }}
               cancelText={localStrings.Public.Cancel}
               okText={localStrings.Public.Reply}
-              okButtonProps={{ disabled: !isContentLengthValid(replyContent) || isPosting }}
-              styles={{ body: { padding: "16px" } }}
+              okButtonProps={{
+                disabled: !isContentLengthValid(replyContent) || isPosting,
+                style: {
+                  backgroundColor: isContentLengthValid(replyContent) && !isPosting ? brandPrimary : darkGray,
+                  color: backgroundColor,
+                  border: "none",
+                },
+              }}
+              cancelButtonProps={{
+                style: {
+                  backgroundColor: menuItem,
+                  color: brandPrimary,
+                  border: `1px solid ${borderColor}`,
+                },
+              }}
+              styles={{
+                body: { padding: "16px", backgroundColor: backgroundColor },
+                header: { backgroundColor: backgroundColor, color: brandPrimary },
+                content: { backgroundColor: backgroundColor },
+              }}
             >
               <div className="relative">
                 <textarea
-                  className="comment-input w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="comment-input w-full p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   value={replyContent}
                   placeholder={`${localStrings.Public.ReplyClick}`}
                   onChange={(e) => setReplyContent(e.target.value)}
-                  style={{ border: "0.5px solid gray", width: "100%" }}
                   disabled={isPosting}
+                  style={{
+                    backgroundColor: backgroundAddPost,
+                    color: brandPrimary,
+                    border: `1px solid ${borderColor}`,
+                    width: "100%",
+                  }}
                 />
                 <Text
                   type={replyContent.length > 500 ? "danger" : "secondary"}
-                  style={{ float: "right", marginTop: 4 }}
+                  style={{ float: "right", marginTop: 4, color: replyContent.length > 500 ? borderBirth : darkGray }}
                 >
                   {replyContent.length}/{localStrings.PostDetails.CommentLimit}
                 </Text>
@@ -354,8 +415,14 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                   onClick={() =>
                     setShowEmojiPicker((prev) => ({ ...prev, reply: !prev.reply }))
                   }
-                  className="absolute right-3 top-4 text-lg bg-gray-200 rounded-full hover:bg-gray-300 p-1"
+                  className="absolute right-3 top-4 text-lg rounded-full p-1"
                   disabled={isPosting}
+                  style={{
+                    backgroundColor: lightGray,
+                    color: brandPrimary,
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = darkGray)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = lightGray)}
                 >
                   😊
                 </button>
@@ -363,7 +430,8 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
               {showEmojiPicker.reply && (
                 <div
                   ref={emojiPickerRefReply}
-                  className="absolute left-5 z-10 bg-white border border-gray-300 rounded-lg shadow-md"
+                  className="absolute left-5 z-10 rounded-lg shadow-md"
+                  style={{ backgroundColor: backgroundColor, border: `1px solid ${borderColor}` }}
                 >
                   <EmojiPicker
                     onEmojiClick={(emojiObject) => handleEmojiClickReply(emojiObject)}
@@ -391,19 +459,46 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                   setEditModalVisible(false);
                 }
               }}
-              okButtonProps={{ disabled: !isContentLengthValid(editCommentContent) }}
-              styles={{ body: { padding: "16px" } }}
+              okButtonProps={{
+                disabled: !isContentLengthValid(editCommentContent),
+                style: {
+                  backgroundColor: isContentLengthValid(editCommentContent) ? brandPrimary : darkGray,
+                  color: backgroundColor,
+                  border: "none",
+                },
+              }}
+              cancelButtonProps={{
+                style: {
+                  backgroundColor: menuItem,
+                  color: brandPrimary,
+                  border: `1px solid ${borderColor}`,
+                },
+              }}
+              styles={{
+                body: { padding: "16px", backgroundColor: backgroundColor },
+                header: { backgroundColor: backgroundColor, color: brandPrimary },
+                content: { backgroundColor: backgroundColor },
+              }}
             >
               <div className="relative">
                 <textarea
-                  className="comment-input w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="comment-input w-full p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   value={editCommentContent}
                   onChange={(e) => setEditCommentContent(e.target.value)}
-                  style={{ border: "1px solid gray", width: "100%" }}
+                  style={{
+                    backgroundColor: backgroundAddPost,
+                    color: brandPrimary,
+                    border: `1px solid ${borderColor}`,
+                    width: "100%",
+                  }}
                 />
                 <Text
                   type={editCommentContent.length > 500 ? "danger" : "secondary"}
-                  style={{ float: "right", marginTop: 4 }}
+                  style={{
+                    float: "right",
+                    marginTop: 4,
+                    color: editCommentContent.length > 500 ? borderBirth : darkGray,
+                  }}
                 >
                   {editCommentContent.length}/{localStrings.PostDetails.CommentLimit}
                 </Text>
@@ -415,7 +510,13 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
                       editCommet: !prev.editCommet,
                     }))
                   }
-                  className="absolute right-3 top-4 text-lg bg-gray-200 rounded-full hover:bg-gray-300 p-1"
+                  className="absolute right-3 top-4 text-lg rounded-full p-1"
+                  style={{
+                    backgroundColor: lightGray,
+                    color: brandPrimary,
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = darkGray)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = lightGray)}
                 >
                   😊
                 </button>
@@ -423,7 +524,8 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
               {showEmojiPicker.editCommet && (
                 <div
                   ref={emojiPickerRefEditComment}
-                  className="absolute left-5 z-10 bg-white border border-gray-300 rounded-lg shadow-md"
+                  className="absolute left-5 z-10 rounded-lg shadow-md"
+                  style={{ backgroundColor: backgroundColor, border: `1px solid ${borderColor}` }}
                 >
                   <EmojiPicker
                     onEmojiClick={(emojiObject) => handleEmojiClickEdit(emojiObject)}
@@ -440,7 +542,11 @@ const PostDetailsScreen: React.FC<CommentsScreenProps> = ({ postId, isModal }) =
             open={showModal}
             onCancel={() => setShowModal(false)}
             footer={null}
-            styles={{ body: { padding: "16px" } }}
+            styles={{
+              body: { padding: "16px", backgroundColor: backgroundColor },
+              header: { backgroundColor: backgroundColor, color: brandPrimary },
+              content: { backgroundColor: backgroundColor },
+            }}
           >
             <ReportScreen commentId={currentCommentId} setShowModal={setShowModal} />
           </Modal>

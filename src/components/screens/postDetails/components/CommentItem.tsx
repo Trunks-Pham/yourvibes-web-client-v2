@@ -3,7 +3,6 @@ import { Avatar, Col, Row } from "antd";
 import { FaEdit, FaHeart, FaReply, FaTrash, FaFlag } from "react-icons/fa";
 import { useAuth } from "@/context/auth/useAuth";
 import useColor from "@/hooks/useColor";
-import EmojiPicker from "emoji-picker-react";
 
 interface CommentItemProps {
   comment: any;
@@ -23,7 +22,7 @@ interface CommentItemProps {
   setReplyModalVisible: (visible: boolean) => void;
   setSelectedCommentId: (id: string) => void;
   postId: string;
-  likeCount: { [key: string]: number }; // Thay đổi thành object
+  likeCount: { [key: string]: number };
 }
 
 const CommentItem: React.FC<CommentItemProps> = ({
@@ -48,7 +47,12 @@ const CommentItem: React.FC<CommentItemProps> = ({
 }) => {
   const { user } = useAuth();
   const userId = user?.id;
-  const { brandPrimaryTap } = useColor();
+  const {
+    brandPrimary,
+    brandPrimaryTap,
+    backgroundAddPost,
+    borderColor,
+  } = useColor();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef(null);
 
@@ -65,20 +69,33 @@ const CommentItem: React.FC<CommentItemProps> = ({
   const { localStrings } = useAuth();
 
   return (
-    <div className="comment-item bg-gray-50 p-4 rounded-lg shadow-sm text-sm hover:shadow-md">
+    <div
+      className="comment-item p-4 rounded-lg shadow-sm text-sm hover:shadow-md"
+      style={{ backgroundColor: backgroundAddPost }}
+    >
       <div className="comment-header flex items-center mb-3">
         <Avatar src={comment.user.avatar_url} size={{ xs: 40, sm: 40, md: 40, lg: 40, xl: 40, xxl: 40 }} />
         <div className="ml-3">
-          <p className="text-gray-800 font-semibold">
+          <p className="font-semibold" style={{ color: brandPrimary }}>
             {comment.user.family_name} {comment.user.name}
           </p>
-          <p className="text-gray-500 text-xs">
-            {new Date(comment.created_at).toLocaleString()}
+          <p className="text-xs" style={{ color: brandPrimaryTap }}>
+            {new Date(comment.created_at).toLocaleString('vi-VN', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: false
+            })}
           </p>
         </div>
       </div>
       <div className="comment-content">
-        <p className="text-gray-800 mb-3">{comment.content}</p>
+        <p className="mb-3" style={{ color: brandPrimary }}>
+          {comment.content}
+        </p>
         <div className="comment-actions flex space-x-4 text-xs">
           <Row>
             <Col
@@ -88,31 +105,34 @@ const CommentItem: React.FC<CommentItemProps> = ({
             >
               <FaHeart
                 size={16}
-                color={heartColors[comment.id] || "gray"}
+                color={heartColors[comment.id] || brandPrimary}
                 style={{
-                  stroke: "black",
+                  stroke: brandPrimary,
                   strokeWidth: 2,
                   marginRight: 5,
                 }}
                 onClick={() => handleLike(comment.id)}
               />
-              <span
-                style={{
-                  color: brandPrimaryTap,
-                  fontSize: 12,
-                  opacity: 0.5,
-                }}
-              >
-                {likeCount[comment.id]}
-              </span>
+              {likeCount[comment.id] > 0 && (
+                <span
+                  style={{
+                    color: brandPrimary,
+                    fontSize: 12,
+                    opacity: 0.5,
+                  }}
+                >
+                  {likeCount[comment.id]}
+                </span>
+              )}
+
             </Col>
             {userId === comment.user?.id ? (
               <Col span={4} className="hover:cursor-pointer">
                 <FaTrash
                   size={16}
-                  color="gray"
+                  color={"gray"}
                   style={{
-                    stroke: "black",
+                    stroke: brandPrimary,
                     strokeWidth: 2,
                     marginRight: 50,
                   }}
@@ -124,9 +144,9 @@ const CommentItem: React.FC<CommentItemProps> = ({
               {userId === comment.user?.id ? (
                 <FaEdit
                   size={16}
-                  color="gray"
+                  color={"gray"}
                   style={{
-                    stroke: "black",
+                    stroke: brandPrimary,
                     strokeWidth: 2,
                     marginRight: 50,
                   }}
@@ -137,9 +157,9 @@ const CommentItem: React.FC<CommentItemProps> = ({
               ) : (
                 <FaFlag
                   size={16}
-                  color="gray"
+                  color={"gray"}
                   style={{
-                    stroke: "black",
+                    stroke: brandPrimary,
                     strokeWidth: 2,
                     marginRight: 50,
                   }}
@@ -150,9 +170,9 @@ const CommentItem: React.FC<CommentItemProps> = ({
             <Col span={4} className="hover:cursor-pointer">
               <FaReply
                 size={16}
-                color="gray"
+                color={"gray"}
                 style={{
-                  stroke: "black",
+                  stroke: brandPrimary,
                   strokeWidth: 2,
                   marginRight: 50,
                 }}
@@ -168,7 +188,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
       </div>
       <div
         onClick={handleClickOutside}
-        className="replies pl-6 mt-3 border-l-2 border-gray-200"
+        className="replies pl-6 mt-3 border-l-2"
+        style={{ borderColor: borderColor }}
       >
         {replyMap[comment.id]?.length > 0 && (
           <button
@@ -178,7 +199,10 @@ const CommentItem: React.FC<CommentItemProps> = ({
                 fetchReplies(postId, comment.id);
               }
             }}
-            className="show-replies-btn text-blue-500 text-xs mb-2"
+            className="show-replies-btn text-xs mb-2"
+            style={{ color: "gray" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = brandPrimaryTap)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = brandPrimary)}
           >
             {visibleReplies[comment.id]
               ? `${localStrings.PostDetails.HideReplies}`
@@ -206,7 +230,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
               setReplyModalVisible={setReplyModalVisible}
               setSelectedCommentId={setSelectedCommentId}
               postId={postId}
-              likeCount={{ [reply.id]: likeCount[reply.id] || 0 }}
+              likeCount={{ [reply.id]: likeCount[reply.id] }}
             />
           ))}
       </div>
