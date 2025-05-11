@@ -382,7 +382,7 @@ export const useMessageViewModel = () => {
     }
   }, [currentConversationId, messagesLoading, isMessagesEnd, loadMoreMessages]);
 
-const sendMessage = useCallback(async () => {
+  const sendMessage = useCallback(async () => {
     if (!user?.id || !currentConversationId || !messageText.trim()) {
         return;
     }
@@ -423,25 +423,20 @@ const sendMessage = useCallback(async () => {
         isTemporary: true
     };
     
-    // Add temporary message to the UI immediately
-    setMessagesByConversation(prev => {
-        const conversationMessages = prev[currentConversationId] || [];
-        const updatedMessages = [...conversationMessages, tempMessage].sort(
-            (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
-        );
-        
-        if (currentConversationId === currentConversationId) {
-            const processedMessages = processMessagesWithDateSeparators(updatedMessages);
-            setMessages(processedMessages);
-        }
-        
-        return {
-            ...prev,
-            [currentConversationId]: updatedMessages
-        };
-    });
-    
     scrollToBottom();
+    
+    const messageData = {
+        content: messageContent,
+        conversation_id: currentConversationId,
+        user_id: user.id,
+        user: {
+            id: user.id,
+            name: user.name,
+            family_name: user.family_name,
+            avatar_url: user.avatar_url
+        },
+        created_at: new Date().toISOString()
+    };
     
     try {
         const createMessageData = {
@@ -489,17 +484,6 @@ const sendMessage = useCallback(async () => {
                     [currentConversationId]: updatedMessages
                 };
             });
-            
-            // Important: Update the conversation's last_message in the conversations list
-            // This is the part that needs to be added to update the sidebar
-            const updateEvent = new CustomEvent('update_conversation', {
-                detail: {
-                    conversationId: currentConversationId,
-                    lastMessage: messageContent,
-                    lastMessageStatus: true
-                }
-            });
-            window.dispatchEvent(updateEvent);
         }
     } catch (error) {
         console.error("Error sending message:", error);
@@ -507,7 +491,7 @@ const sendMessage = useCallback(async () => {
     }
 }, [
     user, currentConversationId, messageText, messagesByConversation,
-    markMessageAsProcessed, processMessagesWithDateSeparators, notifyMessageListeners,
+    markMessageAsProcessed, processMessagesWithDateSeparators, notifyMessageListeners
 ]);
 
 const deleteMessage = useCallback(async (messageId: string) => {
