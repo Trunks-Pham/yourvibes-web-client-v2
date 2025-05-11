@@ -48,7 +48,6 @@ export const useMessagesViewModel = () => {
     if (currentConversation?.id) {
       fetchMessages(currentConversation.id, 1, false);
       
-      // Fix: Mark conversation as read when selecting it
       if (currentConversation.last_message_status) {
         markConversationAsRead(currentConversation.id);
       }
