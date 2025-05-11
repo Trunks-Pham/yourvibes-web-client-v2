@@ -33,6 +33,7 @@ export const useMessagesViewModel = () => {
     searchText, setSearchText, setCurrentConversation,
     fetchConversations, createConversation, updateConversation, 
     deleteConversation, addNewConversation, updateConversationOrder,
+    setConversations,
   } = conversationViewModel;
 
   const {
@@ -46,6 +47,11 @@ export const useMessagesViewModel = () => {
   useEffect(() => {
     if (currentConversation?.id) {
       fetchMessages(currentConversation.id, 1, false);
+      
+      // Fix: Mark conversation as read when selecting it
+      if (currentConversation.last_message_status) {
+        markConversationAsRead(currentConversation.id);
+      }
     }
   }, [currentConversation?.id, fetchMessages]);
 
@@ -57,6 +63,19 @@ export const useMessagesViewModel = () => {
     
     return unsubscribe;
   }, [currentConversation?.id, addMessageListener]);
+
+  const markConversationAsRead = useCallback(async (conversationId: string) => {
+    if (!conversationId) return;
+
+    setConversations(prevConversations => 
+      prevConversations.map(conv => 
+        conv.id === conversationId 
+          ? { ...conv, last_message_status: false } 
+          : conv
+      )
+    );
+
+  }, [setConversations]);
 
   useEffect(() => {
     if (!socketMessages.length) return;
@@ -108,18 +127,22 @@ export const useMessagesViewModel = () => {
       } else {
         formattedLastMessage = `${localStrings.Messages.You}: ${formattedLastMessage}`;
       }
+
+      const shouldMarkAsUnread = 
+        latestMessage.user_id !== user?.id && 
+        currentConversation?.id !== latestMessage.conversation_id;
       
       const updatedConversation = {
         ...conversationToUpdate,
         last_message: formattedLastMessage,
-        last_message_status: currentConversation?.id !== latestMessage.conversation_id,
+        last_message_status: shouldMarkAsUnread,
         updated_at: new Date().toISOString()
       };
       
       const updatedConversations = conversations.filter(conv => conv.id !== latestMessage.conversation_id);
       updatedConversations.unshift(updatedConversation); 
       
-      conversationViewModel.setConversations(updatedConversations);
+      setConversations(updatedConversations);
     }
     
     updateConversationOrder(latestMessage.conversation_id);
@@ -127,9 +150,13 @@ export const useMessagesViewModel = () => {
     if (currentConversation?.id === latestMessage.conversation_id) {
       setTimeout(() => {
         messageViewModel.scrollToBottom();
+
+        if (latestMessage.user_id !== user?.id) {
+          markConversationAsRead(latestMessage.conversation_id);
+        }
       }, 100);
     }
-  }, [socketMessages, currentConversation?.id, messages, addNewMessage, updateConversationOrder, messageViewModel.scrollToBottom]);
+  }, [socketMessages, currentConversation?.id, messages, addNewMessage, updateConversationOrder, messageViewModel.scrollToBottom, user?.id, markConversationAsRead]);
 
   useEffect(() => {
     const handleNewConversation = (event: CustomEvent) => {
@@ -168,71 +195,75 @@ export const useMessagesViewModel = () => {
     setCurrentConversation(conversation);
   
     if (conversation.id) {
-      
       fetchMessages(conversation.id);
+      
+      if (conversation.last_message_status) {
+        markConversationAsRead(conversation.id);
+      }
     }
-  }, [currentConversation?.id, setCurrentConversation, fetchMessages]);
+  }, [currentConversation?.id, setCurrentConversation, fetchMessages, markConversationAsRead]);
 
   const handleSendMessage = useCallback(() => {
     if (!currentConversation?.id) return;
     return sendMessage();
   }, [currentConversation?.id, sendMessage]);
 
-const handleLoadMoreMessages = useCallback(() => {
-  if (!currentConversation?.id) return;
-  return loadMoreMessages();
-}, [currentConversation?.id, loadMoreMessages]);
+  const handleLoadMoreMessages = useCallback(() => {
+    if (!currentConversation?.id) return;
+    return loadMoreMessages();
+  }, [currentConversation?.id, loadMoreMessages]);
 
-const handleScrollMessages = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-  if (!currentConversation?.id) return;
-  
-  handleScroll(e);
-}, [currentConversation?.id, handleScroll]);
+  const handleScrollMessages = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (!currentConversation?.id) return;
+    
+    handleScroll(e);
+  }, [currentConversation?.id, handleScroll]);
 
-useEffect(() => {
-  return () => {
-    processedSocketMessagesRef.current.clear();
-    setExistingMembers([]);
-    setExistingMemberIds([]);
+  useEffect(() => {
+    return () => {
+      processedSocketMessagesRef.current.clear();
+      setExistingMembers([]);
+      setExistingMemberIds([]);
+    };
+  }, []);
+
+  return {
+    // State
+    messages,
+    messagesLoading,
+    messageText,
+    isMessagesEnd,
+    messageListRef,
+    initialMessagesLoaded,
+    conversations,
+    currentConversation,
+    conversationsLoading,
+    searchText,
+    existingMembers,
+    existingMemberIds,
+    
+    // Setters
+    setSearchText,
+    setMessageText,
+    setCurrentConversation,
+
+    // Actions
+    fetchConversations,
+    fetchMessages,
+    sendMessage: handleSendMessage,
+    deleteMessage,
+    createConversation,
+    updateConversation,
+    deleteConversation,
+    loadMoreMessages: handleLoadMoreMessages,
+    handleScroll: handleScrollMessages,
+    addConversationMembers,
+    leaveConversation,
+    fetchExistingMembers,
+    getMessagesForConversation,
+    handleSelectConversation,
+    getCurrentUserRole,
+    isUserConversationOwner,
+    markConversationAsRead,
   };
-}, []);
-
-return {
-  // State
-  messages,
-  messagesLoading,
-  messageText,
-  isMessagesEnd,
-  messageListRef,
-  initialMessagesLoaded,
-  conversations,
-  currentConversation,
-  conversationsLoading,
-  searchText,
-  existingMembers,
-  existingMemberIds,
-  
-  // Setters
-  setSearchText,
-  setMessageText,
-  setCurrentConversation,
-
-  // Actions
-  fetchConversations,
-  fetchMessages,
-  sendMessage: handleSendMessage,
-  deleteMessage,
-  createConversation,
-  updateConversation,
-  deleteConversation,
-  loadMoreMessages: handleLoadMoreMessages,
-  handleScroll: handleScrollMessages,
-  addConversationMembers,
-  leaveConversation,
-  fetchExistingMembers,
-  getMessagesForConversation,
-  handleSelectConversation,
-  getCurrentUserRole,
-  isUserConversationOwner,
-};
 };

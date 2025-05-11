@@ -57,7 +57,6 @@ export interface MessageResponseModel {
     created_at?: string,
           
     isTemporary?: boolean,        
-    reply_to?: MessageResponseModel 
 
     fromServer?: boolean,
 
