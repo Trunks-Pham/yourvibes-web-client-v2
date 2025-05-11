@@ -2,17 +2,9 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { message } from "antd";
 
 import { useAuth } from "@/context/auth/useAuth";
-import { useWebSocket } from "@/context/socket/useSocket";
 
 import { defaultMessagesRepo } from "@/api/features/messages/MessagesRepo";
 import { MessageResponseModel, MessageWebSocketResponseModel } from "@/api/features/messages/models/MessageModel";
-
-// interface ExtendedMessageResponseModel extends MessageResponseModel {
-//   isDateSeparator?: boolean;
-// }
-
-// type MessageWithDate = ExtendedMessageResponseModel;
-
 
 export const useMessageViewModel = () => {
   const { user, localStrings } = useAuth();
@@ -383,6 +375,8 @@ export const useMessageViewModel = () => {
     }
   }, [currentConversationId, messagesLoading, isMessagesEnd, loadMoreMessages]);
 
+  
+
 const sendMessage = useCallback(async (replyToMessage?: MessageResponseModel | null) => {
     if (!user?.id || !currentConversationId || !messageText.trim()) {
         return;
@@ -407,6 +401,30 @@ const sendMessage = useCallback(async (replyToMessage?: MessageResponseModel | n
         return;
     }
     
+    let parentId = replyToMessage?.id;
+    let parentContent = replyToMessage?.content;
+    
+    if (replyToMessage && replyToMessage.id && 
+        (replyToMessage.id.startsWith('ws-') || replyToMessage.id.startsWith('temp-'))) {
+        
+        const matchingMessage = currentMessages.find(msg => 
+            msg.id && !msg.id.startsWith('ws-') && !msg.id.startsWith('temp-') && 
+            msg.user_id === replyToMessage.user_id && 
+            msg.content === replyToMessage.content &&
+            Math.abs(new Date(msg.created_at || "").getTime() - 
+                  new Date(replyToMessage.created_at || "").getTime()) < 5000
+        );
+        
+        if (matchingMessage) {
+            parentId = matchingMessage.id;
+            parentContent = matchingMessage.content;
+        } else {
+            console.warn('No valid server ID found for the message to reply to.');
+            parentId = undefined;
+            parentContent = undefined;
+        }
+    }
+    
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     
     const tempMessage: MessageResponseModel = {
@@ -422,9 +440,8 @@ const sendMessage = useCallback(async (replyToMessage?: MessageResponseModel | n
         content: messageContent,
         created_at: new Date().toISOString(),
         isTemporary: true,
-        // Add reply information if replying to a message
-        parent_id: replyToMessage?.id,
-        parent_content: replyToMessage?.content
+        parent_id: parentId,
+        parent_content: parentContent
     };
     
     scrollToBottom();
@@ -439,9 +456,8 @@ const sendMessage = useCallback(async (replyToMessage?: MessageResponseModel | n
                 family_name: user.family_name,
                 avatar_url: user.avatar_url
             },
-            // Add reply information
-            parent_id: replyToMessage?.id,
-            parent_content: replyToMessage?.content
+            parent_id: parentId,
+            parent_content: parentContent
         };
         
         const response = await defaultMessagesRepo.createMessage(createMessageData);
