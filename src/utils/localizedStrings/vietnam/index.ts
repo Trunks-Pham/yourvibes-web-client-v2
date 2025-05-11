@@ -528,6 +528,8 @@ export const VnLocalizedStrings = {
     ConversationAlreadyExists: "Cuộc trò chuyện đã tồn tại",
     GroupNameTooLong:"Tên cuộc trò chuyện không quá 30 ký tự",
     ConversationCreated: "Đã tạo cuộc trò chuyện",
+    ReplyingTo: "Trả lời",
+    Yourself: "Chính bạn",
 
   },
   People: {

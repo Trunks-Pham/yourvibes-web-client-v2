@@ -383,7 +383,7 @@ export const useMessageViewModel = () => {
     }
   }, [currentConversationId, messagesLoading, isMessagesEnd, loadMoreMessages]);
 
-  const sendMessage = useCallback(async () => {
+const sendMessage = useCallback(async (replyToMessage?: MessageResponseModel | null) => {
     if (!user?.id || !currentConversationId || !messageText.trim()) {
         return;
     }
@@ -421,23 +421,13 @@ export const useMessageViewModel = () => {
         conversation_id: currentConversationId,
         content: messageContent,
         created_at: new Date().toISOString(),
-        isTemporary: true
+        isTemporary: true,
+        // Add reply information if replying to a message
+        parent_id: replyToMessage?.id,
+        parent_content: replyToMessage?.content
     };
     
     scrollToBottom();
-    
-    const messageData = {
-        content: messageContent,
-        conversation_id: currentConversationId,
-        user_id: user.id,
-        user: {
-            id: user.id,
-            name: user.name,
-            family_name: user.family_name,
-            avatar_url: user.avatar_url
-        },
-        created_at: new Date().toISOString()
-    };
     
     try {
         const createMessageData = {
@@ -448,7 +438,10 @@ export const useMessageViewModel = () => {
                 name: user.name,
                 family_name: user.family_name,
                 avatar_url: user.avatar_url
-            }
+            },
+            // Add reply information
+            parent_id: replyToMessage?.id,
+            parent_content: replyToMessage?.content
         };
         
         const response = await defaultMessagesRepo.createMessage(createMessageData);

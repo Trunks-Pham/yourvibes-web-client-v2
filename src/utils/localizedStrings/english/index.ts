@@ -535,7 +535,8 @@ export const ENGLocalizedStrings = {
     ConversationAlreadyExists: "Conversation Already Exists",
     GroupNameTooLong:"Group Name Must Not Exceed 30 characters",
     ConversationCreated: "Conversation Created",
-
+    ReplyingTo: "Replying to",
+    Yourself: "yourself",
   },
   People: {
     FetchUsersFailed: "Failed to fetch users!",

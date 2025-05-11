@@ -203,9 +203,9 @@ export const useMessagesViewModel = () => {
     }
   }, [currentConversation?.id, setCurrentConversation, fetchMessages, markConversationAsRead]);
 
-  const handleSendMessage = useCallback(() => {
+  const handleSendMessage = useCallback((replyToMessage?: MessageResponseModel | null) => {
     if (!currentConversation?.id) return;
-    return sendMessage();
+      return sendMessage(replyToMessage);
   }, [currentConversation?.id, sendMessage]);
 
   const handleLoadMoreMessages = useCallback(() => {

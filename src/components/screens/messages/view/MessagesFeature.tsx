@@ -9,7 +9,7 @@ import { FriendResponseModel } from '@/api/features/profile/model/FriendReponseM
 import { useAuth } from '@/context/auth/useAuth';
 import { useWebSocket } from '@/context/socket/useSocket';
 import useColor from '@/hooks/useColor';
-import { EllipsisOutlined, DeleteOutlined, InboxOutlined, SendOutlined, SearchOutlined, ArrowLeftOutlined, PlusOutlined, SmileOutlined, VideoCameraOutlined, CloseOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { EllipsisOutlined, DeleteOutlined, InboxOutlined, SendOutlined, SearchOutlined, ArrowLeftOutlined, PlusOutlined, SmileOutlined, VideoCameraOutlined, CloseOutlined, InfoCircleOutlined, CommentOutlined } from '@ant-design/icons';
 import { Empty, Layout, Skeleton, Typography, Popover, Menu, Dropdown, Popconfirm, Input, Button, Upload, Modal, Form, List, Avatar, Spin, message, Checkbox, Tabs } from 'antd';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useSearchParams } from 'next/navigation';
@@ -1137,9 +1137,10 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
 interface MessageItemProps {
   message: MessageResponseModel;
   onDelete: (messageId: string) => void;
+  onReply: (message: MessageResponseModel) => void;
 }
 
-const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
+const MessageItem = React.memo<MessageItemProps>(({ message, onDelete, onReply }) => {
   const { user, localStrings, theme } = useAuth();
   const { brandPrimary, lightGray } = useColor();
   const [hovering, setHovering] = useState(false);
@@ -1198,28 +1199,52 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
     }
   ];
   
-  return (
+return (
     <div 
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
       style={{ 
         width: "100%", 
         display: "flex", 
-        alignItems: "center", 
+        alignItems: isMyMessage ? "flex-end" : "flex-start",
         justifyContent: isMyMessage ? "flex-end" : "flex-start",
-        marginBottom: "16px"
+        marginBottom: "16px",
+        flexDirection: "column"
       }}
     >
-      {/* Delete button - only shown for the user's own messages */}
-      {isMyMessage && hovering && !message.isTemporary && (
-        <div style={{ display: "flex", alignItems: "center", marginRight: "8px" }}>
-          <Popconfirm
-            title={localStrings.Messages.ConfirmDeleteMessage}
-            onConfirm={handleDelete}
-            okText={localStrings.Public.Yes}
-            cancelText={localStrings.Public.No}
-            trigger="click"
-          >
+      <div style={{ 
+        width: "100%",
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: isMyMessage ? "flex-end" : "flex-start"
+      }}>
+        {/* Delete button - only shown for the user's own messages */}
+        {isMyMessage && hovering && !message.isTemporary && (
+          <div style={{ display: "flex", alignItems: "center", marginRight: "8px" }}>
+            <Popconfirm
+              title={localStrings.Messages.ConfirmDeleteMessage}
+              onConfirm={handleDelete}
+              okText={localStrings.Public.Yes}
+              cancelText={localStrings.Public.No}
+              trigger="click"
+            >
+              <div
+                style={{
+                  cursor: "pointer",
+                  padding: 4,
+                  borderRadius: "50%",
+                  background: deleteButtonBackground
+                }}
+              >
+                <DeleteOutlined style={{ fontSize: 16, color: themeColors.icons[currentTheme].delete }} />
+              </div>
+            </Popconfirm>
+          </div>
+        )}
+        
+        {/* Reply button - show on hover for any message */}
+        {hovering && !message.isTemporary && (
+          <div style={{ display: "flex", alignItems: "center", marginRight: "8px" }}>
             <div
               style={{
                 cursor: "pointer",
@@ -1227,75 +1252,95 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete }) => {
                 borderRadius: "50%",
                 background: deleteButtonBackground
               }}
+              onClick={() => onReply(message)}
             >
-              <DeleteOutlined style={{ fontSize: 16, color: themeColors.icons[currentTheme].delete }} />
+              <CommentOutlined style={{ fontSize: 16, color: themeColors.icons[currentTheme].action }} />
             </div>
-          </Popconfirm>
-        </div>
-      )}
-      
-      {/* Avatar - only shown for messages from others */}
-      {!isMyMessage && (
-        <Avatar 
-          src={message.user?.avatar_url} 
-          size={32}
-          style={{ 
-            marginRight: "8px", 
-            flexShrink: 0,
-            backgroundColor: avatarBackground
-          }}
-        >
-          {!message.user?.avatar_url && message.user?.name?.charAt(0)}
-        </Avatar>
-      )}
-      
-      {/* Message bubble */}
-      <div style={{
-        maxWidth: "50%",
-        padding: "8px 12px",
-        borderRadius: "12px",
-        background: messageBackground,
-        color: messageColor,
-        overflow: "hidden",
-        wordWrap: "break-word",
-        border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
-      }}>
-        {/* Sender name - only shown for messages from others */}
-        {!isMyMessage && (
-          <div style={{ 
-            fontSize: 12, 
-            marginBottom: 2, 
-            fontWeight: "bold", 
-            color: messageColor
-          }}>
-            {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
           </div>
         )}
         
-        {/* Message content */}
-        <div style={{ 
-          whiteSpace: "pre-wrap", 
-          wordBreak: "break-word", 
-          color: messageColor
-        }}>
-          {message.content}
-        </div>
+        {/* Avatar - only shown for messages from others */}
+        {!isMyMessage && (
+          <Avatar 
+            src={message.user?.avatar_url} 
+            size={32}
+            style={{ 
+              marginRight: "8px", 
+              flexShrink: 0,
+              backgroundColor: avatarBackground
+            }}
+          >
+            {!message.user?.avatar_url && message.user?.name?.charAt(0)}
+          </Avatar>
+        )}
         
-        {/* Timestamp */}
-        <div style={{ fontSize: 10, textAlign: "right", marginTop: 4 }}>
-          {message.isTemporary ? (
-            <span>
-            </span>
-          ) : (
-            <span style={{ 
-              color: timestampColor,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
+        {/* Message bubble */}
+        <div style={{
+          maxWidth: "50%",
+          padding: "8px 12px",
+          borderRadius: "12px",
+          background: messageBackground,
+          color: messageColor,
+          overflow: "hidden",
+          wordWrap: "break-word",
+          border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
+        }}>
+          {/* Sender name - only shown for messages from others */}
+          {!isMyMessage && (
+            <div style={{ 
+              fontSize: 12, 
+              marginBottom: 2, 
+              fontWeight: "bold", 
+              color: messageColor
             }}>
-              {formatMessageTime(message.created_at || '')}
-            </span>
+              {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
+            </div>
           )}
+          
+          {/* If this is a reply message, show the original message */}
+          {message.parent_id && message.parent_content && (
+            <div style={{
+              padding: "4px 8px",
+              marginBottom: "6px",
+              borderRadius: "6px",
+              backgroundColor: currentTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+              borderLeft: `3px solid ${themeColors.icons[currentTheme].action}`,
+              fontSize: "12px",
+              color: currentTheme === 'dark' ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.65)',
+              maxHeight: "60px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap"
+            }}>
+              {message.parent_content}
+            </div>
+          )}
+          
+          {/* Message content */}
+          <div style={{ 
+            whiteSpace: "pre-wrap", 
+            wordBreak: "break-word", 
+            color: messageColor
+          }}>
+            {message.content}
+          </div>
+          
+          {/* Timestamp */}
+          <div style={{ fontSize: 10, textAlign: "right", marginTop: 4 }}>
+            {message.isTemporary ? (
+              <span>
+              </span>
+            ) : (
+              <span style={{ 
+                color: timestampColor,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+              }}>
+                {formatMessageTime(message.created_at || '')}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -1746,7 +1791,8 @@ const MessagesFeature: React.FC = () => {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [userRole, setUserRole] = useState<number | null>(null);
   const { socketMessages, setSocketMessages } = useWebSocket();
-  const [hasPermission, setHasPermission] = useState<boolean>(true); //sau khi bi kick khoi conversation se kiem tra de khong cho chat vao duoc neu nhu con dang mo conversation
+  const [replyToMessage, setReplyToMessage] = useState<MessageResponseModel | null>(null);
+
 
   const layoutBackground = themeColors.layout[currentTheme].background;
   const siderBackground = themeColors.layout[currentTheme].siderBg;
@@ -1905,8 +1951,7 @@ const MessagesFeature: React.FC = () => {
     }
   
     setCurrentConversation(conversation);
-    setHasPermission(true);
-  
+
     // setTimeout(() => {
     //   if (conversation.id) {
     //     fetchMessages(conversation.id);
@@ -1930,33 +1975,24 @@ const MessagesFeature: React.FC = () => {
   const handleSendMessage = async () => {
     if (!user?.id || !currentConversation?.id) return;
     
-    // try {
-    //   const response = await defaultMessagesRepo.getConversationDetailByUserID({
-    //     conversation_id: currentConversation.id
-    //   });
-      
-    //   if (response.data) {
-    //     const members = Array.isArray(response.data) ? response.data : [response.data];
-    //     const userExists = members.some(member => member.user_id === user.id);
-        
-    //     if (!userExists) {
-    //       setHasPermission(false);
-    //       message.error(localStrings.Messages.YouHaveBeenRemoved);
-    //       setCurrentConversation(null);
-    //       fetchConversations();
-    //       return;
-    //     }
-    //   }
-    // } catch (error) {
-    //   console.error("Error checking permission:", error);
-    //   return;
-    // }
-    
     if (messageText.trim() && currentConversation && messageText.length <= 500) {
-      sendMessage();
+      await sendMessage(replyToMessage); 
+      setReplyToMessage(null); 
     } else if (messageText.length > 500) {
       message.error(localStrings.Messages.MessageTooLong);
     }
+  };
+
+  const handleReply = (message: MessageResponseModel) => {
+    setReplyToMessage(message);
+    const inputElement = document.querySelector('.message-input') as HTMLInputElement;
+    if (inputElement) {
+      inputElement.focus();
+    }
+  };
+  
+  const cancelReply = () => {
+    setReplyToMessage(null);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -3912,6 +3948,7 @@ const MessagesFeature: React.FC = () => {
                                 key={`${msg.id || `temp-${msg.created_at}`}-${Date.now()}`}
                                 message={msg}
                                 onDelete={deleteMessage}
+                                onReply={handleReply}
                               />
                             )
                           ))}
@@ -3947,8 +3984,41 @@ const MessagesFeature: React.FC = () => {
             display: "flex",
             flexDirection: "column",
           }}>
+            
             {currentConversation && (
               <>
+              {replyToMessage && (
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "8px 12px",
+                backgroundColor: currentTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                borderRadius: "4px",
+                marginBottom: "8px"
+              }}>
+                <div style={{
+                  flex: 1,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  color: primaryTextColor
+                }}>
+                  <span style={{ fontWeight: "bold" }}>
+                    {localStrings.Messages.ReplyingTo} 
+                    {replyToMessage.user_id === user?.id ? 
+                      ` ${localStrings.Messages.Yourself}` : 
+                      ` ${replyToMessage.user?.family_name || ''} ${replyToMessage.user?.name || ''}`}:
+                  </span> {" "}
+                  {replyToMessage.content}
+                </div>
+                <Button
+                  type="text"
+                  icon={<CloseOutlined />}
+                  onClick={cancelReply}
+                  style={{ marginLeft: "8px" }}
+                />
+              </div>
+            )}
                 <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
                   <Popover
                     content={
