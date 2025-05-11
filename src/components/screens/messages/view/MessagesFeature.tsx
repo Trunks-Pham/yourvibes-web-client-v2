@@ -3482,11 +3482,11 @@ const MessagesFeature: React.FC = () => {
                             title={<Text strong style={{ color: sidebarTextColor }}>{item.name}</Text>}
                             description={
                               <Text
-                                type="secondary"
                                 ellipsis
                                 style={{
                                   maxWidth: '100%',
-                                  color: sidebarSecondaryTextColor
+                                  color: sidebarSecondaryTextColor,
+                                  fontWeight: item.last_message_status ? 'bold' : 'normal'
                                 }}
                               >
                                 {messageDisplay}
@@ -3498,7 +3498,15 @@ const MessagesFeature: React.FC = () => {
                               <Text type="secondary" style={{ fontSize: '12px', color: sidebarSecondaryTextColor }}>
                                 {lastMessageTime}
                               </Text>
-                              
+                              {item.last_message_status && (
+                                <span style={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: '50%',
+                                  backgroundColor: '#ff4d4f',
+                                  marginTop: 4
+                                }} />
+                              )}
                             </div>
                           )}
                         </List.Item>
