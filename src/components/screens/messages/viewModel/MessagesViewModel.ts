@@ -25,7 +25,7 @@ export const useMessagesViewModel = () => {
     currentConversationId,
     fetchMessages, sendMessage, deleteMessage, loadMoreMessages,
     handleScroll, getMessagesForConversation, addMessageListener,
-    addNewMessage,
+    addNewMessage, 
   } = messageViewModel;
 
   const {
@@ -33,6 +33,7 @@ export const useMessagesViewModel = () => {
     searchText, setSearchText, setCurrentConversation,
     fetchConversations, createConversation, updateConversation, 
     deleteConversation, addNewConversation, updateConversationOrder,
+    unreadCountMap, resetUnreadCount, incrementUnreadCount,
   } = conversationViewModel;
 
   const {
@@ -63,6 +64,11 @@ export const useMessagesViewModel = () => {
   
     const latestMessage = socketMessages[0];
     if (!latestMessage || !latestMessage.conversation_id) return;
+
+    if (latestMessage.conversation_id !== currentConversation?.id && 
+        latestMessage.user_id !== user?.id) {
+      incrementUnreadCount(latestMessage.conversation_id);
+    }
     
     const messageUniqueId = `${latestMessage.conversation_id}-${latestMessage.user_id}-${latestMessage.content}-${latestMessage.created_at}`;
     
@@ -130,7 +136,7 @@ export const useMessagesViewModel = () => {
         markConversationAsRead(latestMessage.conversation_id);
       }, 1000);
     }
-  }, [socketMessages, currentConversation?.id, messages, markConversationAsRead, addNewMessage, updateConversationOrder, messageViewModel.scrollToBottom]);
+  }, [socketMessages, currentConversation?.id, user?.id, incrementUnreadCount, messages, markConversationAsRead, addNewMessage, updateConversationOrder, messageViewModel.scrollToBottom]);
 
   useEffect(() => {
     const handleNewConversation = (event: CustomEvent) => {
@@ -166,43 +172,45 @@ export const useMessagesViewModel = () => {
     if (currentConversation?.id === conversation.id) {
       return;
     }
-  
-    setCurrentConversation(conversation);
-  
+
     if (conversation.id) {
+      resetUnreadCount(conversation.id);
+      
       markConversationAsRead(conversation.id);
+      
+      setCurrentConversation(conversation);
       
       fetchMessages(conversation.id);
     }
-  }, [currentConversation?.id, setCurrentConversation, markConversationAsRead, fetchMessages]);
+  }, [resetUnreadCount, markConversationAsRead, setCurrentConversation, fetchMessages]);
 
   const handleSendMessage = useCallback(() => {
     if (!currentConversation?.id) return;
     return sendMessage();
   }, [currentConversation?.id, sendMessage]);
 
-const handleLoadMoreMessages = useCallback(() => {
-  if (!currentConversation?.id) return;
-  return loadMoreMessages();
-}, [currentConversation?.id, loadMoreMessages]);
+  const handleLoadMoreMessages = useCallback(() => {
+    if (!currentConversation?.id) return;
+    return loadMoreMessages();
+  }, [currentConversation?.id, loadMoreMessages]);
 
-const handleScrollMessages = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-  if (!currentConversation?.id) return;
-  
-  handleScroll(e);
-  
-  if (!messagesLoading) {
-    markConversationAsRead(currentConversation.id);
-  }
-}, [currentConversation?.id, handleScroll, messagesLoading, markConversationAsRead]);
+  const handleScrollMessages = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (!currentConversation?.id) return;
+    
+    handleScroll(e);
+    
+    if (!messagesLoading) {
+      markConversationAsRead(currentConversation.id);
+    }
+  }, [currentConversation?.id, handleScroll, messagesLoading, markConversationAsRead]);
 
-useEffect(() => {
-  return () => {
-    processedSocketMessagesRef.current.clear();
-    setExistingMembers([]);
-    setExistingMemberIds([]);
-  };
-}, []);
+  useEffect(() => {
+    return () => {
+      processedSocketMessagesRef.current.clear();
+      setExistingMembers([]);
+      setExistingMemberIds([]);
+    };
+  }, []);
 
 return {
   // State
@@ -242,5 +250,8 @@ return {
   handleSelectConversation,
   getCurrentUserRole,
   isUserConversationOwner,
+  unreadCountMap,
+  resetUnreadCount,
+  incrementUnreadCount,
 };
 };

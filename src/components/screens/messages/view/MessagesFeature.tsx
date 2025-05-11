@@ -319,13 +319,11 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   const [existingMembersWithRole, setExistingMembersWithRole] = useState<ConversationMember[]>([]);
   const currentTheme = theme || 'light';
   
-  // Theme variables
   const avatarBackground = themeColors.avatar[currentTheme];
   const primaryTextColor = themeColors.text[currentTheme].primary;
   const secondaryTextColor = themeColors.text[currentTheme].secondary;
   const borderColor = themeColors.layout[currentTheme].border;
   
-  // Enhanced theming variables
   const modalBackground = currentTheme === 'dark' ? themeColors.layout[currentTheme].siderBg : '#ffffff';
   const modalTitleColor = currentTheme === 'dark' ? '#ffffff' : '#000000';
   const modalHeaderBg = currentTheme === 'dark' ? themeColors.layout[currentTheme].headerBg : '#ffffff';
@@ -1793,8 +1791,6 @@ const MessagesFeature: React.FC = () => {
     setCurrentConversation,
     sendMessage,
     fetchMessages,
-    isMessagesEnd,
-    loadMoreMessages,
     messageListRef,
     handleScroll,
     getMessagesForConversation,
@@ -1803,7 +1799,8 @@ const MessagesFeature: React.FC = () => {
     addConversationMembers,
     leaveConversation,
     getCurrentUserRole,
-    isUserConversationOwner,
+    unreadCountMap,
+    resetUnreadCount,
   } = useMessagesViewModel();
 
   const [isMobile, setIsMobile] = useState(false);
@@ -1926,31 +1923,22 @@ const MessagesFeature: React.FC = () => {
     }
   }, [currentConversation?.id, fetchConversations, getCurrentUserRole]);
   
-  const handleSelectConversation = (conversation: ConversationResponseModel) => {
-    if (currentConversation?.id === conversation.id) {
-      return;
-    }
+const handleSelectConversation = (conversation: ConversationResponseModel) => {
+  if (currentConversation?.id === conversation.id) {
+    return;
+  }
+
+  if (conversation.id) {
+    resetUnreadCount(conversation.id);
+  }
   
-    setCurrentConversation(conversation);
-    setHasPermission(true);
+  setCurrentConversation(conversation);
+
+  if (conversation.id) {
+    markConversationAsRead(conversation.id);
+  }
+};
   
-    // setTimeout(() => {
-    //   if (conversation.id) {
-    //     fetchMessages(conversation.id);
-    //     markConversationAsRead(conversation.id);
-    //     resetUnreadCount(conversation.id); 
-    //   }
-    // }, 200);
-  };
-  
-  // useEffect(() => {
-  //   if (conversationIdFromUrl && conversations.length > 0) {
-  //     const selectedConversation = conversations.find(conv => conv.id === conversationIdFromUrl);
-  //     if (selectedConversation && selectedConversation.id !== currentConversation?.id) {
-  //       handleSelectConversation(selectedConversation);
-  //     }
-  //   }
-  // }, [conversationIdFromUrl, conversations, currentConversation?.id, handleSelectConversation]);
 
   const onEmojiClick = (emojiData: EmojiClickData) => {
     setMessageText(prev => prev + emojiData.emoji);
@@ -1958,28 +1946,6 @@ const MessagesFeature: React.FC = () => {
 
   const handleSendMessage = async () => {
     if (!user?.id || !currentConversation?.id) return;
-    
-    // try {
-    //   const response = await defaultMessagesRepo.getConversationDetailByUserID({
-    //     conversation_id: currentConversation.id
-    //   });
-      
-    //   if (response.data) {
-    //     const members = Array.isArray(response.data) ? response.data : [response.data];
-    //     const userExists = members.some(member => member.user_id === user.id);
-        
-    //     if (!userExists) {
-    //       setHasPermission(false);
-    //       message.error(localStrings.Messages.YouHaveBeenRemoved);
-    //       setCurrentConversation(null);
-    //       fetchConversations();
-    //       return;
-    //     }
-    //   }
-    // } catch (error) {
-    //   console.error("Error checking permission:", error);
-    //   return;
-    // }
     
     if (messageText.trim() && currentConversation && messageText.length <= 500) {
       sendMessage();
@@ -3515,21 +3481,38 @@ const MessagesFeature: React.FC = () => {
                                 ellipsis
                                 style={{
                                   maxWidth: '100%',
-                                  color: sidebarSecondaryTextColor
+                                  color: unreadCountMap[item.id || ''] > 0 ? brandPrimary : sidebarSecondaryTextColor,
+                                  fontWeight: unreadCountMap[item.id || ''] > 0 ? 'bold' : 'normal'
                                 }}
                               >
                                 {messageDisplay}
                               </Text>
                             }
                           />
-                          {lastMessage && (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                              <Text type="secondary" style={{ fontSize: '12px', color: sidebarSecondaryTextColor }}>
-                                {lastMessageTime}
-                              </Text>
-                              
-                            </div>
-                          )}
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                            <Text type="secondary" style={{ fontSize: '12px', color: sidebarSecondaryTextColor }}>
+                              {lastMessageTime}
+                            </Text>
+                            
+                            {/* Chỉ báo tin nhắn chưa đọc */}
+                            {unreadCountMap[item.id || ''] > 0 && (
+                              <span style={{
+                                minWidth: 20,
+                                height: 20,
+                                borderRadius: 10,
+                                backgroundColor: brandPrimary,
+                                color: 'white',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                fontSize: '12px',
+                                marginTop: 4,
+                                padding: '0 6px'
+                              }}>
+                                {unreadCountMap[item.id || '']}
+                              </span>
+                            )}
+                          </div>
                         </List.Item>
                       );
                     }}

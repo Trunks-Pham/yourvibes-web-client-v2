@@ -13,6 +13,7 @@ import { MessageResponseModel, MessageWebSocketResponseModel } from "@/api/featu
 
 // type MessageWithDate = ExtendedMessageResponseModel;
 
+
 export const useMessageViewModel = () => {
   const { user, localStrings } = useAuth();
   const [messages, setMessages] = useState<MessageResponseModel[]>([]);

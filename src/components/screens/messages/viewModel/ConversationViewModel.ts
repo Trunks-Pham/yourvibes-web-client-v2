@@ -15,6 +15,7 @@ export const useConversationViewModel = () => {
   const [conversationsLoading, setConversationsLoading] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>("");
   const [conversationDetails, setConversationDetails] = useState<Record<string, ConversationDetailResponseModel>>({});
+  const [unreadCountMap, setUnreadCountMap] = useState<Record<string, number>>({});
   
   const processedConversationsRef = useRef<Set<string>>(new Set());
 
@@ -32,6 +33,30 @@ export const useConversationViewModel = () => {
       if (exists) return prev;
       
       return [conversation, ...prev];
+    });
+  }, []);
+
+  const resetUnreadCount = useCallback((conversationId: string) => {
+    setUnreadCountMap(prev => {
+      const newMap = { ...prev };
+      newMap[conversationId] = 0;
+      return newMap;
+    });
+  }, []);
+
+  const incrementUnreadCount = useCallback((conversationId: string) => {
+    setUnreadCountMap(prev => {
+      if (typeof prev[conversationId] === 'undefined') {
+        return {
+          ...prev,
+          [conversationId]: 1
+        };
+      }
+      
+      return {
+        ...prev,
+        [conversationId]: prev[conversationId] + 1
+      };
     });
   }, []);
 
@@ -68,11 +93,18 @@ export const useConversationViewModel = () => {
         const conversationsList = Array.isArray(response.data) 
           ? response.data 
           : [response.data];
+
+        const initialUnreadCounts: Record<string, number> = {};
         
         conversationsList.forEach(conv => {
-          if (conv.id) processedConversationsRef.current.add(conv.id);
+          if (conv.id) {
+            processedConversationsRef.current.add(conv.id);
+            // Nếu last_message_status là true, tức là có tin nhắn chưa đọc
+            initialUnreadCounts[conv.id] = conv.last_message_status ? 1 : 0;
+          }
         });
         
+        setUnreadCountMap(initialUnreadCounts);
         setConversations(conversationsList);
         
         // const detailsPromises = conversationsList.map(async (conversation) => {
@@ -228,5 +260,8 @@ export const useConversationViewModel = () => {
     addNewConversation,
     updateConversationOrder,
     setConversations,
+    unreadCountMap,
+    resetUnreadCount,
+    incrementUnreadCount,
   };
 };
