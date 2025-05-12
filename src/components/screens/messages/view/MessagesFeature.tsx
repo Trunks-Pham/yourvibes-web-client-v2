@@ -56,6 +56,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   const [activeTab, setActiveTab] = useState<string>("addMembers");
   const [existingMembersWithRole, setExistingMembersWithRole] = useState<ConversationMember[]>([]);
   
+  // Sử dụng màu từ useColor
   const avatarBackground = avatar;
   const primaryTextColor = text.primary;
   const secondaryTextColor = text.secondary;
@@ -1177,102 +1178,28 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   };
 
   const handleCreateConversation = async () => {
-    try {
-      await form.validateFields();
-      const values = form.getFieldsValue();
-      
-      const { notification } = useColor();
-      
-      if (selectedFriends.length === 0) {
-        message.warning({
-          content: localStrings.Messages.SelectAtLeastOneFriend || "Vui lòng chọn ít nhất một người bạn",
-          style: {
-            backgroundColor: notification.warning.bg,
-            border: `1px solid ${notification.warning.border}`,
-            color: notification.warning.text,
-            borderRadius: '4px',
-            padding: '10px 16px'
-          }
-        });
-        return;
-      }
-      
-      if (values.name && values.name.length > 30) {
-        message.error({
-          content: localStrings.Messages.GroupNameTooLong || "Tên nhóm không được vượt quá 30 ký tự",
-          style: {
-            backgroundColor: notification.error.bg,
-            border: `1px solid ${notification.error.border}`,
-            color: notification.error.text,
-            borderRadius: '4px',
-            padding: '10px 16px'
-          }
-        });
-        return;
-      }
-      
-      if (selectedFriends.length > 1 && !values.name) {
-        form.setFields([{
-          name: 'name',
-          errors: [localStrings.Messages.GroupNameRequired || "Nhóm chat cần có tên"]
-        }]);
-        return;
-      }
-      
-      setCreating(true);
-      
-      const selectedUsers = selectedFriends.map(id => 
-        friends.find(friend => friend.id === id)
-      ).filter(Boolean) as FriendResponseModel[];
-      
-      let conversationName = values.name;
-      if (!conversationName && selectedUsers.length === 1) {
-        conversationName = selectedUsers
-          .map(user => `${user.family_name || ''} ${user.name || ''}`.trim())
-          .join(", ");
-      }
-      
-      const userIdsToAdd = [
-        ...(user?.id ? [user.id] : []), 
-        ...selectedFriends
-      ];
-      
       try {
-        const newConversation = await onCreateConversation(
-          conversationName, 
-          conversationImage || undefined, 
-          userIdsToAdd
-        );
+        await form.validateFields();
+        const values = form.getFieldsValue();
         
-        if (newConversation && newConversation.id) {
-          message.success({
-            content: localStrings.Messages.ConversationCreated || "Cuộc trò chuyện đã được tạo thành công",
+        // Sử dụng notification đã được khai báo ở trên
+        if (selectedFriends.length === 0) {
+          message.warning({
+            content: localStrings.Messages.SelectAtLeastOneFriend,
             style: {
-              backgroundColor: notification.success.bg,
-              border: `1px solid ${notification.success.border}`,
-              color: notification.success.text,
+              backgroundColor: notification.warning.bg,
+              border: `1px solid ${notification.warning.border}`,
+              color: notification.warning.text,
               borderRadius: '4px',
               padding: '10px 16px'
             }
           });
-          
-          form.resetFields();
-          setSelectedFriends([]);
-          setConversationImage(null);
-          setImagePreview(null);
-
-          if (onConversationCreated) {
-            onConversationCreated(newConversation);
-          }
-          
-          onCancel();
+          return;
         }
-      } catch (error: any) {
-        console.error("Error creating conversation:", error);
         
-        if (error?.error?.code === 50004 && error.error.message_detail?.includes("Name: the length must be between")) {
+        if (values.name && values.name.length > 30) {
           message.error({
-            content: localStrings.Messages.GroupNameTooLong || "Tên nhóm không được vượt quá 30 ký tự",
+            content: localStrings.Messages.GroupNameTooLong,
             style: {
               backgroundColor: notification.error.bg,
               border: `1px solid ${notification.error.border}`,
@@ -1281,51 +1208,124 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
               padding: '10px 16px'
             }
           });
-        } 
-        else if (error?.error?.code === 50028 && error.error.message === "Conversation has already exist") {
-          const existingConversationId = error.error.message_detail;
+          return;
+        }
+        
+        if (selectedFriends.length > 1 && !values.name) {
+          form.setFields([{
+            name: 'name',
+            errors: [localStrings.Messages.GroupNameRequired]
+          }]);
+          return;
+        }
+        
+        setCreating(true);
+        
+        const selectedUsers = selectedFriends.map(id => 
+          friends.find(friend => friend.id === id)
+        ).filter(Boolean) as FriendResponseModel[];
+        
+        let conversationName = values.name;
+        if (!conversationName && selectedUsers.length === 1) {
+          conversationName = selectedUsers
+            .map(user => `${user.family_name || ''} ${user.name || ''}`.trim())
+            .join(", ");
+        }
+        
+        const userIdsToAdd = [
+          ...(user?.id ? [user.id] : []), 
+          ...selectedFriends
+        ];
+        
+        try {
+          const newConversation = await onCreateConversation(
+            conversationName, 
+            conversationImage || undefined, 
+            userIdsToAdd
+          );
           
-          message.info({
-            content: localStrings.Messages.ConversationAlreadyExists,
-            style: {
-              backgroundColor: notification.info.bg,
-              border: `1px solid ${notification.info.border}`,
-              color: notification.info.text,
-              borderRadius: '4px',
-              padding: '10px 16px'
-            }
-          });
-          
-          onCancel();
-          
-          if (onConversationCreated && existingConversationId) {
-            const tempConversation: ConversationResponseModel = {
-              id: existingConversationId
-            };
+          if (newConversation && newConversation.id) {
+            message.success({
+              content: localStrings.Messages.ConversationCreated,
+              style: {
+                backgroundColor: notification.success.bg,
+                border: `1px solid ${notification.success.border}`,
+                color: notification.success.text,
+                borderRadius: '4px',
+                padding: '10px 16px'
+              }
+            });
             
-            setTimeout(() => {
-              onConversationCreated(tempConversation);
-            }, 500);
-          }
-        } else {
-          message.error({
-            content: error?.error?.message || localStrings.Messages.GroupCreationFailed || "Không thể tạo cuộc trò chuyện",
-            style: {
-              backgroundColor: notification.error.bg,
-              border: `1px solid ${notification.error.border}`,
-              color: notification.error.text,
-              borderRadius: '4px',
-              padding: '10px 16px'
+            form.resetFields();
+            setSelectedFriends([]);
+            setConversationImage(null);
+            setImagePreview(null);
+
+            if (onConversationCreated) {
+              onConversationCreated(newConversation);
             }
-          });
+            
+            onCancel();
+          }
+        } catch (error: any) {
+          console.error("Error creating conversation:", error);
+          
+          if (error?.error?.code === 50004 && error.error.message_detail?.includes("Name: the length must be between")) {
+            message.error({
+              content: localStrings.Messages.GroupNameTooLong,
+              style: {
+                backgroundColor: notification.error.bg,
+                border: `1px solid ${notification.error.border}`,
+                color: notification.error.text,
+                borderRadius: '4px',
+                padding: '10px 16px'
+              }
+            });
+          } 
+          else if (error?.error?.code === 50028 && error.error.message === "Conversation has already exist") {
+            const existingConversationId = error.error.message_detail;
+            
+            message.info({
+              content: localStrings.Messages.ConversationAlreadyExists,
+              style: {
+                backgroundColor: notification.info.bg,
+                border: `1px solid ${notification.info.border}`,
+                color: notification.info.text,
+                borderRadius: '4px',
+                padding: '10px 16px'
+              }
+            });
+            
+            onCancel();
+            
+            if (onConversationCreated && existingConversationId) {
+              const tempConversation: ConversationResponseModel = {
+                id: existingConversationId
+              };
+              
+              setTimeout(() => {
+                onConversationCreated(tempConversation);
+              }, 500);
+            }
+          } else {
+            message.error({
+              content: error?.error?.message || localStrings.Messages.GroupCreationFailed,
+              style: {
+                backgroundColor: notification.error.bg,
+                border: `1px solid ${notification.error.border}`,
+                color: notification.error.text,
+                borderRadius: '4px',
+                padding: '10px 16px'
+              }
+            });
+          }
+        } finally {
+          setCreating(false);
         }
-      } finally {
-        setCreating(false);
+      } catch (error) {
+        console.error("Error in form validation:", error);
       }
-    } catch (error) {
-      console.error("Error in form validation:", error);
-    }
-  };
+    };
 
   const toggleFriendSelection = (friendId: string) => {
     if (selectedFriends.includes(friendId)) {
