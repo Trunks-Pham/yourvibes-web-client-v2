@@ -56,7 +56,6 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   const [activeTab, setActiveTab] = useState<string>("addMembers");
   const [existingMembersWithRole, setExistingMembersWithRole] = useState<ConversationMember[]>([]);
   
-  // Sử dụng màu từ useColor
   const avatarBackground = avatar;
   const primaryTextColor = text.primary;
   const secondaryTextColor = text.secondary;
@@ -632,7 +631,6 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
   const [conversationImage, setConversationImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
-  // Sử dụng màu từ useColor
   const primaryTextColor = text.primary;
   const secondaryTextColor = text.secondary;
   const modalBackground = modal.background;
@@ -650,7 +648,6 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
   const inputTextColor = input.textColor;
   const inputPlaceholderColor = input.placeholderColor;
   
-  // Button colors
   const defaultButtonBg = button.defaultBg;
   const defaultButtonBorder = button.defaultBorder;
   const defaultButtonText = button.defaultText;
@@ -1886,8 +1883,29 @@ const MessagesFeature: React.FC = () => {
                   shape="circle"
                   icon={<PlusOutlined />}
                   onClick={() => setNewConversationModalVisible(true)}
+                  style={{
+                    backgroundColor: button.primaryBg,
+                    borderColor: button.primaryBg,
+                    color: button.primaryText
+                  }}
                 />
               </div>
+              <style jsx global>{`
+                .ant-btn-primary {
+                  background-color: ${button.primaryBg} !important;
+                  border-color: ${button.primaryBg} !important;
+                }
+                
+                .ant-btn-primary:hover, 
+                .ant-btn-primary:focus {
+                  background-color: ${button.primaryHoverBg} !important;
+                  border-color: ${button.primaryHoverBg} !important;
+                }
+                
+                .ant-btn-primary .anticon {
+                  color: ${button.primaryText} !important;
+                }
+              `}</style>
             </div>
             <Search
               placeholder={localStrings.Public.Search}
