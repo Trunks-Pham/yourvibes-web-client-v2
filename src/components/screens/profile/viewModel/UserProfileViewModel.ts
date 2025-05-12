@@ -1,15 +1,13 @@
-"use client"
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/router';
-import { useAuth } from '@/context/auth/useAuth';
-import { PostResponseModel } from '@/api/features/post/models/PostResponseModel';
-import { UserModel } from '@/api/features/authenticate/model/LoginModel';
-import { FriendStatus } from '@/api/baseApiResponseModel/baseApiResponseModel';
-import { FriendResponseModel } from '@/api/features/profile/model/FriendReponseModel';
-import { defaultPostRepo } from '@/api/features/post/PostRepo';
-import { defaultProfileRepo } from '@/api/features/profile/ProfileRepository';
+"use client";
+import { useEffect, useState } from "react";
+import { PostResponseModel } from "@/api/features/post/models/PostResponseModel";
+import { UserModel } from "@/api/features/authenticate/model/LoginModel";
+import { FriendStatus } from "@/api/baseApiResponseModel/baseApiResponseModel";
+import { FriendResponseModel } from "@/api/features/profile/model/FriendReponseModel";
+import { defaultPostRepo } from "@/api/features/post/PostRepo";
+import { defaultProfileRepo } from "@/api/features/profile/ProfileRepository";
 
-const UserProfileViewModel = () => {
+const UserProfileViewModel = (userId?: string) => {
   const [posts, setPosts] = useState<PostResponseModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
@@ -19,20 +17,23 @@ const UserProfileViewModel = () => {
   const [userInfo, setUserInfo] = useState<UserModel | null>(null);
   const [sendRequestLoading, setSendRequestLoading] = useState(false);
   const [newFriendStatus, setNewFriendStatus] = useState<FriendStatus | undefined>(undefined);
-  const [search, setSearch] = useState<string>('');
+  const [search, setSearch] = useState<string>("");
   const [friends, setFriends] = useState<FriendResponseModel[]>([]);
   const [friendCount, setFriendCount] = useState(0);
   const [resultCode, setResultCode] = useState(0);
+  const [totalPageFriends, setTotalPageFriends] = useState(0);
+  const [hasMoreFriends, setHasMoreFriends] = useState(false);
+  const [loadingFriends, setLoadingFriends] = useState(false);
 
   const limit = 10;
 
-  // Fetch user posts
   const fetchUserPosts = async (newPage: number = 1) => {
+    if (!userId && !userInfo?.id) return;
     try {
       setLoading(true);
       const response = await defaultPostRepo.getPosts({
-        user_id: userInfo?.id,
-        sort_by: 'created_at',
+        user_id: userId || userInfo?.id,
+        sort_by: "created_at",
         isDescending: true,
         page: newPage,
         limit: limit,
@@ -49,17 +50,15 @@ const UserProfileViewModel = () => {
         setPage(currentPage);
         setHasMore(currentPage * currentLimit < totalRecords);
       } else {
-        // Toast.error(`${localStrings.Profile.Posts.GetPostsFailed}: ${response?.error?.message}`);
+        console.error(response?.message);
       }
     } catch (error: any) {
       console.error(error);
-    //   Toast.error(`${localStrings.Profile.Posts.GetPostsFailed}: ${error?.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch user profile
   const fetchUserProfile = async (id: string) => {
     try {
       setProfileLoading(true);
@@ -70,11 +69,10 @@ const UserProfileViewModel = () => {
         setResultCode(response?.code);
         setNewFriendStatus(response?.data?.friend_status || FriendStatus.NotFriend);
       } else {
-       
+        console.error(response?.message);
       }
     } catch (error: any) {
       console.error(error);
-    
     } finally {
       setProfileLoading(false);
     }
@@ -87,137 +85,138 @@ const UserProfileViewModel = () => {
     }
   };
 
-  // Send friend request
   const sendFriendRequest = async (id: string) => {
     try {
       setSendRequestLoading(true);
       const response = await defaultProfileRepo.sendFriendRequest(id);
-      
       if (!response?.error) {
-       
         setNewFriendStatus(FriendStatus.SendFriendRequest);
       } else {
-       
+        console.error(response?.message);
       }
     } catch (error: any) {
       console.error(error);
-    
     } finally {
       setSendRequestLoading(false);
     }
-  }
+  };
 
-  //Cancel friend request
   const cancelFriendRequest = async (id: string) => {
     try {
       setSendRequestLoading(true);
       const response = await defaultProfileRepo.cancelFriendRequest(id);
       if (!response?.error) {
-       
         setNewFriendStatus(FriendStatus.NotFriend);
       } else {
-       
+        console.error(response?.message);
       }
     } catch (error: any) {
       console.error(error);
-   
     } finally {
       setSendRequestLoading(false);
     }
-  }
+  };
 
-  // Refuse friend request
   const refuseFriendRequest = async (id: string) => {
     try {
       setSendRequestLoading(true);
       const response = await defaultProfileRepo.refuseFriendRequest(id);
       if (!response?.error) {
-        
         setNewFriendStatus(FriendStatus.NotFriend);
       } else {
-        
+        console.error(response?.message);
       }
     } catch (error: any) {
       console.error(error);
-   
     } finally {
       setSendRequestLoading(false);
     }
-  }
+  };
 
-  // Accept friend request
   const acceptFriendRequest = async (id: string) => {
     try {
       setSendRequestLoading(true);
       const response = await defaultProfileRepo.acceptFriendRequest(id);
       if (!response?.error) {
-       
         setNewFriendStatus(FriendStatus.IsFriend);
       } else {
-       
+        console.error(response?.message);
       }
     } catch (error: any) {
       console.error(error);
-    
     } finally {
       setSendRequestLoading(false);
     }
-  }
+  };
 
-  // Unfriend
   const unFriend = async (id: string) => {
     try {
       setSendRequestLoading(true);
-      const response = await defaultProfileRepo.unfriend(id); 
+      const response = await defaultProfileRepo.unfriend(id);
       if (!response?.error) {
         setNewFriendStatus(FriendStatus.NotFriend);
       } else {
-    
+        console.error(response?.message);
       }
     } catch (error: any) {
       console.error(error);
     } finally {
       setSendRequestLoading(false);
     }
-  }
+  };
 
-
-  // Fetch friends
-  const fetchFriends = async (page: number) => {
+  const fetchFriends = async (newPage: number = 1): Promise<FriendResponseModel[] | undefined> => {
+    if (!userId && !userInfo?.id) {
+      console.error("No user ID provided for fetching friends");
+      return undefined;
+    }
     try {
+      setLoadingFriends(true);
       const response = await defaultProfileRepo.getListFriends({
-        page: page,
+        page: newPage,
         limit: 10,
-        user_id: userInfo?.id,
+        user_id: userId || userInfo?.id,
       });
 
-      if (response?.data) {
-        if (Array.isArray(response?.data)) {
-            const friends = response?.data.map(
-              (friendResponse: FriendResponseModel) => ({
-                id: friendResponse.id,
-                family_name: friendResponse.family_name,
-                name: friendResponse.name,
-                avatar_url: friendResponse.avatar_url,
-              })
-            ) as FriendResponseModel[];
-            setFriends(friends);
-            setFriendCount(friends.length); //Đếm số lượng bạn bè
-          } else{
-        console.error("response.data is null");
+      if (!response?.error && response?.data) {
+        const newFriends = response.data;
+        if (newPage === 1) {
+          setFriends(newFriends);
+        } else {
+          setFriends((prevFriends) => [...prevFriends, ...newFriends]);
+        }
+        const { page: currentPage, limit: currentLimit, total: totalRecords } = response.paging;
+        setFriendCount(totalRecords);
+        setHasMoreFriends(currentPage * currentLimit < totalRecords);
+        const totalPage = Math.ceil(totalRecords / currentLimit);
+        setTotalPageFriends(totalPage);
+        setPage(currentPage);
+        return newFriends;
+      } else {
+        console.error("response.data is null or error occurred");
         setFriends([]);
-      }}
+        return undefined;
+      }
     } catch (error: any) {
       console.error(error);
+      return undefined;
+    } finally {
+      setLoadingFriends(false);
     }
   };
 
   useEffect(() => {
-    if (userInfo) {
-      fetchUserPosts();
-      fetchFriends(page);
+    if (userId) {
+      fetchUserProfile(userId);
     }
-  }, [userInfo]);
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId || userInfo?.id) {
+      fetchUserPosts();
+      fetchFriends(1);
+    }
+  }, [userId, userInfo]);
 
   return {
     loading,
@@ -242,9 +241,14 @@ const UserProfileViewModel = () => {
     setSearch,
     friends,
     page,
+    setPage,
     fetchFriends,
     resultCode,
     setResultCode,
+    totalPage: totalPageFriends,
+    hasMoreFriends,
+    loadingFriends,
+    setPosts,
   };
 };
 
