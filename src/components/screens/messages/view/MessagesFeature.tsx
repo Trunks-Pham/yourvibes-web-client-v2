@@ -15,274 +15,6 @@ import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useSearchParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState  } from 'react';
 
-const themeColors = {
-  messageBubble: {
-    light: {
-      sender: {
-        background: '#e0f0ff', 
-        color: '#000',
-        timestampColor: '#003366',
-      },
-      receiver: {
-        background: '#E2E2E2',
-        color: 'inherit',
-        timestampColor: 'rgba(0, 0, 0, 0.85)',
-      }
-    },
-    dark: {
-      sender: {
-        background: '#2f3f5c', 
-        color: '#fff',
-        timestampColor: 'rgba(255, 255, 255, 0.9)',
-      },
-      receiver: {
-        background: '#62676B',
-        color: '#ffffff',
-        timestampColor: 'rgba(255, 255, 255, 0.85)', 
-      }
-    }
-  },
-  layout: {
-    light: {
-      background: '#ffffff', 
-      siderBg: '#F6F6F6', 
-      headerBg: '#ffffff', 
-      border: '#E2E2E2', 
-      activeItem: '#E2E2E2', 
-    },
-    dark: {
-      background: '#262930', 
-      siderBg: '#202427', 
-      headerBg: '#202427', 
-      border: '#62676B', 
-      activeItem: '#31343B', 
-    }
-  },
-  text: {
-    light: {
-      primary: '#000000',        
-      secondary: 'rgba(0, 0, 0, 0.45)', 
-    },
-    dark: {
-      primary: '#ffffff',       
-      secondary: 'rgba(255, 255, 255, 0.85)', 
-    }
-  },
-  icons: {
-    light: {
-      primary: '#000000',          
-      secondary: 'rgba(0, 0, 0, 0.65)', 
-      action: '#1890ff',  
-      delete: '#2f3f5c',         
-    },
-    dark: {
-      primary: '#ffffff',         
-      secondary: 'rgba(255, 255, 255, 0.85)', 
-      action: '#40a9ff',   
-      delete: '#ffffff'      
-    }
-  },
-  sidebar: {
-    light: {
-      text: '#000000',
-      secondaryText: 'rgba(0, 0, 0, 0.45)',
-    },
-    dark: {
-      text: '#ffffff',              
-      secondaryText: '#e0e0e0',    
-    }
-  },
-  avatar: {
-    light: '#1890ff',
-    dark: '#ffffff', 
-  },
-  button: {
-    light: {
-      defaultBg: '#ffffff',
-      defaultBorder: '#d9d9d9',
-      defaultText: 'rgba(0, 0, 0, 0.85)',
-      defaultHoverBg: '#fafafa',
-      primaryBg: '#1890ff',
-      primaryText: '#ffffff',
-      primaryHoverBg: '#40a9ff'
-    },
-    dark: {
-      defaultBg: '#141414',
-      defaultBorder: '#434343',
-      defaultText: 'rgba(255, 255, 255, 0.85)',
-      defaultHoverBg: '#1f1f1f',
-      primaryBg: '#177ddc',
-      primaryText: '#ffffff',
-      primaryHoverBg: '#1f6bb4'
-    }
-  },
-  dateSeparator: {
-    light: {
-      background: '#f0f2f5',
-      line: 'rgba(0, 0, 0, 0.1)',
-      text: '#65676B',
-    },
-    dark: {
-      background: '#262930',
-      line: 'rgba(255, 255, 255, 0.1)',
-      text: '#a0a0a0',
-    }
-  },
-  search: {
-    light: {
-      background: '#ffffff',
-      textColor: 'rgba(0, 0, 0, 0.85)',
-      placeholderColor: 'rgba(0, 0, 0, 0.45)',
-      borderColor: '#d9d9d9',
-      buttonBackground: '#ffffff',
-      buttonHoverBackground: '#f5f5f5',
-      iconColor: 'rgba(0, 0, 0, 0.45)'
-    },
-    dark: {
-      background: '#2d2d30',
-      textColor: 'rgba(255, 255, 255, 0.85)',
-      placeholderColor: 'rgba(255, 255, 255, 0.45)',
-      borderColor: '#3e3e42',
-      buttonBackground: '#3e3e42',
-      buttonHoverBackground: '#4e4e52',
-      iconColor: 'rgba(255, 255, 255, 0.65)'
-    }
-  },
-  indicators: {
-    light: {
-      normal: 'rgba(0, 0, 0, 0.45)',
-      warning: '#faad14',
-      error: '#ff4d4f'
-    },
-    dark: {
-      normal: 'rgba(255, 255, 255, 0.65)',
-      warning: '#faad14',
-      error: '#ff4d4f'
-    }
-  },
-  
-  dropdown: {
-    light: {
-      background: '#ffffff',
-      itemHover: '#f5f5f5',
-      borderColor: '#d9d9d9',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-      textColor: '#000000',
-      dangerColor: '#ff4d4f',
-      dangerHoverBg: '#fff1f0'
-    },
-    dark: {
-      background: '#202427',
-      itemHover: '#2c3033',
-      borderColor: '#434343',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.45)',
-      textColor: '#ffffff',
-      dangerColor: '#ff7875',
-      dangerHoverBg: '#2a1215'
-    }
-  },
-  modal: {
-    light: {
-      background: '#ffffff',
-      headerBg: '#ffffff',
-      footerBg: '#ffffff',
-      titleColor: '#000000',
-      borderColor: '#e8e8e8',
-      boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08)',
-      maskBg: 'rgba(0, 0, 0, 0.45)'
-    },
-    dark: {
-      background: '#202427',
-      headerBg: '#202427',
-      footerBg: '#202427',
-      titleColor: '#ffffff',
-      borderColor: '#434343',
-      boxShadow: '0 3px 6px -4px rgba(0, 0, 0, 0.48), 0 6px 16px 0 rgba(0, 0, 0, 0.32)',
-      maskBg: 'rgba(0, 0, 0, 0.65)'
-    }
-  },
-  
-  upload: {
-    light: {
-      background: '#fafafa',
-      hoverBg: '#f5f5f5',
-      borderColor: '#d9d9d9',
-      textColor: 'rgba(0, 0, 0, 0.85)',
-      iconColor: '#1890ff'
-    },
-    dark: {
-      background: '#141414',
-      hoverBg: '#1f1f1f',
-      borderColor: '#434343',
-      textColor: 'rgba(255, 255, 255, 0.85)',
-      iconColor: '#177ddc'
-    }
-  },
-  
-  input: {
-    light: {
-      background: '#ffffff',
-      borderColor: '#d9d9d9',
-      hoverBorderColor: '#40a9ff',
-      placeholderColor: 'rgba(0, 0, 0, 0.45)',
-      textColor: 'rgba(0, 0, 0, 0.85)'
-    },
-    dark: {
-      background: '#141414',
-      borderColor: '#434343',
-      hoverBorderColor: '#177ddc',
-      placeholderColor: 'rgba(255, 255, 255, 0.45)',
-      textColor: 'rgba(255, 255, 255, 0.85)'
-    }
-  },
-  notification: {
-    light: {
-      error: {
-        background: '#fff2f0',
-        borderColor: '#ffccc7',
-        textColor: '#ff4d4f'
-      },
-      warning: {
-        background: '#fffbe6',
-        borderColor: '#ffe58f',
-        textColor: '#faad14'
-      },
-      info: {
-        background: '#e6f7ff',
-        borderColor: '#91d5ff',
-        textColor: '#1890ff'
-      },
-      success: {
-        background: '#f6ffed',
-        borderColor: '#b7eb8f',
-        textColor: '#52c41a'
-      }
-    },
-    dark: {
-      error: {
-        background: '#2a1215',
-        borderColor: '#5c2223',
-        textColor: '#ff7875'
-      },
-      warning: {
-        background: '#2b2111',
-        borderColor: '#594214',
-        textColor: '#faad14'
-      },
-      info: {
-        background: '#111d2c',
-        borderColor: '#153450',
-        textColor: '#40a9ff'
-      },
-      success: {
-        background: '#162312',
-        borderColor: '#274916',
-        textColor: '#73d13d'
-      }
-    }
-  }
-};
-
 interface AddMemberModalProps {
   visible: boolean;
   onCancel: () => void;
@@ -309,41 +41,47 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   onRefreshConversation
 }) => {
   const { user, localStrings, theme } = useAuth();
-  const { brandPrimary } = useColor();
+  const { 
+    brandPrimary, 
+    avatar, 
+    text, 
+    layout, 
+    notification,
+    button
+  } = useColor();
   const [friends, setFriends] = useState<FriendResponseModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("addMembers");
   const [existingMembersWithRole, setExistingMembersWithRole] = useState<ConversationMember[]>([]);
-  const currentTheme = theme || 'light';
   
-  const avatarBackground = themeColors.avatar[currentTheme];
-  const primaryTextColor = themeColors.text[currentTheme].primary;
-  const secondaryTextColor = themeColors.text[currentTheme].secondary;
-  const borderColor = themeColors.layout[currentTheme].border;
+  const avatarBackground = avatar;
+  const primaryTextColor = text.primary;
+  const secondaryTextColor = text.secondary;
+  const borderColor = layout.border;
   
-  const modalBackground = currentTheme === 'dark' ? themeColors.layout[currentTheme].siderBg : '#ffffff';
-  const modalTitleColor = currentTheme === 'dark' ? '#ffffff' : '#000000';
-  const modalHeaderBg = currentTheme === 'dark' ? themeColors.layout[currentTheme].headerBg : '#ffffff';
-  const cancelButtonBg = currentTheme === 'dark' ? '#2d2d30' : '#fff';
-  const cancelButtonText = currentTheme === 'dark' ? '#ffffff' : '#000000';
-  const cancelButtonBorder = currentTheme === 'dark' ? '#6e6e6e' : '#d9d9d9';
-  const listItemHoverBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
-  const listItemSelectedBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.05)';
-  const listBackground = currentTheme === 'dark' ? '#1f1f1f' : '#ffffff';
-  const warningBgColor = currentTheme === 'dark' ? '#2b2111' : '#fffbe6';
-  const warningBorderColor = currentTheme === 'dark' ? '#644a05' : '#ffe58f';
-  const warningTextColor = currentTheme === 'dark' ? '#faad14' : '#d48806';
-  const infoBgColor = currentTheme === 'dark' ? '#111a2c' : '#e6f4ff';
-  const infoBorderColor = currentTheme === 'dark' ? '#15395b' : '#91d5ff';
-  const infoTextColor = currentTheme === 'dark' ? '#40a9ff' : '#1890ff';
-  const tabBgColor = currentTheme === 'dark' ? '#202427' : '#ffffff';
-  const tabActiveColor = currentTheme === 'dark' ? '#177ddc' : '#1890ff';
-  const checkboxColor = currentTheme === 'dark' ? '#177ddc' : '#1890ff';
-  const ownerBadgeBg = currentTheme === 'dark' ? '#177ddc' : '#1890ff';
-  const memberBadgeBg = currentTheme === 'dark' ? '#333' : '#f5f5f5';
-  const memberBadgeText = currentTheme === 'dark' ? '#e0e0e0' : '#555';
+  const modalBackground = theme === 'dark' ? layout.siderBg : '#ffffff';
+  const modalTitleColor = theme === 'dark' ? '#ffffff' : '#000000';
+  const modalHeaderBg = theme === 'dark' ? layout.headerBg : '#ffffff';
+  const cancelButtonBg = theme === 'dark' ? '#2d2d30' : '#fff';
+  const cancelButtonText = theme === 'dark' ? '#ffffff' : '#000000';
+  const cancelButtonBorder = theme === 'dark' ? '#6e6e6e' : '#d9d9d9';
+  const listItemHoverBg = theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+  const listItemSelectedBg = theme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.05)';
+  const listBackground = theme === 'dark' ? '#1f1f1f' : '#ffffff';
+  const warningBgColor = notification.warning.bg;
+  const warningBorderColor = notification.warning.border;
+  const warningTextColor = notification.warning.text;
+  const infoBgColor = notification.info.bg;
+  const infoBorderColor = notification.info.border;
+  const infoTextColor = notification.info.text;
+  const tabBgColor = theme === 'dark' ? layout.siderBg : '#ffffff';
+  const tabActiveColor = theme === 'dark' ? button.primaryBg : button.primaryBg;
+  const checkboxColor = theme === 'dark' ? button.primaryBg : button.primaryBg;
+  const ownerBadgeBg = theme === 'dark' ? button.primaryBg : button.primaryBg;
+  const memberBadgeBg = theme === 'dark' ? '#333' : '#f5f5f5';
+  const memberBadgeText = theme === 'dark' ? '#e0e0e0' : '#555';
 
   useEffect(() => {
     if (visible && user?.id) {
@@ -727,7 +465,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
     },
   ];
 
-  return (
+return (
     <Modal
       open={visible}
       title={<span style={{ color: modalTitleColor }}>{localStrings.Messages.ManageMembers}</span>}
@@ -752,7 +490,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
           borderTop: `1px solid ${borderColor}`
         },
         mask: {
-          backgroundColor: currentTheme === 'dark' ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)'
+          backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)'
         }
       }}
       cancelButtonProps={{
@@ -824,14 +562,7 @@ interface DateSeparatorProps {
 }
 
 const DateSeparator: React.FC<DateSeparatorProps> = ({ date }) => {
-
-  const { theme } = useAuth();
-  const currentTheme = theme || 'light';
-
-  const separatorBackground = themeColors.dateSeparator[currentTheme].background;
-  const lineColor = themeColors.dateSeparator[currentTheme].line;
-  const textColor = themeColors.dateSeparator[currentTheme].text;
-
+  const { dateSeparator } = useColor();
 
   return (
     <div 
@@ -848,18 +579,18 @@ const DateSeparator: React.FC<DateSeparatorProps> = ({ date }) => {
         style={{
           width: "100%",
           height: "1px",
-          backgroundColor: lineColor,
+          backgroundColor: dateSeparator.line,
           position: "absolute",
           zIndex: 1
         }}
       />
       <div 
         style={{
-          backgroundColor: separatorBackground,
+          backgroundColor: dateSeparator.background,
           padding: "4px 12px",
           borderRadius: "16px",
           fontSize: "12px",
-          color: textColor,
+          color: dateSeparator.text,
           position: "relative",
           zIndex: 2
         }}
@@ -886,35 +617,42 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
   currentConversation
 }) => {
   const { localStrings, theme } = useAuth();
-  const { brandPrimary } = useColor();
+  const { 
+    brandPrimary, 
+    text, 
+    modal, 
+    upload, 
+    input, 
+    button 
+  } = useColor();
+  
   const [form] = Form.useForm();
   const [updating, setUpdating] = useState(false);
   const [conversationImage, setConversationImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const currentTheme = theme || 'light';
   
-  // Get theme colors
-  const primaryTextColor = themeColors.text[currentTheme].primary;
-  const secondaryTextColor = themeColors.text[currentTheme].secondary;
-  const modalBackground = themeColors.modal[currentTheme].background;
-  const modalHeaderBg = themeColors.modal[currentTheme].headerBg;
-  const modalFooterBg = themeColors.modal[currentTheme].footerBg;
-  const modalTitleColor = themeColors.modal[currentTheme].titleColor;
-  const modalBorderColor = themeColors.modal[currentTheme].borderColor;
-  const uploadBg = themeColors.upload[currentTheme].background;
-  const uploadHoverBg = themeColors.upload[currentTheme].hoverBg;
-  const uploadBorderColor = themeColors.upload[currentTheme].borderColor;
-  const uploadTextColor = themeColors.upload[currentTheme].textColor;
-  const uploadIconColor = themeColors.upload[currentTheme].iconColor;
-  const inputBg = themeColors.input[currentTheme].background;
-  const inputBorderColor = themeColors.input[currentTheme].borderColor;
-  const inputTextColor = themeColors.input[currentTheme].textColor;
-  const inputPlaceholderColor = themeColors.input[currentTheme].placeholderColor;
+  // Sử dụng màu từ useColor
+  const primaryTextColor = text.primary;
+  const secondaryTextColor = text.secondary;
+  const modalBackground = modal.background;
+  const modalHeaderBg = modal.headerBg;
+  const modalFooterBg = modal.footerBg;
+  const modalTitleColor = modal.titleColor;
+  const modalBorderColor = modal.borderColor;
+  const uploadBg = upload.background;
+  const uploadHoverBg = upload.hoverBg;
+  const uploadBorderColor = upload.borderColor;
+  const uploadTextColor = upload.textColor;
+  const uploadIconColor = upload.iconColor;
+  const inputBg = input.background;
+  const inputBorderColor = input.borderColor;
+  const inputTextColor = input.textColor;
+  const inputPlaceholderColor = input.placeholderColor;
   
   // Button colors
-  const defaultButtonBg = themeColors.button[currentTheme].defaultBg;
-  const defaultButtonBorder = themeColors.button[currentTheme].defaultBorder;
-  const defaultButtonText = themeColors.button[currentTheme].defaultText;
+  const defaultButtonBg = button.defaultBg;
+  const defaultButtonBorder = button.defaultBorder;
+  const defaultButtonText = button.defaultText;
 
   useEffect(() => {
     if (visible && currentConversation) {
@@ -997,140 +735,140 @@ const EditConversationModal: React.FC<EditConversationModalProps> = ({
   };
 
   return (
-    <Modal
-      open={visible}
-      title={<span style={{ color: modalTitleColor }}>{localStrings.Messages.EditConversation}</span>}
-      onCancel={onCancel}
-      footer={[
-        <Button 
-          key="cancel" 
-          onClick={onCancel}
-          style={{
-            backgroundColor: defaultButtonBg,
-            color: defaultButtonText,
-            borderColor: defaultButtonBorder
-          }}
-        >
-          {localStrings.Public.Cancel}
-        </Button>,
-        <Button 
-          key="update" 
-          type="primary" 
-          onClick={handleUpdateConversation} 
-          loading={updating}
-        >
-          {localStrings.Messages.Update}
-        </Button>
-      ]}
-      styles={{ 
-        content: { 
-          backgroundColor: modalBackground,
-        },
-        header: {
-          backgroundColor: modalHeaderBg,
-          borderBottom: `1px solid ${modalBorderColor}`,
-          color: modalTitleColor
-        },
-        footer: {
-          backgroundColor: modalFooterBg,
-          borderTop: `1px solid ${modalBorderColor}`
-        },
-        mask: {
-          backgroundColor: themeColors.modal[currentTheme].maskBg
-        }
-      }}
-      closeIcon={<CloseOutlined style={{ color: primaryTextColor }} />}
-    >
-      <Form form={form} layout="vertical">
-        <Form.Item 
-          name="name" 
-          label={<span style={{ color: primaryTextColor }}>{localStrings.Messages.ConversationName}</span>}
-          rules={[{ required: true, message: localStrings.Messages.ConversationNameRequired}]}
-        >
-          <Input 
-            placeholder={localStrings.Messages.GroupName} 
+      <Modal
+        open={visible}
+        title={<span style={{ color: modalTitleColor }}>{localStrings.Messages.EditConversation}</span>}
+        onCancel={onCancel}
+        footer={[
+          <Button 
+            key="cancel" 
+            onClick={onCancel}
             style={{
-              backgroundColor: inputBg,
-              borderColor: inputBorderColor,
-              color: inputTextColor
-            }}
-          />
-        </Form.Item>
-        
-        {/* Image Upload Section */}
-        <Form.Item 
-          name="image" 
-          label={<span style={{ color: primaryTextColor }}>{localStrings.Messages?.ConversationImage}</span>}
-        >
-          <Dragger
-            name="avatar"
-            multiple={false}
-            showUploadList={false}
-            beforeUpload={() => false}
-            onChange={(info) => {
-              handleImageUpload(info);
-            }}
-            accept="image/*"
-            style={{
-              backgroundColor: uploadBg,
-              borderColor: uploadBorderColor
+              backgroundColor: defaultButtonBg,
+              color: defaultButtonText,
+              borderColor: defaultButtonBorder
             }}
           >
-            {imagePreview ? (
-              <div style={{ 
-                position: 'relative',
-                width: '100%',
-                height: '200px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                overflow: 'hidden'
-              }}>
-                <img 
-                  src={imagePreview} 
-                  alt="Conversation" 
-                  style={{ 
-                    maxWidth: '100%', 
-                    maxHeight: '200px', 
-                    objectFit: 'contain' 
-                  }} 
-                />
-                <Button 
-                  type="text" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeImage();
-                  }}
-                  style={{ 
-                    position: 'absolute', 
-                    top: 5, 
-                    right: 5, 
-                    zIndex: 10,
-                    background: currentTheme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.7)',
-                    color: primaryTextColor
-                  }}
-                >
-                  {localStrings.Messages.Remove}
-                </Button>
-              </div>
-            ) : (
-              <div>
-                <p className="ant-upload-drag-icon">
-                  <InboxOutlined style={{ color: uploadIconColor }} />
-                </p>
-                <p className="ant-upload-text" style={{ color: uploadTextColor }}>
-                  {localStrings.Messages?.ClickOrDragImageToUpload}
-                </p>
-                <p className="ant-upload-hint" style={{ color: secondaryTextColor }}>
-                  {localStrings.Messages?.SupportSingleImageUpload}
-                </p>
-              </div>
-            )}
-          </Dragger>
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
+            {localStrings.Public.Cancel}
+          </Button>,
+          <Button 
+            key="update" 
+            type="primary" 
+            onClick={handleUpdateConversation} 
+            loading={updating}
+          >
+            {localStrings.Messages.Update}
+          </Button>
+        ]}
+        styles={{ 
+          content: { 
+            backgroundColor: modalBackground,
+          },
+          header: {
+            backgroundColor: modalHeaderBg,
+            borderBottom: `1px solid ${modalBorderColor}`,
+            color: modalTitleColor
+          },
+          footer: {
+            backgroundColor: modalFooterBg,
+            borderTop: `1px solid ${modalBorderColor}`
+          },
+          mask: {
+            backgroundColor: modal.maskBg
+          }
+        }}
+        closeIcon={<CloseOutlined style={{ color: primaryTextColor }} />}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item 
+            name="name" 
+            label={<span style={{ color: primaryTextColor }}>{localStrings.Messages.ConversationName}</span>}
+            rules={[{ required: true, message: localStrings.Messages.ConversationNameRequired}]}
+          >
+            <Input 
+              placeholder={localStrings.Messages.GroupName} 
+              style={{
+                backgroundColor: inputBg,
+                borderColor: inputBorderColor,
+                color: inputTextColor
+              }}
+            />
+          </Form.Item>
+          
+          {/* Image Upload Section */}
+          <Form.Item 
+            name="image" 
+            label={<span style={{ color: primaryTextColor }}>{localStrings.Messages?.ConversationImage}</span>}
+          >
+            <Dragger
+              name="avatar"
+              multiple={false}
+              showUploadList={false}
+              beforeUpload={() => false}
+              onChange={(info) => {
+                handleImageUpload(info);
+              }}
+              accept="image/*"
+              style={{
+                backgroundColor: uploadBg,
+                borderColor: uploadBorderColor
+              }}
+            >
+              {imagePreview ? (
+                <div style={{ 
+                  position: 'relative',
+                  width: '100%',
+                  height: '200px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  overflow: 'hidden'
+                }}>
+                  <img 
+                    src={imagePreview} 
+                    alt="Conversation" 
+                    style={{ 
+                      maxWidth: '100%', 
+                      maxHeight: '200px', 
+                      objectFit: 'contain' 
+                    }} 
+                  />
+                  <Button 
+                    type="text" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage();
+                    }}
+                    style={{ 
+                      position: 'absolute', 
+                      top: 5, 
+                      right: 5, 
+                      zIndex: 10,
+                      background: theme === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.7)',
+                      color: primaryTextColor
+                    }}
+                  >
+                    {localStrings.Messages.Remove}
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <p className="ant-upload-drag-icon">
+                    <InboxOutlined style={{ color: uploadIconColor }} />
+                  </p>
+                  <p className="ant-upload-text" style={{ color: uploadTextColor }}>
+                    {localStrings.Messages?.ClickOrDragImageToUpload}
+                  </p>
+                  <p className="ant-upload-hint" style={{ color: secondaryTextColor }}>
+                    {localStrings.Messages?.SupportSingleImageUpload}
+                  </p>
+                </div>
+              )}
+            </Dragger>
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
 };
 
 interface MessageItemProps {
@@ -1141,9 +879,8 @@ interface MessageItemProps {
 
 const MessageItem = React.memo<MessageItemProps>(({ message, onDelete, onReply }) => {
   const { user, localStrings, theme } = useAuth();
-  const { brandPrimary, lightGray } = useColor();
+  const { brandPrimary, lightGray, messageBubble, icons, avatar, button } = useColor();
   const [hovering, setHovering] = useState(false);
-  const currentTheme = theme || 'light';
   
   const isMyMessage = message.user_id === user?.id;
   
@@ -1160,23 +897,23 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete, onReply }
   };
 
   const messageBackground = isMyMessage 
-    ? themeColors.messageBubble[currentTheme].sender.background 
-    : themeColors.messageBubble[currentTheme].receiver.background;
+    ? messageBubble.sender.background 
+    : messageBubble.receiver.background;
     
   const messageColor = isMyMessage 
-    ? themeColors.messageBubble[currentTheme].sender.color 
-    : themeColors.messageBubble[currentTheme].receiver.color;
+    ? messageBubble.sender.color 
+    : messageBubble.receiver.color;
 
   const timestampColor = isMyMessage 
-    ? themeColors.messageBubble[currentTheme].sender.timestampColor 
-    : themeColors.messageBubble[currentTheme].receiver.timestampColor;  
+    ? messageBubble.sender.timestampColor 
+    : messageBubble.receiver.timestampColor;  
     
   const avatarBackground = !message.user?.avatar_url 
-    ? themeColors.avatar[currentTheme] 
+    ? avatar 
     : undefined;
     
-  const deleteButtonBackground = themeColors.button[currentTheme].defaultBg;
-  const deleteIconColor = currentTheme === 'dark' ? '#ffffff' : '#2f3f5c';
+  const deleteButtonBackground = button.defaultBg;
+  const deleteIconColor = icons.delete;
   
   const menuItems = [
     {
@@ -1198,35 +935,58 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete, onReply }
     }
   ];
   
-return (
-    <div 
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
-      style={{ 
-        width: "100%", 
-        display: "flex", 
-        alignItems: isMyMessage ? "flex-end" : "flex-start",
-        justifyContent: isMyMessage ? "flex-end" : "flex-start",
-        marginBottom: "16px",
-        flexDirection: "column"
-      }}
-    >
-      <div style={{ 
-        width: "100%",
-        display: "flex", 
-        alignItems: "center", 
-        justifyContent: isMyMessage ? "flex-end" : "flex-start"
-      }}>
-        {/* Delete button - only shown for the user's own messages */}
-        {isMyMessage && hovering && !message.isTemporary && (
-          <div style={{ display: "flex", alignItems: "center", marginRight: "8px" }}>
-            <Popconfirm
-              title={localStrings.Messages.ConfirmDeleteMessage}
-              onConfirm={handleDelete}
-              okText={localStrings.Public.Yes}
-              cancelText={localStrings.Public.No}
-              trigger="click"
-            >
+  return (
+      <div 
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => setHovering(false)}
+        style={{ 
+          width: "100%", 
+          display: "flex", 
+          alignItems: isMyMessage ? "flex-end" : "flex-start",
+          justifyContent: isMyMessage ? "flex-end" : "flex-start",
+          marginBottom: "16px",
+          flexDirection: "column"
+        }}
+      >
+        <div style={{ 
+          width: "100%",
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: isMyMessage ? "flex-end" : "flex-start"
+        }}>
+          {/* Delete button - only shown for the user's own messages */}
+          {isMyMessage && hovering && !message.isTemporary && (
+            <div style={{ display: "flex", alignItems: "center", marginRight: "8px" }}>
+              <Popconfirm
+                title={localStrings.Messages.ConfirmDeleteMessage}
+                onConfirm={handleDelete}
+                okText={localStrings.Public.Yes}
+                cancelText={localStrings.Public.No}
+                trigger="click"
+              >
+                <div
+                  style={{
+                    cursor: "pointer",
+                    padding: 4,
+                    borderRadius: "50%",
+                    background: deleteButtonBackground
+                  }}
+                >
+                  <DeleteOutlined style={{ fontSize: 16, color: deleteIconColor }} />
+                </div>
+              </Popconfirm>
+            </div>
+          )}
+          
+          {/* Reply button - show on hover for any message */}
+          {hovering && !message.isTemporary && (
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center",
+              marginRight: isMyMessage ? "0" : "8px",
+              marginLeft: isMyMessage ? "8px" : "0",
+              order: isMyMessage ? -1 : 1  
+            }}>
               <div
                 style={{
                   cursor: "pointer",
@@ -1234,122 +994,99 @@ return (
                   borderRadius: "50%",
                   background: deleteButtonBackground
                 }}
+                onClick={() => onReply(message)}
               >
-                <DeleteOutlined style={{ fontSize: 16, color: themeColors.icons[currentTheme].delete }} />
+                <CommentOutlined style={{ fontSize: 16, color: icons.action }} />
               </div>
-            </Popconfirm>
-          </div>
-        )}
-        
-        {/* Reply button - show on hover for any message */}
-        {hovering && !message.isTemporary && (
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center",
-            marginRight: isMyMessage ? "0" : "8px",
-            marginLeft: isMyMessage ? "8px" : "0",
-            order: isMyMessage ? -1 : 1  
-          }}>
-            <div
-              style={{
-                cursor: "pointer",
-                padding: 4,
-                borderRadius: "50%",
-                background: deleteButtonBackground
-              }}
-              onClick={() => onReply(message)}
-            >
-              <CommentOutlined style={{ fontSize: 16, color: themeColors.icons[currentTheme].action }} />
             </div>
-          </div>
-        )}
-        
-        {/* Avatar - only shown for messages from others */}
-        {!isMyMessage && (
-          <Avatar 
-            src={message.user?.avatar_url} 
-            size={32}
-            style={{ 
-              marginRight: "8px", 
-              flexShrink: 0,
-              backgroundColor: avatarBackground
-            }}
-          >
-            {!message.user?.avatar_url && message.user?.name?.charAt(0)}
-          </Avatar>
-        )}
-        
-        {/* Message bubble */}
-        <div style={{
-          maxWidth: "50%",
-          padding: "8px 12px",
-          borderRadius: "12px",
-          background: messageBackground,
-          color: messageColor,
-          overflow: "hidden",
-          wordWrap: "break-word",
-          border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
-        }}>
-          {/* Sender name - only shown for messages from others */}
+          )}
+          
+          {/* Avatar - only shown for messages from others */}
           {!isMyMessage && (
+            <Avatar 
+              src={message.user?.avatar_url} 
+              size={32}
+              style={{ 
+                marginRight: "8px", 
+                flexShrink: 0,
+                backgroundColor: avatarBackground
+              }}
+            >
+              {!message.user?.avatar_url && message.user?.name?.charAt(0)}
+            </Avatar>
+          )}
+          
+          {/* Message bubble */}
+          <div style={{
+            maxWidth: "50%",
+            padding: "8px 12px",
+            borderRadius: "12px",
+            background: messageBackground,
+            color: messageColor,
+            overflow: "hidden",
+            wordWrap: "break-word",
+            border: message.fromServer ? "none" : "1px solid rgba(0,0,0,0.1)"
+          }}>
+            {/* Sender name - only shown for messages from others */}
+            {!isMyMessage && (
+              <div style={{ 
+                fontSize: 12, 
+                marginBottom: 2, 
+                fontWeight: "bold", 
+                color: messageColor
+              }}>
+                {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
+              </div>
+            )}
+            
+            {/* If this is a reply message, show the original message */}
+            {message.parent_id && message.parent_content && (
+              <div style={{
+                padding: "4px 8px",
+                marginBottom: "6px",
+                borderRadius: "6px",
+                backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                borderLeft: `3px solid ${icons.action}`,
+                fontSize: "12px",
+                color: theme === 'dark' ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.65)',
+                maxHeight: "60px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap"
+              }}>
+                {message.parent_content}
+              </div>
+            )}
+            
+            {/* Message content */}
             <div style={{ 
-              fontSize: 12, 
-              marginBottom: 2, 
-              fontWeight: "bold", 
+              whiteSpace: "pre-wrap", 
+              wordBreak: "break-word", 
               color: messageColor
             }}>
-              {`${message.user?.family_name || ''} ${message.user?.name || ''}`}
+              {message.content}
             </div>
-          )}
-          
-          {/* If this is a reply message, show the original message */}
-          {message.parent_id && message.parent_content && (
-            <div style={{
-              padding: "4px 8px",
-              marginBottom: "6px",
-              borderRadius: "6px",
-              backgroundColor: currentTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-              borderLeft: `3px solid ${themeColors.icons[currentTheme].action}`,
-              fontSize: "12px",
-              color: currentTheme === 'dark' ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.65)',
-              maxHeight: "60px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap"
-            }}>
-              {message.parent_content}
+            
+            {/* Timestamp */}
+            <div style={{ fontSize: 10, textAlign: "right", marginTop: 4 }}>
+              {message.isTemporary ? (
+                <span>
+                </span>
+              ) : (
+                <span style={{ 
+                  color: timestampColor,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                }}>
+                  {formatMessageTime(message.created_at || '')}
+                </span>
+              )}
             </div>
-          )}
-          
-          {/* Message content */}
-          <div style={{ 
-            whiteSpace: "pre-wrap", 
-            wordBreak: "break-word", 
-            color: messageColor
-          }}>
-            {message.content}
-          </div>
-          
-          {/* Timestamp */}
-          <div style={{ fontSize: 10, textAlign: "right", marginTop: 4 }}>
-            {message.isTemporary ? (
-              <span>
-              </span>
-            ) : (
-              <span style={{ 
-                color: timestampColor,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-end",
-              }}>
-                {formatMessageTime(message.created_at || '')}
-              </span>
-            )}
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
 });
 
 interface NewConversationModalProps {
@@ -1366,7 +1103,15 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   onConversationCreated, 
 }) => {
   const { user, localStrings, theme } = useAuth();
-  const { brandPrimary } = useColor();
+  const { 
+    brandPrimary, 
+    avatar, 
+    text, 
+    layout, 
+    notification,
+    input
+  } = useColor();
+  
   const [form] = Form.useForm();
   const [friends, setFriends] = useState<FriendResponseModel[]>([]);
   const [loading, setLoading] = useState(false);
@@ -1374,25 +1119,25 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [conversationImage, setConversationImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const currentTheme = theme || 'light';
-  const avatarBackground = themeColors.avatar[currentTheme];
-  const primaryTextColor = themeColors.text[currentTheme].primary;
-  const secondaryTextColor = themeColors.text[currentTheme].secondary;
-  const borderColor = themeColors.layout[currentTheme].border;
   
-  const modalBackground = currentTheme === 'dark' ? themeColors.layout[currentTheme].siderBg : '#ffffff';
-  const modalTitleColor = currentTheme === 'dark' ? '#ffffff' : '#000000';
-  const modalHeaderBg = currentTheme === 'dark' ? themeColors.layout[currentTheme].headerBg : '#ffffff';
-  const inputBackground = currentTheme === 'dark' ? '#2d2d30' : '#ffffff';
-  const inputBorder = currentTheme === 'dark' ? '#3e3e42' : '#d9d9d9';
-  const inputPlaceholderColor = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.45)';
-  const cancelButtonBg = currentTheme === 'dark' ? '#2d2d30' : '#fff';
-  const cancelButtonText = currentTheme === 'dark' ? '#ffffff' : '#000000';
-  const cancelButtonBorder = currentTheme === 'dark' ? '#6e6e6e' : '#d9d9d9';
-  const listItemHoverBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
-  const listItemSelectedBg = currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.05)';
-  const listBackground = currentTheme === 'dark' ? '#1f1f1f' : '#ffffff';
-  const warningTextColor = currentTheme === 'dark' ? '#faad14' : '#fa8c16';
+  const avatarBackground = avatar;
+  const primaryTextColor = text.primary;
+  const secondaryTextColor = text.secondary;
+  const borderColor = layout.border;
+  
+  const modalBackground = theme === 'dark' ? layout.siderBg : '#ffffff';
+  const modalTitleColor = theme === 'dark' ? '#ffffff' : '#000000';
+  const modalHeaderBg = theme === 'dark' ? layout.headerBg : '#ffffff';
+  const inputBackground = theme === 'dark' ? '#2d2d30' : '#ffffff';
+  const inputBorder = theme === 'dark' ? '#3e3e42' : '#d9d9d9';
+  const inputPlaceholderColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.45)';
+  const cancelButtonBg = theme === 'dark' ? '#2d2d30' : '#fff';
+  const cancelButtonText = theme === 'dark' ? '#ffffff' : '#000000';
+  const cancelButtonBorder = theme === 'dark' ? '#6e6e6e' : '#d9d9d9';
+  const listItemHoverBg = theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+  const listItemSelectedBg = theme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.05)';
+  const listBackground = theme === 'dark' ? '#1f1f1f' : '#ffffff';
+  const warningTextColor = theme === 'dark' ? notification.warning.text : notification.warning.text;
 
   useEffect(() => {
     if (visible && user?.id) {
@@ -1436,13 +1181,15 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
       await form.validateFields();
       const values = form.getFieldsValue();
       
+      const { notification } = useColor();
+      
       if (selectedFriends.length === 0) {
         message.warning({
           content: localStrings.Messages.SelectAtLeastOneFriend || "Vui lòng chọn ít nhất một người bạn",
           style: {
-            backgroundColor: themeColors.notification[currentTheme].warning.background,
-            border: `1px solid ${themeColors.notification[currentTheme].warning.borderColor}`,
-            color: themeColors.notification[currentTheme].warning.textColor,
+            backgroundColor: notification.warning.bg,
+            border: `1px solid ${notification.warning.border}`,
+            color: notification.warning.text,
             borderRadius: '4px',
             padding: '10px 16px'
           }
@@ -1454,9 +1201,9 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
         message.error({
           content: localStrings.Messages.GroupNameTooLong || "Tên nhóm không được vượt quá 30 ký tự",
           style: {
-            backgroundColor: themeColors.notification[currentTheme].error.background,
-            border: `1px solid ${themeColors.notification[currentTheme].error.borderColor}`,
-            color: themeColors.notification[currentTheme].error.textColor,
+            backgroundColor: notification.error.bg,
+            border: `1px solid ${notification.error.border}`,
+            color: notification.error.text,
             borderRadius: '4px',
             padding: '10px 16px'
           }
@@ -1501,9 +1248,9 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
           message.success({
             content: localStrings.Messages.ConversationCreated || "Cuộc trò chuyện đã được tạo thành công",
             style: {
-              backgroundColor: themeColors.notification[currentTheme].success.background,
-              border: `1px solid ${themeColors.notification[currentTheme].success.borderColor}`,
-              color: themeColors.notification[currentTheme].success.textColor,
+              backgroundColor: notification.success.bg,
+              border: `1px solid ${notification.success.border}`,
+              color: notification.success.text,
               borderRadius: '4px',
               padding: '10px 16px'
             }
@@ -1513,7 +1260,7 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
           setSelectedFriends([]);
           setConversationImage(null);
           setImagePreview(null);
-  
+
           if (onConversationCreated) {
             onConversationCreated(newConversation);
           }
@@ -1527,9 +1274,9 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
           message.error({
             content: localStrings.Messages.GroupNameTooLong || "Tên nhóm không được vượt quá 30 ký tự",
             style: {
-              backgroundColor: themeColors.notification[currentTheme].error.background,
-              border: `1px solid ${themeColors.notification[currentTheme].error.borderColor}`,
-              color: themeColors.notification[currentTheme].error.textColor,
+              backgroundColor: notification.error.bg,
+              border: `1px solid ${notification.error.border}`,
+              color: notification.error.text,
               borderRadius: '4px',
               padding: '10px 16px'
             }
@@ -1541,9 +1288,9 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
           message.info({
             content: localStrings.Messages.ConversationAlreadyExists,
             style: {
-              backgroundColor: themeColors.notification[currentTheme].info.background,
-              border: `1px solid ${themeColors.notification[currentTheme].info.borderColor}`,
-              color: themeColors.notification[currentTheme].info.textColor,
+              backgroundColor: notification.info.bg,
+              border: `1px solid ${notification.info.border}`,
+              color: notification.info.text,
               borderRadius: '4px',
               padding: '10px 16px'
             }
@@ -1564,9 +1311,9 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
           message.error({
             content: error?.error?.message || localStrings.Messages.GroupCreationFailed || "Không thể tạo cuộc trò chuyện",
             style: {
-              backgroundColor: themeColors.notification[currentTheme].error.background,
-              border: `1px solid ${themeColors.notification[currentTheme].error.borderColor}`,
-              color: themeColors.notification[currentTheme].error.textColor,
+              backgroundColor: notification.error.bg,
+              border: `1px solid ${notification.error.border}`,
+              color: notification.error.text,
               borderRadius: '4px',
               padding: '10px 16px'
             }
@@ -1601,170 +1348,161 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   }, [selectedFriends.length, form]);
 
   return (
-    <Modal
-      open={visible}
-      title={<span style={{ color: modalTitleColor }}>{localStrings.Messages.NewConversation}</span>}
-      onCancel={onCancel}
-      footer={[
-        <Button 
-          key="cancel" 
-          onClick={onCancel}
-          style={{
-            backgroundColor: cancelButtonBg,
-            color: cancelButtonText,
-            borderColor: cancelButtonBorder
-          }}
-        >
-          {localStrings.Public.Cancel}
-        </Button>,
-        <Button 
-          key="create" 
-          type="primary" 
-          onClick={handleCreateConversation} 
-          loading={creating}
-          disabled={selectedFriends.length === 0}
-        >
-          {localStrings.Messages.Create}
-        </Button>
-      ]}
-      styles={{ 
-        content: { 
-          backgroundColor: modalBackground,
-        },
-        header: {
-          backgroundColor: modalHeaderBg,
-          borderBottom: `1px solid ${borderColor}`
-        },
-        footer: {
-          backgroundColor: modalBackground,
-          borderTop: `1px solid ${borderColor}`
-        },
-        mask: {
-          backgroundColor: currentTheme === 'dark' ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)'
-        }
-      }}
-      closeIcon={<CloseOutlined style={{ color: primaryTextColor }} />}
-    >
-      <Form form={form} layout="vertical">
-        <Form.Item 
+      <Modal
+        open={visible}
+        title={<span style={{ color: modalTitleColor }}>{localStrings.Messages.NewConversation}</span>}
+        onCancel={onCancel}
+        footer={[
+          <Button 
+            key="cancel" 
+            onClick={onCancel}
+            style={{
+              backgroundColor: cancelButtonBg,
+              color: cancelButtonText,
+              borderColor: cancelButtonBorder
+            }}
+          >
+            {localStrings.Public.Cancel}
+          </Button>,
+          <Button 
+            key="create" 
+            type="primary" 
+            onClick={handleCreateConversation} 
+            loading={creating}
+            disabled={selectedFriends.length === 0}
+          >
+            {localStrings.Messages.Create}
+          </Button>
+        ]}
+        styles={{ 
+          content: { 
+            backgroundColor: modalBackground,
+          },
+          header: {
+            backgroundColor: modalHeaderBg,
+            borderBottom: `1px solid ${borderColor}`
+          },
+          footer: {
+            backgroundColor: modalBackground,
+            borderTop: `1px solid ${borderColor}`
+          },
+          mask: {
+            backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)'
+          }
+        }}
+        closeIcon={<CloseOutlined style={{ color: primaryTextColor }} />}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item 
             name="name" 
             label={<span style={{ color: primaryTextColor }}>{localStrings.Messages.ConversationName}</span>}
-            rules={[
-              {
-                validator: (_, value) => {
-                  if (selectedFriends.length > 1 && !value) {
-                    return Promise.reject(new Error(localStrings.Messages.GroupNameRequired));
-                  }
-                  return Promise.resolve();
-                },
-              },
-            ]}
-        >
-          <Input 
-            placeholder={
-              selectedFriends.length > 1 
-                ? localStrings.Messages.GroupNameRequired 
-                : localStrings.Messages.OptionalGroupName
-            } 
-            style={{
-              backgroundColor: inputBackground,
-              color: primaryTextColor,
-              borderColor: inputBorder
-            }}
-          />
-        </Form.Item>
-
-        {selectedFriends.length > 1 && (
-          <div style={{ marginBottom: 16, color: warningTextColor }}>
-            {localStrings.Messages.GroupNameRequiredNote}
-          </div>
-        )}
-        
-        {/* Friends List Section */}
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: "block", marginBottom: 8, color: primaryTextColor }}>
-            {localStrings.Public.Messages}
-          </label>
-          
-          {loading ? (
-            <div style={{ textAlign: "center", padding: 24 }}>
-              <Spin />
-            </div>
-          ) : (
-            <List
-              style={{ 
-                maxHeight: 300, 
-                overflow: "auto", 
-                border: `1px solid ${borderColor}`, 
-                borderRadius: 4,
-                padding: "8px 0",
-                backgroundColor: listBackground
-              }}
-              dataSource={friends}
-              renderItem={friend => (
-                <List.Item 
-                  key={friend.id}
-                  onClick={() => toggleFriendSelection(friend.id!)}
-                  style={{ 
-                    cursor: "pointer", 
-                    padding: "8px 16px",
-                    background: selectedFriends.includes(friend.id!) ? listItemSelectedBg : "transparent",
-                  }}
-                  className="friend-list-item"
-                >
-                  <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
-                    <Checkbox 
-                      checked={selectedFriends.includes(friend.id!)}
-                      onChange={() => toggleFriendSelection(friend.id!)}
-                    />
-                    <Avatar 
-                      src={friend.avatar_url} 
-                      style={{ 
-                        marginLeft: 8,
-                        backgroundColor: !friend.avatar_url ? avatarBackground : undefined 
-                      }}
-                    >
-                      {!friend.avatar_url && (friend.name?.charAt(0) || "").toUpperCase()}
-                    </Avatar>
-                    <span style={{ marginLeft: 12, color: primaryTextColor }}>
-                      {`${friend.family_name || ''} ${friend.name || ''}`}
-                    </span>
-                  </div>
-                </List.Item>
-              )}
-              locale={{ 
-                emptyText: <div style={{ color: secondaryTextColor }}>{localStrings.Messages.NoFriendsFound}</div> 
+            rules={[{/* rules */}]}
+          >
+            <Input 
+              placeholder={
+                selectedFriends.length > 1 
+                  ? localStrings.Messages.GroupNameRequired 
+                  : localStrings.Messages.OptionalGroupName
+              } 
+              style={{
+                backgroundColor: inputBackground,
+                color: primaryTextColor,
+                borderColor: inputBorder
               }}
             />
+          </Form.Item>
+
+          {selectedFriends.length > 1 && (
+            <div style={{ marginBottom: 16, color: warningTextColor }}>
+              {localStrings.Messages.GroupNameRequiredNote}
+            </div>
           )}
-        </div>
-      </Form>
-      <style>{`
-        .friend-list-item:hover {
-          background-color: ${listItemHoverBg} !important;
-        }
-        .ant-modal .ant-form-item-label > label {
-          color: ${primaryTextColor};
-        }
-        .ant-checkbox-wrapper {
-          color: ${primaryTextColor};
-        }
-        .ant-list-empty-text {
-          color: ${secondaryTextColor};
-        }
-        .ant-input::placeholder {
-          color: ${inputPlaceholderColor};
-        }
-        .ant-modal-content {
-          background-color: ${modalBackground};
-        }
-        .ant-modal-title {
-          color: ${modalTitleColor};
-          background-color: ${modalHeaderBg};
-        }
-      `}</style>
-    </Modal>
-  );
+          
+          {/* Friends List Section */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: "block", marginBottom: 8, color: primaryTextColor }}>
+              {localStrings.Public.Messages}
+            </label>
+            
+            {loading ? (
+              <div style={{ textAlign: "center", padding: 24 }}>
+                <Spin />
+              </div>
+            ) : (
+              <List
+                style={{ 
+                  maxHeight: 300, 
+                  overflow: "auto", 
+                  border: `1px solid ${borderColor}`, 
+                  borderRadius: 4,
+                  padding: "8px 0",
+                  backgroundColor: listBackground
+                }}
+                dataSource={friends}
+                renderItem={friend => (
+                  <List.Item 
+                    key={friend.id}
+                    onClick={() => toggleFriendSelection(friend.id!)}
+                    style={{ 
+                      cursor: "pointer", 
+                      padding: "8px 16px",
+                      background: selectedFriends.includes(friend.id!) ? listItemSelectedBg : "transparent",
+                    }}
+                    className="friend-list-item"
+                  >
+                    <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                      <Checkbox 
+                        checked={selectedFriends.includes(friend.id!)}
+                        onChange={() => toggleFriendSelection(friend.id!)}
+                      />
+                      <Avatar 
+                        src={friend.avatar_url} 
+                        style={{ 
+                          marginLeft: 8,
+                          backgroundColor: !friend.avatar_url ? avatarBackground : undefined 
+                        }}
+                      >
+                        {!friend.avatar_url && (friend.name?.charAt(0) || "").toUpperCase()}
+                      </Avatar>
+                      <span style={{ marginLeft: 12, color: primaryTextColor }}>
+                        {`${friend.family_name || ''} ${friend.name || ''}`}
+                      </span>
+                    </div>
+                  </List.Item>
+                )}
+                locale={{ 
+                  emptyText: <div style={{ color: secondaryTextColor }}>{localStrings.Messages.NoFriendsFound}</div> 
+                }}
+              />
+            )}
+          </div>
+        </Form>
+        <style>{`
+          .friend-list-item:hover {
+            background-color: ${listItemHoverBg} !important;
+          }
+          .ant-modal .ant-form-item-label > label {
+            color: ${primaryTextColor};
+          }
+          .ant-checkbox-wrapper {
+            color: ${primaryTextColor};
+          }
+          .ant-list-empty-text {
+            color: ${secondaryTextColor};
+          }
+          .ant-input::placeholder {
+            color: ${inputPlaceholderColor};
+          }
+          .ant-modal-content {
+            background-color: ${modalBackground};
+          }
+          .ant-modal-title {
+            color: ${modalTitleColor};
+            background-color: ${modalHeaderBg};
+          }
+        `}</style>
+      </Modal>
+    );
 };
 
 const { Header, Content, Sider } = Layout;
@@ -1774,39 +1512,54 @@ const { SubMenu, Item } = Menu;
 
 const MessagesFeature: React.FC = () => {
   const { user, localStrings, theme } = useAuth();
-  const currentTheme = theme || 'light';
-  const searchParams = useSearchParams(); // Thêm để lấy query params
+  const { 
+    layout, 
+    text, 
+    avatar, 
+    icons, 
+    sidebar, 
+    button, 
+    search, 
+    dropdown, 
+    modal, 
+    input, 
+    indicators, 
+    messageBubble,
+    notification,
+  } = useColor();
+  
+  const searchParams = useSearchParams();
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const [existingMembers, setExistingMembers] = useState<FriendResponseModel[]>([]);
   const [userRole, setUserRole] = useState<number | null>(null);
   const { socketMessages, setSocketMessages } = useWebSocket();
   const [replyToMessage, setReplyToMessage] = useState<MessageResponseModel | null>(null);
 
-
-  const layoutBackground = themeColors.layout[currentTheme].background;
-  const siderBackground = themeColors.layout[currentTheme].siderBg;
-  const borderColor = themeColors.layout[currentTheme].border;
-  const activeItemBackground = themeColors.layout[currentTheme].activeItem;
-  const avatarBackground = themeColors.avatar[currentTheme];
-  const headerBackground = themeColors.layout[currentTheme].headerBg;
-  const primaryTextColor = themeColors.text[currentTheme].primary;
-  const secondaryTextColor = themeColors.text[currentTheme].secondary;
-  const sidebarTextColor = themeColors.sidebar[currentTheme].text;
-  const sidebarSecondaryTextColor = themeColors.sidebar[currentTheme].secondaryText;
-  const iconPrimaryColor = themeColors.icons[currentTheme].primary;
-  const iconSecondaryColor = themeColors.icons[currentTheme].secondary;
-  const iconActionColor = themeColors.icons[currentTheme].action;
-  const inputBackground = themeColors.layout[currentTheme].siderBg;
-  const inputTextColor = themeColors.input[currentTheme].textColor;
-  const inputBorderColor = themeColors.input[currentTheme].borderColor;
-  const inputPlaceholderColor = themeColors.input[currentTheme].placeholderColor;
-  const dropdownBg = themeColors.dropdown[currentTheme].background;
-  const dropdownItemText = themeColors.dropdown[currentTheme].textColor;
-  const dropdownItemHover = themeColors.dropdown[currentTheme].itemHover;
-  const dropdownBorder = themeColors.dropdown[currentTheme].borderColor;
-  const dropdownBoxShadow = themeColors.dropdown[currentTheme].boxShadow;
-  const dropdownDangerColor = themeColors.dropdown[currentTheme].dangerColor;
-  const dropdownDangerHoverBg = themeColors.dropdown[currentTheme].dangerHoverBg;
+  // Sử dụng màu từ useColor
+  const layoutBackground = layout.background;
+  const siderBackground = layout.siderBg;
+  const borderColor = layout.border;
+  const activeItemBackground = layout.activeItem;
+  const avatarBackground = avatar;
+  const headerBackground = layout.headerBg;
+  const primaryTextColor = text.primary;
+  const secondaryTextColor = text.secondary;
+  const sidebarTextColor = sidebar.text;
+  const sidebarSecondaryTextColor = sidebar.secondaryText;
+  const iconPrimaryColor = icons.primary;
+  const iconSecondaryColor = icons.secondary;
+  const iconActionColor = icons.action;
+  const inputBackground = layout.siderBg;
+  const inputTextColor = input.textColor;
+  const inputBorderColor = input.borderColor;
+  const inputPlaceholderColor = input.placeholderColor;
+  const dropdownBg = dropdown.background;
+  const dropdownItemText = dropdown.textColor;
+  const dropdownItemHover = dropdown.itemHover;
+  const dropdownBorder = dropdown.borderColor;
+  const dropdownBoxShadow = dropdown.boxShadow;
+  const dropdownDangerColor = dropdown.dangerColor;
+  const dropdownDangerHoverBg = dropdown.dangerHoverBg;
 
   const {
     fetchConversations,
@@ -2145,8 +1898,8 @@ const MessagesFeature: React.FC = () => {
               style={{ 
                 marginTop: 16
               }}
-              className={`themed-search-${currentTheme}`}
-              prefix={<SearchOutlined style={{ color: themeColors.search[currentTheme].iconColor }} />}
+              className={`themed-search-${theme}`}
+              prefix={<SearchOutlined style={{ color: search.iconColor }} />}
             />
           </div>
           <div style={{ height: "calc(100% - 130px)", overflow: "auto" }}>
@@ -2446,7 +2199,7 @@ const MessagesFeature: React.FC = () => {
                         border: `1px solid ${dropdownBorder}`,
                         boxShadow: dropdownBoxShadow
                       }}
-                      className={`themed-dropdown-${currentTheme}`}
+                      className={`themed-dropdown-${theme}`}
                     >
                       <Item 
                         key="edit" 
@@ -2517,23 +2270,23 @@ const MessagesFeature: React.FC = () => {
 
                 <style>{`
                   .dropdown-menu-item:hover {
-                    background-color: ${dropdownItemHover} !important;
+                    background-color: ${dropdown.itemHover} !important;
                   }
                   
                   .dropdown-menu-item-danger:hover {
-                    background-color: ${dropdownDangerHoverBg} !important;
+                    background-color: ${dropdown.dangerHoverBg} !important;
                   }
                   
-                  .themed-dropdown-${currentTheme} .ant-dropdown-menu-item {
+                  .themed-dropdown-${theme} .ant-dropdown-menu-item {
                     transition: background-color 0.3s ease;
                   }
                   
                   .themed-dropdown-dark .ant-dropdown-menu {
-                    background-color: ${themeColors.dropdown.dark.background};
+                    background-color: ${dropdown.background};
                   }
                   
                   .themed-dropdown-light .ant-dropdown-menu {
-                    background-color: ${themeColors.dropdown.light.background};
+                    background-color: ${dropdown.background};
                   }
                 `}</style>
 
@@ -2764,7 +2517,7 @@ const MessagesFeature: React.FC = () => {
               display: "flex",
               alignItems: "center",
               padding: "8px 12px",
-              backgroundColor: currentTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+              backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
               borderRadius: "4px",
               marginBottom: "8px"
             }}>
@@ -2843,11 +2596,11 @@ const MessagesFeature: React.FC = () => {
                       color: ${inputPlaceholderColor} !important;
                     }
                     .message-input:hover {
-                      border-color: ${themeColors.input[currentTheme].hoverBorderColor} !important;
+                      border-color: ${input.hoverBorderColor} !important;
                     }
                     .message-input:focus {
-                      border-color: ${themeColors.input[currentTheme].hoverBorderColor} !important;
-                      box-shadow: 0 0 0 2px rgba(${currentTheme === 'dark' ? '23, 125, 220' : '24, 144, 255'}, 0.2) !important;
+                      border-color: ${input.hoverBorderColor} !important;
+                      box-shadow: 0 0 0 2px rgba(${theme === 'dark' ? '23, 125, 220' : '24, 144, 255'}, 0.2) !important;
                     }
                   `}</style>
 
@@ -2868,8 +2621,8 @@ const MessagesFeature: React.FC = () => {
                   fontSize: "12px",
                   marginTop: "4px",
                   color: messageText.length > 500 
-                    ? themeColors.indicators[currentTheme].error 
-                    : themeColors.indicators[currentTheme].normal
+                    ? indicators.error 
+                    : indicators.normal
                 }}>
                   {messageText.length}/500
                 </div>
