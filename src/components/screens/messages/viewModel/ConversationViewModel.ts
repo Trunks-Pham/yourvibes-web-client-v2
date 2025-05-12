@@ -15,7 +15,6 @@ export const useConversationViewModel = () => {
   const [conversationsLoading, setConversationsLoading] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>("");
   const [conversationDetails, setConversationDetails] = useState<Record<string, ConversationDetailResponseModel>>({});
-  const [unreadMessageCounts, setUnreadMessageCounts] = useState<Record<string, number>>({});
   
   const processedConversationsRef = useRef<Set<string>>(new Set());
 
@@ -209,65 +208,6 @@ export const useConversationViewModel = () => {
     }
   }, [user?.id, currentConversation?.id, fetchConversations, localStrings.Public.Error]);
 
-  const hasUnreadMessages = useCallback((conversationId: string): boolean => {
-    if (!conversationId) return false;
-    
-    const detail = conversationDetails[conversationId];
-    return detail && detail.last_mess_status === false;
-  }, [conversationDetails]);
-
-  const updateConversationReadStatus = useCallback((conversationId: string) => {
-    if (!conversationId) return;
-    
-    setConversationDetails(prev => {
-      const detail = prev[conversationId];
-      if (!detail) return prev;
-      
-      return {
-        ...prev,
-        [conversationId]: {
-          ...detail,
-          last_mess_status: true 
-        }
-      };
-    });
-  }, []);
-
-  const markNewMessageUnread = useCallback((conversationId: string) => {
-    if (!conversationId || conversationId === currentConversation?.id) return;
-    
-    setConversationDetails(prev => {
-      const detail = prev[conversationId];
-      if (!detail) return prev;
-      
-      return {
-        ...prev,
-        [conversationId]: {
-          ...detail,
-          last_mess_status: false 
-        }
-      };
-    });
-  }, [currentConversation?.id]);
-
-  const incrementUnreadCount = useCallback((conversationId: string) => {
-    if (!conversationId || conversationId === currentConversation?.id) return;
-    
-    setUnreadMessageCounts(prev => ({
-      ...prev,
-      [conversationId]: (prev[conversationId] || 0) + 1
-    }));
-  }, [currentConversation?.id]);
-
-  const resetUnreadCount = useCallback((conversationId: string) => {
-    if (!conversationId) return;
-    
-    setUnreadMessageCounts(prev => ({
-      ...prev,
-      [conversationId]: 0
-    }));
-  }, []);
-
   return {
     // State
     conversations,
@@ -275,12 +215,10 @@ export const useConversationViewModel = () => {
     conversationsLoading,
     searchText,
     conversationDetails,
-    unreadMessageCounts,
     
     // Setters
     setSearchText,
     setCurrentConversation,
-    setUnreadMessageCounts,
     
     // Actions
     fetchConversations,
@@ -289,10 +227,6 @@ export const useConversationViewModel = () => {
     deleteConversation,
     addNewConversation,
     updateConversationOrder,
-    hasUnreadMessages,
-    updateConversationReadStatus,
-    markNewMessageUnread,
-    incrementUnreadCount,
-    resetUnreadCount,
+    setConversations,
   };
 };

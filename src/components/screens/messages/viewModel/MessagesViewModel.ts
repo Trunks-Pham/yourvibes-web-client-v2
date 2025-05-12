@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useAuth } from "@/context/auth/useAuth";
 import { ConversationResponseModel } from "@/api/features/messages/models/ConversationModel";
 import { FriendResponseModel } from "@/api/features/profile/model/FriendReponseModel";
 import { MessageResponseModel } from "@/api/features/messages/models/MessageModel";
@@ -10,6 +11,7 @@ import { useConversationDetailViewModel } from "./ConversationDetailViewModel";
 import { useWebSocket } from "@/context/socket/useSocket";
 
 export const useMessagesViewModel = () => {
+  const { user, localStrings } = useAuth();
   const messageViewModel = useMessageViewModel();
   const conversationViewModel = useConversationViewModel();
   const conversationDetailViewModel = useConversationDetailViewModel();
@@ -23,7 +25,7 @@ export const useMessagesViewModel = () => {
     currentConversationId,
     fetchMessages, sendMessage, deleteMessage, loadMoreMessages,
     handleScroll, getMessagesForConversation, addMessageListener,
-    addNewMessage,
+    addNewMessage, 
   } = messageViewModel;
 
   const {
@@ -31,11 +33,11 @@ export const useMessagesViewModel = () => {
     searchText, setSearchText, setCurrentConversation,
     fetchConversations, createConversation, updateConversation, 
     deleteConversation, addNewConversation, updateConversationOrder,
-    unreadMessageCounts, incrementUnreadCount, resetUnreadCount
+    setConversations,
   } = conversationViewModel;
 
   const {
-    existingMembersLoading, markConversationAsRead,
+    existingMembersLoading,
     addConversationMembers, leaveConversation, fetchConversationMembers, getCurrentUserRole, isUserConversationOwner,
   } = conversationDetailViewModel;
 
@@ -45,6 +47,10 @@ export const useMessagesViewModel = () => {
   useEffect(() => {
     if (currentConversation?.id) {
       fetchMessages(currentConversation.id, 1, false);
+      
+      if (currentConversation.last_message_status) {
+        markConversationAsRead(currentConversation.id);
+      }
     }
   }, [currentConversation?.id, fetchMessages]);
 
@@ -56,6 +62,19 @@ export const useMessagesViewModel = () => {
     
     return unsubscribe;
   }, [currentConversation?.id, addMessageListener]);
+
+  const markConversationAsRead = useCallback(async (conversationId: string) => {
+    if (!conversationId) return;
+
+    setConversations(prevConversations => 
+      prevConversations.map(conv => 
+        conv.id === conversationId 
+          ? { ...conv, last_message_status: false } 
+          : conv
+      )
+    );
+
+  }, [setConversations]);
 
   useEffect(() => {
     if (!socketMessages.length) return;
@@ -95,18 +114,48 @@ export const useMessagesViewModel = () => {
     };
   
     addNewMessage(latestMessage.conversation_id, messageModel);
+
+    const conversationToUpdate = conversations.find(conv => conv.id === latestMessage.conversation_id);
+    if (conversationToUpdate) {
+      let formattedLastMessage = latestMessage.content;
+      if (latestMessage.user_id !== user?.id) {
+        const senderName = latestMessage.user ? 
+          `${latestMessage.user.name || ''}: ` : 
+          '';
+        formattedLastMessage = senderName + formattedLastMessage;
+      } else {
+        formattedLastMessage = `${localStrings.Messages.You}: ${formattedLastMessage}`;
+      }
+
+      const shouldMarkAsUnread = 
+        latestMessage.user_id !== user?.id && 
+        currentConversation?.id !== latestMessage.conversation_id;
+      
+      const updatedConversation = {
+        ...conversationToUpdate,
+        last_message: formattedLastMessage,
+        last_message_status: shouldMarkAsUnread,
+        updated_at: new Date().toISOString()
+      };
+      
+      const updatedConversations = conversations.filter(conv => conv.id !== latestMessage.conversation_id);
+      updatedConversations.unshift(updatedConversation); 
+      
+      setConversations(updatedConversations);
+    }
     
     updateConversationOrder(latestMessage.conversation_id);
   
     if (currentConversation?.id === latestMessage.conversation_id) {
       setTimeout(() => {
         messageViewModel.scrollToBottom();
-        markConversationAsRead(latestMessage.conversation_id);
-      }, 1000);
-    } else {
-      incrementUnreadCount(latestMessage.conversation_id);
+
+        if (latestMessage.user_id !== user?.id) {
+          markConversationAsRead(latestMessage.conversation_id);
+        }
+      }, 100);
     }
-  }, [socketMessages, currentConversation?.id, messages, markConversationAsRead, addNewMessage, updateConversationOrder, incrementUnreadCount, messageViewModel.scrollToBottom]);
+  }, [socketMessages, currentConversation?.id, messages, addNewMessage, updateConversationOrder, messageViewModel.scrollToBottom, user?.id, markConversationAsRead]);
 
   useEffect(() => {
     const handleNewConversation = (event: CustomEvent) => {
@@ -124,10 +173,8 @@ export const useMessagesViewModel = () => {
 
   useEffect(() => {
     if (currentConversation?.id) {
-      markConversationAsRead(currentConversation.id);
-      resetUnreadCount(currentConversation.id);
     }
-  }, [currentConversation?.id, markConversationAsRead, resetUnreadCount]);
+  }, [currentConversation?.id]);
 
   const fetchExistingMembers = useCallback(async (conversationId: string) => {
     const members = await fetchConversationMembers(conversationId);
@@ -147,80 +194,75 @@ export const useMessagesViewModel = () => {
     setCurrentConversation(conversation);
   
     if (conversation.id) {
-      markConversationAsRead(conversation.id);
-      resetUnreadCount(conversation.id);
-      
       fetchMessages(conversation.id);
+      
+      if (conversation.last_message_status) {
+        markConversationAsRead(conversation.id);
+      }
     }
-  }, [currentConversation?.id, setCurrentConversation, markConversationAsRead, resetUnreadCount, fetchMessages]);
+  }, [currentConversation?.id, setCurrentConversation, fetchMessages, markConversationAsRead]);
 
-  const handleSendMessage = useCallback(() => {
+  const handleSendMessage = useCallback((replyToMessage?: MessageResponseModel | null) => {
     if (!currentConversation?.id) return;
-    return sendMessage();
+      return sendMessage(replyToMessage);
   }, [currentConversation?.id, sendMessage]);
 
-const handleLoadMoreMessages = useCallback(() => {
-  if (!currentConversation?.id) return;
-  return loadMoreMessages();
-}, [currentConversation?.id, loadMoreMessages]);
+  const handleLoadMoreMessages = useCallback(() => {
+    if (!currentConversation?.id) return;
+    return loadMoreMessages();
+  }, [currentConversation?.id, loadMoreMessages]);
 
-const handleScrollMessages = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-  if (!currentConversation?.id) return;
-  
-  handleScroll(e);
-  
-  if (!messagesLoading) {
-    markConversationAsRead(currentConversation.id);
-  }
-}, [currentConversation?.id, handleScroll, messagesLoading, markConversationAsRead]);
+  const handleScrollMessages = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (!currentConversation?.id) return;
+    
+    handleScroll(e);
+  }, [currentConversation?.id, handleScroll]);
 
-useEffect(() => {
-  return () => {
-    processedSocketMessagesRef.current.clear();
-    setExistingMembers([]);
-    setExistingMemberIds([]);
+  useEffect(() => {
+    return () => {
+      processedSocketMessagesRef.current.clear();
+      setExistingMembers([]);
+      setExistingMemberIds([]);
+    };
+  }, []);
+
+  return {
+    // State
+    messages,
+    messagesLoading,
+    messageText,
+    isMessagesEnd,
+    messageListRef,
+    initialMessagesLoaded,
+    conversations,
+    currentConversation,
+    conversationsLoading,
+    searchText,
+    existingMembers,
+    existingMemberIds,
+    
+    // Setters
+    setSearchText,
+    setMessageText,
+    setCurrentConversation,
+
+    // Actions
+    fetchConversations,
+    fetchMessages,
+    sendMessage: handleSendMessage,
+    deleteMessage,
+    createConversation,
+    updateConversation,
+    deleteConversation,
+    loadMoreMessages: handleLoadMoreMessages,
+    handleScroll: handleScrollMessages,
+    addConversationMembers,
+    leaveConversation,
+    fetchExistingMembers,
+    getMessagesForConversation,
+    handleSelectConversation,
+    getCurrentUserRole,
+    isUserConversationOwner,
+    markConversationAsRead,
   };
-}, []);
-
-return {
-  // State
-  messages,
-  messagesLoading,
-  messageText,
-  isMessagesEnd,
-  messageListRef,
-  initialMessagesLoaded,
-  conversations,
-  currentConversation,
-  conversationsLoading,
-  searchText,
-  existingMembers,
-  existingMemberIds,
-  
-  // Setters
-  setSearchText,
-  setMessageText,
-  setCurrentConversation,
-
-  // Actions
-  fetchConversations,
-  fetchMessages,
-  sendMessage: handleSendMessage,
-  deleteMessage,
-  createConversation,
-  updateConversation,
-  deleteConversation,
-  markConversationAsRead,
-  loadMoreMessages: handleLoadMoreMessages,
-  handleScroll: handleScrollMessages,
-  addConversationMembers,
-  leaveConversation,
-  fetchExistingMembers,
-  getMessagesForConversation,
-  handleSelectConversation,
-  unreadMessageCounts,
-  resetUnreadCount,
-  getCurrentUserRole,
-  isUserConversationOwner,
-};
 };
