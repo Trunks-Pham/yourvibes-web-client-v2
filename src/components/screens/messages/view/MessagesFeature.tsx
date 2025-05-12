@@ -1182,7 +1182,6 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
         await form.validateFields();
         const values = form.getFieldsValue();
         
-        // Sử dụng notification đã được khai báo ở trên
         if (selectedFriends.length === 0) {
           message.warning({
             content: localStrings.Messages.SelectAtLeastOneFriend,
@@ -1535,7 +1534,6 @@ const MessagesFeature: React.FC = () => {
   const { socketMessages, setSocketMessages } = useWebSocket();
   const [replyToMessage, setReplyToMessage] = useState<MessageResponseModel | null>(null);
 
-  // Sử dụng màu từ useColor
   const layoutBackground = layout.background;
   const siderBackground = layout.siderBg;
   const borderColor = layout.border;
@@ -1807,11 +1805,11 @@ const MessagesFeature: React.FC = () => {
     }
   };
   
-  useEffect(() => {
-    if (currentConversation?.id) {
-      fetchExistingMembers(currentConversation.id);
-    }
-  }, [currentConversation?.id]);
+  // useEffect(() => {
+  //   if (currentConversation?.id) {
+  //     fetchExistingMembers(currentConversation.id);
+  //   }
+  // }, [currentConversation?.id]);
 
   const handleAddMembers = async (userIds: string[]) => {
     if (currentConversation?.id) {
