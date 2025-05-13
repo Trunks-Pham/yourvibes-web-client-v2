@@ -111,7 +111,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     if (notification_type === "friend_request" || notification_type === "accept_friend_request") {
       router.push(`/user/${content_id}`);
     } else if (
-      ["like_post", "new_comment", "new_share", "new_post", "new_post_personal"].includes(
+      ["like_post", "new_comment", "new_share", "new_post", "new_post_personal", "like_comment"].includes(
         notification_type
       )
     ) {
