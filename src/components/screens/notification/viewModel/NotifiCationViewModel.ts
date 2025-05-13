@@ -1,98 +1,83 @@
 import { NotificationResponseModel } from "@/api/features/notification/models/NotifiCationModel";
 import { NotifiCationRepo } from "@/api/features/notification/NotifiCationRepo";
 import { message } from "antd";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 const NotifiCationViewModel = (repo: NotifiCationRepo) => {
-  const [notifications, setNotifications] = useState<
-    NotificationResponseModel[]
-  >([]);
+  const [notifications, setNotifications] = useState<NotificationResponseModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const limit = 10;
 
-  const fetchNotifications = async (newPage: number = 1) => {
+  const fetchNotifications = useCallback(async (newPage: number = 1) => {
     try {
       setLoading(true);
       const response = await repo.getNotifications({
         sort_by: "created_at",
         isDescending: true,
         page: newPage,
-        limit: limit,
+        limit,
       });
 
       if (!response?.error) {
-        if (newPage === 1) {
-          setNotifications(response?.data || []);
-        } else {
-          setNotifications((prevNotifications) => [
-            ...prevNotifications,
-            ...(response?.data || []),
-          ]);
-        }
-        const {
-          page: currentPage,
-          limit: currentLimit,
-          total: totalRecords,
-        } = response?.paging;
-
-        setTotal(totalRecords);
-        setPage(currentPage);
-        setHasMore(currentPage * currentLimit < totalRecords);
+        const newNotifications = response?.data || [];
+        setNotifications((prev) => (newPage === 1 ? newNotifications : [...prev, ...newNotifications]));
+        const { page: currentPage, limit: currentLimit, total: totalRecords } = response?.paging || {};
+        setTotal(totalRecords || 0);
+        setPage(currentPage || newPage);
+        setHasMore((currentPage || newPage) * (currentLimit || limit) < (totalRecords || 0));
       } else {
-        console.error(response?.message);
+        message.error(response?.message || "Failed to fetch notifications");
       }
-    } catch (error: any) {
-      console.error(error);
+    } catch (error) {
+      message.error("An error occurred while fetching notifications");
     } finally {
       setLoading(false);
     }
-  };
+  }, [repo]);
 
-  const updateNotification = async (data: NotificationResponseModel) => {
-    if (!data.id) {
-      return;
-    }
-
+  const updateNotification = useCallback(async (data: NotificationResponseModel) => {
+    if (!data.id) return;
     try {
       setLoading(true);
       const response = await repo.updateNotification(data);
       if (!response?.error) {
-        fetchNotifications();
+        setNotifications((prev) =>
+          prev.map((item) => (item.id === data.id ? { ...item, status: true } : item))
+        );
       } else {
+        message.error(response?.message || "Failed to update notification");
       }
-    } catch (error: any) {
-      console.error(error);
+    } catch (error) {
+      message.error("An error occurred while updating notification");
     } finally {
       setLoading(false);
     }
-  };
+  }, [repo]);
 
-  const updateAllNotification = async () => {
+  const updateAllNotification = useCallback(async () => {
     try {
       setLoading(true);
       const response = await repo.updateAllNotification();
-
       if (!response?.error) {
-        fetchNotifications();
+        setNotifications((prev) => prev.map((item) => ({ ...item, status: true })));
       } else {
-        message.error(response?.message);
+        message.error(response?.message || "Failed to update all notifications");
       }
-    } catch (error: any) {
-      console.error("error", error);
+    } catch (error) {
+      message.error("An error occurred while updating notifications");
     } finally {
       setLoading(false);
     }
-  };
+  }, [repo]);
 
-  const loadMoreNotifi = async () => {
+  const loadMoreNotifi = useCallback(async () => {
     if (!loading && hasMore) {
-      setPage((prevPage) => prevPage + 1);
-      fetchNotifications(page + 1);
+      await fetchNotifications(page + 1);
     }
-  };
+  }, [loading, hasMore, fetchNotifications, page]);
 
   return {
     notifications,
