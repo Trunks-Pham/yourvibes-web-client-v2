@@ -197,18 +197,6 @@ export const WebSocketProvider: React.FC<{
     };
   };
 
-  // const Noti = useCallback(() => {
-  //   console.log("theme", theme);
-    
-  //   console.log("backgroundColor", backgroundColor);
-  //   notification.open({
-  //     message: "Notification Title",
-  //     description: "This is the content of the notification.",
-  //     placement: "topRight",
-  //     duration: 1,
-  //     style: { backgroundColor: backgroundColor },
-  //   })
-  // }, [backgroundColor, theme]);
 
   const connectSocketNotification = () => {
     if (!user?.id || wsNotificationRef.current) return;
@@ -223,6 +211,7 @@ export const WebSocketProvider: React.FC<{
     ws.onmessage = (e) => {
       try {
         const notificationData = JSON.parse(e.data);
+console.log("theme", theme);
 
         
         const { from: userName, content, notification_type: type, from_url: avatar_url } = notificationData;
@@ -238,42 +227,40 @@ export const WebSocketProvider: React.FC<{
           if (content.includes("political")) {
             return localStrings.Notification.Items.political;
           }
+          if (content.includes("abuse")) {
+            return localStrings.Notification.Items.abuse;
+          }
           return content;
         };
 
         const key = `notification-${Date.now()}`;
-        console.log("theme", theme);
         
-        console.log("backgroundColor", backgroundColor);
-        
-        // Noti();
-        // notification.open({
-        //   message: (
-        //     <div style={{ display: "flex", alignItems: "center", backgroundColor: "red" }}>
-        //       <Avatar
-        //         src={avatar_url}
-        //         size={40}
-        //         style={{
-        //           backgroundColor: !avatar_url ? "#1890ff" : undefined,
-        //           marginRight: 8,
-        //           flexShrink: 0, // Ngăn avatar bị co lại
-        //         }}
-        //       />
-        //       <div style={{ flex: 1, overflow: "hidden", color: brandPrimary }}>
-        //         <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-        //           {`${userName} ${notificationContent}`}
-        //         </div>
-        //         <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-        //           {getDescription(content)}
-        //         </div>
-        //       </div>
-        //     </div>
-        //   ),
-        //   placement: "topRight",
-        //   key,
-        //   duration: 1000,
-        //   style: { backgroundColor: "red" },
-        // });
+        notification.open({
+          message: (
+            <div style={{ display: "flex", alignItems: "center", }}>
+              <Avatar
+                src={avatar_url}
+                size={40}
+                style={{
+                  backgroundColor: !avatar_url ? "#1890ff" : undefined,
+                  marginRight: 8,
+                  flexShrink: 0, // Ngăn avatar bị co lại
+                }}
+              />
+              <div style={{ flex: 1, overflow: "hidden", color: brandPrimary }}>
+                <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {`${userName} ${notificationContent}`}
+                </div>
+                <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {getDescription(content)}
+                </div>
+              </div>
+            </div>
+          ),
+          placement: "topRight",
+          key,
+          duration: 1000,
+        });
 
       } catch (error) {
         console.error("Error processing notification:", error);

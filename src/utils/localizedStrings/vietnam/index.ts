@@ -322,6 +322,7 @@ export const VnLocalizedStrings = {
       nsfw: "vì chứa nội dung nhạy cảm",
       political: "vì chứa nội dung chính trị không phù hợp",
       violence: "vì chứa nội dung bạo lực",
+      abuse: "vì chứa nội dung xâm hại trẻ em",
       DeactivatePostContent:"bài viết của bạn đã bị chặn vì vi phạm các điều khoản và điều kiện của chúng tôi. Nếu bạn nghĩ rằng đây là một sai lầm, vui lòng liên hệ với bộ phận hỗ trợ của chúng tôi để được xem xét lại.",
       ActivacePostContent:"bài viết của bạn đã được kích hoạt lại sau khi xem xét. Cảm ơn bạn đã kiên nhẫn chờ đợi.",
       DeactivateCommentContent:"bình luận của bạn đã bị chặn vì vi phạm các điều khoản và điều kiện của chúng tôi. Nếu bạn nghĩ rằng đây là một sai lầm, vui lòng liên hệ với bộ phận hỗ trợ của chúng tôi để được xem xét lại.",

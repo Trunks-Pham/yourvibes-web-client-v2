@@ -325,6 +325,7 @@ export const ENGLocalizedStrings = {
       nsfw: "due to containing sensitive content",
       political: "due to containing inappropriate political content",
       violence: "due to containing violent content",
+      abuse: "due to containing content that harms children",
       DeactivatePostContent:
         "Your post has been blocked for violating our terms and conditions. If you believe this is a mistake, please contact our support team for review.",
       ActivacePostContent:
