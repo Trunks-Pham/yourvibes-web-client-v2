@@ -442,11 +442,6 @@ useEffect(() => {
           width={700}
           height={700}
           centered
-          title={
-            <span className="font-bold">
-              {localStrings.Notification.Notification}
-            </span>
-          }
           bodyStyle={{ maxHeight: "70vh", overflow: "auto" }}
           style={{maxHeight: "70vh", overflowY: "scroll", scrollbarWidth: "none", msOverflowStyle: "none"}}
         >
