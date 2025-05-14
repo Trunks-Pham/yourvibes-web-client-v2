@@ -1,5 +1,6 @@
 import { NotificationResponseModel } from "@/api/features/notification/models/NotifiCationModel";
 import { useAuth } from "@/context/auth/useAuth";
+import useColor from "@/hooks/useColor";
 import { getTimeDiff } from "@/utils/helper/DateTransfer";
 import { Avatar, List } from "antd";
 import { useRouter } from "next/navigation";
@@ -27,6 +28,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   const { from, from_url, content, created_at, notification_type = "", status, content_id } =
     notifications;
   const { localStrings } = useAuth();
+  const {backGround, backgroundColor, theme, brandPrimary} = useColor();
 
   const typeMap: Record<
     string,
@@ -129,23 +131,23 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   return (
     <List.Item
       onClick={handleClick}
-      className={`${status ? "bg-white" : "bg-gray-100"} cursor-pointer hover:bg-gray-50 transition-colors`}
+      className={`${status ? backgroundColor : backGround} cursor-pointer transition-colors hover:bg-[#31343B]`}
       role="button"
       aria-label={`${from} ${notificationDetails.type}`}
     >
       <div className="flex items-center">
         <div className="relative mr-4">
           <Avatar src={from_url} size={40} className="bg-gray-300" />
-          <div className={`absolute bottom-[-5px] right-[-2px] text-lg ${notificationDetails.color}`}>
+          <div style={{backgroundColor: theme === "dark" ? '#fff' : 'transparent', borderRadius: 20}} className={`absolute bottom-[-5px] right-[-2px] text-lg ${notificationDetails.color}`}>
             {notificationDetails.icon}
           </div>
         </div>
         <div className="flex-1">
-          <span className="text-sm text-gray-800">
+          <span style={{color: brandPrimary}} className="text-sm">
             <span className="font-semibold">{from}</span> {notificationDetails.type}
           </span>
           {content && (
-            <p className="text-sm text-gray-600 truncate">{getDescription(content)}</p>
+            <p className="text-sm text-gray-500 truncate">{getDescription(content)}</p>
           )}
           <p className="text-xs text-gray-400 mt-1">
             {getTimeDiff(created_at, localStrings)}

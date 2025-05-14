@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
-import { Button, Typography, Row, Col, Radio, Space } from 'antd';
-import { CloseOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
-import UpdateProfileViewModel from '../../updateProfile/viewModel/UpdateProfileViewModel';
-import { useAuth } from '@/context/auth/useAuth';
-import { defaultProfileRepo } from '@/api/features/profile/ProfileRepository';
-import { Privacy } from '@/api/baseApiResponseModel/baseApiResponseModel';
+import React, { useState } from "react";
+import { Button, Typography, Row, Col, Radio, Space } from "antd";
+import { CloseOutlined, CheckCircleOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
+import UpdateProfileViewModel from "../../updateProfile/viewModel/UpdateProfileViewModel";
+import { useAuth } from "@/context/auth/useAuth";
+import { defaultProfileRepo } from "@/api/features/profile/ProfileRepository";
+import { Privacy } from "@/api/baseApiResponseModel/baseApiResponseModel";
+import useColor from "@/hooks/useColor";
 
-
-const ObjectProfile = ({ closedModalObject }: { closedModalObject: () => void }) => {
+const ObjectProfile = ({
+  closedModalObject,
+}: {
+  closedModalObject: () => void;
+}) => {
   const { user, localStrings } = useAuth();
+  const { backgroundColor } = useColor();
   const [selectedOption, setSelectedOption] = useState(user?.privacy);
   const { loading, updateProfile } = UpdateProfileViewModel(defaultProfileRepo);
 
@@ -17,7 +22,6 @@ const ObjectProfile = ({ closedModalObject }: { closedModalObject: () => void })
 
   const handleSelect = (option: Privacy) => {
     setSelectedOption(option);
-   
   };
 
   const handleSavePrivacy = () => {
@@ -26,11 +30,25 @@ const ObjectProfile = ({ closedModalObject }: { closedModalObject: () => void })
   };
 
   const options = [
-    { label: localStrings.Public.Public, icon: 'globe', description: localStrings.ObjectPostPrivacy.PublicDescription, value: Privacy.PUBLIC },
-    { label: localStrings.Public.Friend, icon: 'people', description: localStrings.ObjectPostPrivacy.FriendDescription, value: Privacy.FRIEND_ONLY },
-    { label: localStrings.Public.Private, icon: 'lock-closed', description: localStrings.ObjectPostPrivacy.PrivateDescription, value: Privacy.PRIVATE },
+    {
+      label: localStrings.Public.Public,
+      icon: "globe",
+      description: localStrings.ObjectPostPrivacy.PublicDescription,
+      value: Privacy.PUBLIC,
+    },
+    {
+      label: localStrings.Public.Friend,
+      icon: "people",
+      description: localStrings.ObjectPostPrivacy.FriendDescription,
+      value: Privacy.FRIEND_ONLY,
+    },
+    {
+      label: localStrings.Public.Private,
+      icon: "lock-closed",
+      description: localStrings.ObjectPostPrivacy.PrivateDescription,
+      value: Privacy.PRIVATE,
+    },
   ];
-
 
   return (
     <div>
@@ -62,7 +80,9 @@ const ObjectProfile = ({ closedModalObject }: { closedModalObject: () => void })
               <Col xs={21} sm={22}>
                 <div className="flex flex-col">
                   <Typography.Text>{option.label}</Typography.Text>
-                  <Typography.Text className="text-gray-500 text-sm">{option.description}</Typography.Text>
+                  <Typography.Text className="text-gray-500 text-sm">
+                    {option.description}
+                  </Typography.Text>
                 </div>
               </Col>
             </Row>
@@ -79,7 +99,7 @@ const ObjectProfile = ({ closedModalObject }: { closedModalObject: () => void })
           onClick={handleSavePrivacy}
           className="rounded-full"
         >
-          {localStrings.Public.Save}
+          <p style={{color: backgroundColor}}>{localStrings.Public.Save}</p>
         </Button>
       </div>
     </div>

@@ -51,8 +51,8 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
       </div>
       <div
         id="scrollable-notification"
-        className="px-2.5 overflow-y-auto"
-        style={{ maxHeight: "min(60vh, 600px)" }}
+        className="px-2.5 overflow-y-auto no-scrollbar"
+        style={{ maxHeight: "min(70vh, 700px)" }}
       >
         {notifications.length > 0 ? (
           <InfiniteScroll

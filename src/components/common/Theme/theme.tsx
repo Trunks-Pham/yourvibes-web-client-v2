@@ -5,7 +5,7 @@ import { ConfigProvider } from "antd";
 import { useEffect } from "react";
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const {brandPrimary, backGround, backgroundColor } = useColor();
+    const {brandPrimary, backGround, backgroundColor, borderColor } = useColor();
 
     useEffect(() => {
       document.body.style.backgroundColor = backGround;
@@ -14,18 +14,13 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
     return (
         <ConfigProvider
         theme={{
-          token: { colorPrimary: brandPrimary,
+          token: {   colorPrimary: brandPrimary,
+          colorBorder: borderColor,
+          colorBgBase: borderColor,
            },
           components: {
             Select: {
-              optionSelectedColor: "#fff",
-            },
-            Notification: {
-              colorBgElevated: "#555555", // nền notification
-              colorText: brandPrimary,       // màu chữ
-              colorBgBlur: "#555555", // nền blur
-              colorBgBase: "red", // nền chính
-              colorBgContainer: "red", // nền container
+              optionSelectedColor: brandPrimary,
             },
           },
         }}
