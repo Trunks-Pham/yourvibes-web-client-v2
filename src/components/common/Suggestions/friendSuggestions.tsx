@@ -145,10 +145,10 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
                 prev.map((s) =>
                   s.id === userId
                     ? {
-                        ...s,
-                        friendStatus: FriendStatus.SendFriendRequest,
-                        is_send_friend_request: true,
-                      }
+                      ...s,
+                      friendStatus: FriendStatus.SendFriendRequest,
+                      is_send_friend_request: true,
+                    }
                     : s
                 )
               );
@@ -164,10 +164,10 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
                 prev.map((s) =>
                   s.id === userId
                     ? {
-                        ...s,
-                        friendStatus: FriendStatus.NotFriend,
-                        is_send_friend_request: false,
-                      }
+                      ...s,
+                      friendStatus: FriendStatus.NotFriend,
+                      is_send_friend_request: false,
+                    }
                     : s
                 )
               );
@@ -247,19 +247,19 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
           );
         case FriendStatus.SendFriendRequest:
           return (
-              <Button
-                type="primary"
-                ghost
-                onClick={() => {
-                  handleFriendRequest(userId, "cancel");
-                }}
-                loading={isLoading}
-              >
+            <Button
+              type="primary"
+              ghost
+              onClick={() => {
+                handleFriendRequest(userId, "cancel");
+              }}
+              loading={isLoading}
+            >
               <div className="flex flex-row items-center">
-                            <RxCross2 name="cross" size={24} color={brandPrimary} />
-                            <span>{localStrings.Public.CancelFriendRequest}</span>
-                          </div>
-              </Button>
+                <RxCross2 name="cross" size={24} color={brandPrimary} />
+                <span>{localStrings.Public.CancelFriendRequest}</span>
+              </div>
+            </Button>
           );
         default:
           return null;
@@ -291,216 +291,219 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
   return (
     <div>
       {friendSuggestions.length > 0 && (
-       <div
-      className="friend-suggestions"
-      style={{
-        padding: "15px",
-        background: backgroundColor,
-        borderRadius: "10px",
-        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-        marginTop: "10px",
-        color: brandPrimary,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "10px",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <UsergroupAddOutlined style={{ fontSize: "18px" }} />
-          <h3 style={{ margin: 0, fontWeight: "bold" }}>
-            {localStrings.Suggested.SuggestedFriends}
-          </h3>
-        </div>
-        <Dropdown overlay={menu} trigger={["click"]}>
-          <MoreOutlined style={{ fontSize: "20px", cursor: "pointer" }} />
-        </Dropdown>
-      </div>
-
-      {loading && page === 1 ? (
         <div
+          className="friend-suggestions"
           style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100px",
+            padding: "15px",
+            background: backgroundColor,
+            borderRadius: "10px",
+            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+            marginTop: "10px",
+            color: brandPrimary,
+            borderColor: "gray",
+            borderWidth: 1,
+            borderStyle: "solid",
           }}
         >
-          <Spin size="large" />
-        </div>
-      ) : (
-        <>
-          <ConfigProvider
-            theme={{
-              token: { colorPrimary: brandPrimary },
-              components: {
-                Card: {
-                  actionsBg: backgroundColor,
-                  headerBg: backgroundColor,
-                  colorBgContainer: backgroundColor,
-                  colorBorderSecondary: borderColor,
-                },
-              },
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "10px",
             }}
           >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <UsergroupAddOutlined style={{ fontSize: "18px" }} />
+              <h3 style={{ margin: 0, fontWeight: "bold" }}>
+                {localStrings.Suggested.SuggestedFriends}
+              </h3>
+            </div>
+            <Dropdown overlay={menu} trigger={["click"]}>
+              <MoreOutlined style={{ fontSize: "20px", cursor: "pointer" }} />
+            </Dropdown>
+          </div>
+
+          {loading && page === 1 ? (
             <div
-              ref={scrollContainerRef}
               style={{
                 display: "flex",
-                overflowX: "auto",
-                gap: "10px",
-                paddingBottom: "10px",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100px",
               }}
             >
-              {friendSuggestions
-                .filter((s) => !s.hidden)
-                .map((suggestion) => (
-                  <Card
-                    key={suggestion.id}
-                    hoverable
-                    style={{
-                      width: 175,
-                      textAlign: "center",
-                      borderRadius: "10px",
-                      padding: "10px",
-                      flexShrink: 0,
-                    }}
-                    bodyStyle={{ padding: "10px 0 10px 0" }}
-                  >
-                    <div
-                      onClick={() => router.push(`/user/${suggestion.id}`)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <Avatar
-                        src={suggestion.avatar_url}
-                        size={64}
-                        style={{ marginBottom: "10px" }}
-                      />
-                      <p
-                        style={{
-                          fontWeight: "bold",
-                          margin: "5px 0",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          color: brandPrimaryTap,
-                        }}
-                      >
-                        {suggestion.family_name} {suggestion.name}
-                      </p>
-                    </div>
-
-                    {renderFriendButton(suggestion)}
-                    <ConfigProvider theme={{ token: { colorPrimary: menuItem } }}>
-
-                    <Button
-                      type="primary"
-                      block
-                      style={{ marginTop: "5px" }}
-                      onClick={() => handleRemoveSuggestion(suggestion.id!)}
-                    ><span style={{ color: brandPrimary}}>
-                      {localStrings.Suggested.Hide}
-                        </span>
-                    </Button>
-
-                    </ConfigProvider>
-                    
-                  </Card>
-                ))}
-              {loading && page > 1 && (
+              <Spin size="large" />
+            </div>
+          ) : (
+            <>
+              <ConfigProvider
+                theme={{
+                  token: { colorPrimary: brandPrimary },
+                  components: {
+                    Card: {
+                      actionsBg: backgroundColor,
+                      headerBg: backgroundColor,
+                      colorBgContainer: backgroundColor,
+                      colorBorderSecondary: borderColor,
+                    },
+                  },
+                }}
+              >
                 <div
+                  ref={scrollContainerRef}
                   style={{
                     display: "flex",
-                    alignItems: "center",
-                    padding: "0 10px",
-                    flexShrink: 0,
+                    overflowX: "auto",
+                    gap: "10px",
+                    paddingBottom: "10px",
                   }}
                 >
-                  <Spin />
-                </div>
-              )}
-            </div>
+                  {friendSuggestions
+                    .filter((s) => !s.hidden)
+                    .map((suggestion) => (
+                      <Card
+                        key={suggestion.id}
+                        hoverable
+                        style={{
+                          width: 175,
+                          textAlign: "center",
+                          borderRadius: "10px",
+                          padding: "10px",
+                          flexShrink: 0,
+                        }}
+                        bodyStyle={{ padding: "10px 0 10px 0" }}
+                      >
+                        <div
+                          onClick={() => router.push(`/user/${suggestion.id}`)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <Avatar
+                            src={suggestion.avatar_url}
+                            size={64}
+                            style={{ marginBottom: "10px" }}
+                          />
+                          <p
+                            style={{
+                              fontWeight: "bold",
+                              margin: "5px 0",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              color: brandPrimaryTap,
+                            }}
+                          >
+                            {suggestion.family_name} {suggestion.name}
+                          </p>
+                        </div>
 
-            {!hasMore && (
-              <div style={{ textAlign: "center", marginTop: "10px" }}>
-                <p>{localStrings.Suggested.NoMoreSuggestions}</p>
-              </div>
-            )}
+                        {renderFriendButton(suggestion)}
+                        <ConfigProvider theme={{ token: { colorPrimary: menuItem } }}>
 
-            <Modal
-              title={localStrings.Suggested.SuggestedFriends}
-              open={isModalVisible}
-              onOk={() => setIsModalVisible(false)}
-              onCancel={() => setIsModalVisible(false)}
-              footer={null}
-            >
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                {friendSuggestions
-                  .filter((s) => !s.hidden)
-                  .map((suggestion) => (
-                    <Card
-                      key={suggestion.id}
-                      hoverable
+                          <Button
+                            type="primary"
+                            block
+                            style={{ marginTop: "5px" }}
+                            onClick={() => handleRemoveSuggestion(suggestion.id!)}
+                          ><span style={{ color: brandPrimary }}>
+                              {localStrings.Suggested.Hide}
+                            </span>
+                          </Button>
+
+                        </ConfigProvider>
+
+                      </Card>
+                    ))}
+                  {loading && page > 1 && (
+                    <div
                       style={{
-                        width: 175,
-                        textAlign: "center",
-                        borderRadius: "10px",
-                        padding: "10px",
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "0 10px",
+                        flexShrink: 0,
                       }}
                     >
-                      <Avatar
-                        src={suggestion.avatar_url}
-                        size={64}
-                        style={{ marginBottom: "10px" }}
-                      />
-                      <p
-                        style={{
-                          fontWeight: "bold",
-                          margin: "5px 0",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {suggestion.family_name} {suggestion.name}
-                      </p>
-                      {renderFriendButton(suggestion)}
-                      <Button
-                        block
-                        style={{ marginTop: "5px" }}
-                        onClick={() => handleRemoveSuggestion(suggestion.id!)}
-                      >
-                        {localStrings.Suggested.Hide}
-                      </Button>
-                    </Card>
-                  ))}
-              </div>
-            </Modal>
+                      <Spin />
+                    </div>
+                  )}
+                </div>
 
-            <Modal
-              title={localStrings.Suggested.Why}
-              open={isWhyModalVisible}
-              onOk={() => setIsWhyModalVisible(false)}
-              onCancel={() => setIsWhyModalVisible(false)}
-            >
-              <p>{localStrings.Suggested.WhyExplanation}</p>
-              <ul>
-                <li>{localStrings.Suggested.WhyFactor1}</li>
-                <li>{localStrings.Suggested.WhyFactor2}</li>
-                <li>{localStrings.Suggested.WhyFactor3}</li>
-              </ul>
-              <p>{localStrings.Suggested.WhyConclusion}</p>
-            </Modal>
-          </ConfigProvider>
-        </>
-      )}
-    </div>)}
+                {!hasMore && (
+                  <div style={{ textAlign: "center", marginTop: "10px" }}>
+                    <p>{localStrings.Suggested.NoMoreSuggestions}</p>
+                  </div>
+                )}
+
+                <Modal
+                  title={localStrings.Suggested.SuggestedFriends}
+                  open={isModalVisible}
+                  onOk={() => setIsModalVisible(false)}
+                  onCancel={() => setIsModalVisible(false)}
+                  footer={null}
+                >
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                    {friendSuggestions
+                      .filter((s) => !s.hidden)
+                      .map((suggestion) => (
+                        <Card
+                          key={suggestion.id}
+                          hoverable
+                          style={{
+                            width: 175,
+                            textAlign: "center",
+                            borderRadius: "10px",
+                            padding: "10px",
+                          }}
+                        >
+                          <Avatar
+                            src={suggestion.avatar_url}
+                            size={64}
+                            style={{ marginBottom: "10px" }}
+                          />
+                          <p
+                            style={{
+                              fontWeight: "bold",
+                              margin: "5px 0",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {suggestion.family_name} {suggestion.name}
+                          </p>
+                          {renderFriendButton(suggestion)}
+                          <Button
+                            block
+                            style={{ marginTop: "5px" }}
+                            onClick={() => handleRemoveSuggestion(suggestion.id!)}
+                          >
+                            {localStrings.Suggested.Hide}
+                          </Button>
+                        </Card>
+                      ))}
+                  </div>
+                </Modal>
+
+                <Modal
+                  title={localStrings.Suggested.Why}
+                  open={isWhyModalVisible}
+                  onOk={() => setIsWhyModalVisible(false)}
+                  onCancel={() => setIsWhyModalVisible(false)}
+                >
+                  <p>{localStrings.Suggested.WhyExplanation}</p>
+                  <ul>
+                    <li>{localStrings.Suggested.WhyFactor1}</li>
+                    <li>{localStrings.Suggested.WhyFactor2}</li>
+                    <li>{localStrings.Suggested.WhyFactor3}</li>
+                  </ul>
+                  <p>{localStrings.Suggested.WhyConclusion}</p>
+                </Modal>
+              </ConfigProvider>
+            </>
+          )}
+        </div>)}
     </div>
-   
+
   );
 };
 

@@ -79,6 +79,9 @@ const Homepage = () => {
             width: "100%",
             maxWidth: "600px",
             position: "relative",
+            borderColor: "gray",
+            borderWidth: 1,
+            borderStyle: "solid",
           }}
         >
           <Avatar
@@ -191,6 +194,9 @@ const Homepage = () => {
                       animation: "fadeIn 0.5s ease-in-out",
                       boxShadow:
                         "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
+                      borderColor: "gray",
+                      borderWidth: 1,
+                      borderStyle: "solid",
                     }}
                     onClick={() => router.push(`/user/${friend.id}`)}
                     onMouseEnter={(e) => {
@@ -309,6 +315,9 @@ const Homepage = () => {
                   boxShadow:
                     "0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04)",
                   color: brandPrimary,
+                  borderColor: "gray",
+                  borderWidth: 1,
+                  borderStyle: "solid",
                 }}
                 onClick={() => router.push(`/user/${user?.id}`)}
                 onMouseEnter={(e) => {
