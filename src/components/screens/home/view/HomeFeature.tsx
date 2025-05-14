@@ -20,7 +20,7 @@ import { defaultPostRepo } from "@/api/features/post/PostRepo";
 import { PostResponseModel } from "@/api/features/post/models/PostResponseModel";
 
 const Homepage = () => {
-  const { brandPrimary, backgroundColor, lightGray, borderBirth, colorOnl, brandPrimaryTap } = useColor();
+  const { brandPrimary, backgroundColor, lightGray, borderBirth, colorOnl, brandPrimaryTap, borderColor } = useColor();
   const {
     loading,
     newFeeds,
@@ -79,9 +79,6 @@ const Homepage = () => {
             width: "100%",
             maxWidth: "600px",
             position: "relative",
-            borderColor: "gray",
-            borderWidth: 1,
-            borderStyle: "solid",
           }}
         >
           <Avatar
@@ -190,6 +187,7 @@ const Homepage = () => {
                       cursor: "pointer",
                       borderRadius: "10px",
                       backgroundColor: backgroundColor,
+                      border: `1px solid ${borderColor}`,
                       transition: "all 0.3s ease",
                       animation: "fadeIn 0.5s ease-in-out",
                       boxShadow:
@@ -310,6 +308,7 @@ const Homepage = () => {
                   cursor: "pointer",
                   borderRadius: "10px",
                   backgroundColor: backgroundColor,
+                  border: `1px solid ${borderColor}`,
                   transition: "all 0.3s ease",
                   animation: "fadeIn 0.5s ease-in-out",
                   boxShadow:

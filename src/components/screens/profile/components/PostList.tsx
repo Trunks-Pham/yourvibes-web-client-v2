@@ -36,7 +36,7 @@ const PostList = ({
   hasMore: boolean; // Biến để kiểm tra có còn dữ liệu hay không
   setPosts: React.Dispatch<React.SetStateAction<PostResponseModel[]>>;
 }) => {
-  const { backgroundColor, lightGray, brandPrimary } = useColor();
+  const { backgroundColor, lightGray, brandPrimary, borderColor } = useColor();
   const { isLoginUser, localStrings } = useAuth();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { deletePost } = EditPostViewModel(defaultPostRepo, user?.id || "", "");
@@ -61,11 +61,14 @@ const PostList = ({
             display: "flex",
             alignItems: "center",
             backgroundColor: backgroundColor,
-            border: `1px solid ${lightGray}`,
+            boxShadow:
+              "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
             borderRadius: "10px",
             cursor: "pointer",
             width: "100%",
             maxWidth: "600px",
+            position: "relative",
+            border: `1px solid ${borderColor}`,
           }}
         >
           <Avatar
@@ -80,6 +83,26 @@ const PostList = ({
             </p>
             <p style={{ color: "gray" }}>{localStrings.Public.Today}</p>
           </div>
+           <span
+            style={{
+              position: "absolute",
+              right: "10px",
+              fontSize: "24px",
+              fontWeight: "bold",
+              color: brandPrimary || "#1890ff",
+              backgroundColor: backgroundColor,
+              padding: "5px",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "30px",
+              height: "30px",
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            +
+          </span>
         </div>
         <ConfigProvider
           theme={{

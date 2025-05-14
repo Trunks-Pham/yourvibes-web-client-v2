@@ -291,38 +291,35 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
   return (
     <div>
       {friendSuggestions.length > 0 && (
-        <div
-          className="friend-suggestions"
-          style={{
-            padding: "15px",
-            background: backgroundColor,
-            borderRadius: "10px",
-            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-            marginTop: "10px",
-            color: brandPrimary,
-            borderColor: "gray",
-            borderWidth: 1,
-            borderStyle: "solid",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "10px",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <UsergroupAddOutlined style={{ fontSize: "18px" }} />
-              <h3 style={{ margin: 0, fontWeight: "bold" }}>
-                {localStrings.Suggested.SuggestedFriends}
-              </h3>
-            </div>
-            <Dropdown overlay={menu} trigger={["click"]}>
-              <MoreOutlined style={{ fontSize: "20px", cursor: "pointer" }} />
-            </Dropdown>
-          </div>
+       <div
+      className="friend-suggestions"
+      style={{
+        padding: "15px",
+        background: backgroundColor,
+        borderRadius: "10px",
+        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+        marginTop: "10px",
+        color: brandPrimary,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "10px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <UsergroupAddOutlined style={{ fontSize: "18px" }} />
+          <h3 style={{ margin: 0, fontWeight: "bold" }}>
+            {localStrings.Suggested.SuggestedFriends}
+          </h3>
+        </div>
+        <Dropdown overlay={menu} trigger={["click"]}>
+          <MoreOutlined style={{ fontSize: "20px", cursor: "pointer" }} />
+        </Dropdown>
+      </div>
 
           {loading && page === 1 ? (
             <div

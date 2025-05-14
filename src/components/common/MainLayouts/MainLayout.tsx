@@ -25,7 +25,7 @@ const { useBreakpoint } = Grid;
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [visible, setVisible] = useState(false);
-  const { backgroundColor, backGround, brandPrimary, menuItem, darkSlate, brandPrimaryTap } = useColor();
+  const { backgroundColor, backGround, brandPrimary,menuItem, darkSlate, brandPrimaryTap } = useColor();
   const { user, localStrings, onLogout, theme } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -278,56 +278,53 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               />
             </div>
 
-            {screens.lg && (
+          {screens.lg && (
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "600px",
+                position: "absolute",
+                left: "50%",
+                transform: "translateX(-50%)",
+                backgroundColor: backgroundColor,
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+                borderRadius: 10,
+                padding: "5px 0",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
               <div
                 style={{
-                  width: "100%",
-                  maxWidth: "600px",
-                  position: "absolute",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  backgroundColor: backgroundColor,
-                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
-                  borderRadius: 10,
-                  padding: "5px 0",
                   display: "flex",
-                  justifyContent: "center",
-                  borderColor: "gray",
-                  borderWidth: 1,
-                  borderStyle: "solid",
+                  width: "100%",
+                  alignItems: "center",
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    width: "100%",
-                    alignItems: "center",
-                  }}
-                >
-                  {headerNavItems.map((item) => {
-                    const isActive = isActived(item.link);
-                    return (
-                      <div
-                        key={item.link}
-                        onClick={() => handleItemClick(item.link)}
-                        style={{
-                          flex: 1,
-                          textAlign: "center",
-                          padding: "10px 20px",
-                          cursor: "pointer",
-                          fontWeight: "bold",
-                          color: isActive ? "#808080" : brandPrimary,
-                          transition: "color 0.3s, border-bottom 0.3s",
-                          lineHeight: "1.5",
-                        }}
-                      >
-                        {item.label}
-                      </div>
-                    );
-                  })}
-                </div>
+                {headerNavItems.map((item) => {
+                  const isActive = isActived(item.link);
+                  return (
+                    <div
+                      key={item.link}
+                      onClick={() => handleItemClick(item.link)}
+                      style={{
+                        flex: 1,
+                        textAlign: "center",
+                        padding: "10px 20px",
+                        cursor: "pointer",
+                        fontWeight: "bold",
+                        color: isActive ? "#808080" : brandPrimary,
+                        transition: "color 0.3s, border-bottom 0.3s",
+                        lineHeight: "1.5",
+                      }}
+                    >
+                      {item.label}
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
+          )}
 
             <div
               style={{
@@ -356,54 +353,54 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             )}
           </Header>
 
-          {!screens.lg && ["/home", "/people", "/trending"].includes(pathname) && (
+        {!screens.lg && ["/home", "/people", "/trending"].includes(pathname) && (
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "600px",
+              backgroundColor: backgroundColor,
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
+              borderRadius: 10,
+              padding: "5px 10px",
+              display: "inline-flex",
+              justifyContent: "center",
+              margin: "10px auto",
+              position: "fixed",
+              top: "65px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 99,
+            }}
+          >
             <div
               style={{
-                width: "100%",
-                maxWidth: "600px",
-                backgroundColor: backgroundColor,
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)",
-                borderRadius: 10,
-                padding: "5px 10px",
-                display: "inline-flex",
-                justifyContent: "center",
-                margin: "10px auto",
-                position: "fixed",
-                top: "65px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                zIndex: 99,
+                display: "flex",
+                gap: "20px",
+                alignItems: "center",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  gap: "20px",
-                  alignItems: "center",
-                }}
-              >
-                {headerNavItems.map((item) => {
-                  const isActive = isActived(item.link);
-                  return (
-                    <div
-                      key={item.label}
-                      onClick={() => handleItemClick(item.link)}
-                      style={{
-                        padding: "10px 20px",
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                        color: isActive ? "#808080" : "#000",
-                        transition: "color 0.3s, border-bottom 0.3s",
-                        lineHeight: "1.5",
-                      }}
-                    >
-                      {item.label}
-                    </div>
-                  );
-                })}
-              </div>
+              {headerNavItems.map((item) => {
+                const isActive = isActived(item.link);
+                return (
+                  <div
+                    key={item.label}
+                    onClick={() => handleItemClick(item.link)}
+                    style={{
+                      padding: "10px 20px",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                      color: isActive ? "#808080" : "#000",
+                      transition: "color 0.3s, border-bottom 0.3s",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    {item.label}
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
+        )}
 
           <Content
             style={{
@@ -437,23 +434,23 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           </Modal>
         )}
 
-        {notificationModal && (
-          <Modal
-            open={notificationModal}
-            onCancel={() => setNotificationModal(false)}
-            footer={null}
-            width={700}
-            height={700}
-            centered
-            bodyStyle={{ maxHeight: "70vh", overflow: "auto" }}
-            style={{ maxHeight: "70vh", overflowY: "scroll", scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            <NotificationScreen
-              setNotificationModal={setNotificationModal}
-              notificationModal={notificationModal}
-            />
-          </Modal>
-        )}
+      {notificationModal && (
+        <Modal
+          open={notificationModal}
+          onCancel={() => setNotificationModal(false)}
+          footer={null}
+          width={700}
+          height={700}
+          centered
+          bodyStyle={{ maxHeight: "70vh", overflow: "auto" }}
+          style={{maxHeight: "70vh", overflowY: "scroll", scrollbarWidth: "none", msOverflowStyle: "none"}}
+        >
+          <NotificationScreen
+            setNotificationModal={setNotificationModal}
+            notificationModal={notificationModal}
+          />
+        </Modal>
+      )}
 
         {/* Modal xác nhận đăng xuất */}
         <Modal
