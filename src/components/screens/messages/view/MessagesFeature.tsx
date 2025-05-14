@@ -1087,6 +1087,7 @@ const MessageItem = React.memo<MessageItemProps>(({ message, onDelete, onReply }
     );
 });
 
+
 interface NewConversationModalProps {
   visible: boolean;
   onCancel: () => void;
@@ -1802,11 +1803,11 @@ const MessagesFeature: React.FC = () => {
     }
   };
   
-  // useEffect(() => {
-  //   if (currentConversation?.id) {
-  //     fetchExistingMembers(currentConversation.id);
-  //   }
-  // }, [currentConversation?.id]);
+  useEffect(() => {
+    if (currentConversation?.id) {
+      fetchExistingMembers(currentConversation.id);
+    }
+  }, [currentConversation?.id]);
 
   const handleAddMembers = async (userIds: string[]) => {
     if (currentConversation?.id) {
@@ -2486,7 +2487,7 @@ const MessagesFeature: React.FC = () => {
                               />
                             ) : (
                               <MessageItem
-                                key={`${msg.id || `temp-${msg.created_at}`}-${Date.now()}`}
+                                key={msg.id || `temp-${msg.created_at}`}
                                 message={msg}
                                 onDelete={deleteMessage}
                                 onReply={handleReply}

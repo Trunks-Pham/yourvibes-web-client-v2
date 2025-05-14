@@ -16,6 +16,8 @@ export const useMessageViewModel = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [messagesByConversation, setMessagesByConversation] = useState<Record<string, MessageResponseModel[]>>({});
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [tempToRealIdMap, setTempToRealIdMap] = useState<Record<string, string>>({});
+  
   
   const pageSize = 20;
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -84,44 +86,129 @@ export const useMessageViewModel = () => {
     });
   }, []);
 
-  const addNewMessage = useCallback((conversationId: string, message: MessageResponseModel) => {
-    if (!conversationId || !message) {
-        return;
-    }
+const syncWebSocketMessage = useCallback(async (message: MessageResponseModel) => {
+  if (!message.conversation_id || !message.content) {
+    return null;
+  }
+  
+  const conversationId = message.conversation_id;
+  
+  try {
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    const currentMessages = messagesByConversation[conversationId] || [];
+    const response = await defaultMessagesRepo.getMessagesByConversationId({
+      conversation_id: conversationId,
+      sort_by: "created_at",
+      is_descending: true,
+      limit: 10,
+      page: 1
+    });
     
-    if (isDuplicateMessage(conversationId, message, currentMessages)) {
-        return;
-    }
-    
-    markMessageAsProcessed(conversationId, message);
-    
-    setMessagesByConversation(prev => {
-        const conversationMessages = prev[conversationId] || [];
+    if (response.data) {
+      const messages = Array.isArray(response.data) ? response.data : [response.data];
+      
+      const realMessage = messages.find(msg => 
+        msg.user_id === message.user_id && 
+        msg.content === message.content &&
+        Math.abs(new Date(msg.created_at || "").getTime() - 
+               new Date(message.created_at || "").getTime()) < 5000
+      );
+      
+      if (realMessage && realMessage.id) {
+        const wsId = message.id || '';
         
-        const formattedMessage = {
-            ...message,
-            isTemporary: false,
-            fromServer: true
-        };
+        setTempToRealIdMap(prev => ({
+          ...prev,
+          [wsId]: realMessage.id
+        }));
         
-        const updatedMessages = [...conversationMessages, formattedMessage].sort(
-            (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
-        );
+        setMessagesByConversation(prev => {
+          const result = {...prev};
+          
+          if (result[conversationId]) {
+            result[conversationId] = result[conversationId].map(msg => 
+              (msg.id === wsId || 
+               (msg.content === message.content && 
+                msg.user_id === message.user_id &&
+                Math.abs(new Date(msg.created_at || "").getTime() - 
+                      new Date(message.created_at || "").getTime()) < 5000))
+                ? {...msg, id: realMessage.id, isTemporary: false, fromServer: true}
+                : msg
+            );
+          }
+          
+          return result;
+        });
         
-        notifyMessageListeners(conversationId, updatedMessages);
-        
-        if (conversationId === currentConversationId) {
-            setMessages(processMessagesWithDateSeparators(updatedMessages));
+        if (currentConversationId === conversationId) {
+          setMessages(prev => {
+            const updatedMessages = prev.map(msg => 
+              (msg.id === wsId || 
+               (msg.content === message.content && 
+                msg.user_id === message.user_id &&
+                Math.abs(new Date(msg.created_at || "").getTime() - 
+                      new Date(message.created_at || "").getTime()) < 5000))
+                ? {...msg, id: realMessage.id, isTemporary: false, fromServer: true}
+                : msg
+            );
+            
+            return processMessagesWithDateSeparators(updatedMessages);
+          });
         }
         
-        return {
-            ...prev,
-            [conversationId]: updatedMessages
-        };
-    });
-  }, [messagesByConversation, currentConversationId, isDuplicateMessage, markMessageAsProcessed, notifyMessageListeners]);
+        return realMessage.id;
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error syncing WebSocket message with database:", error);
+    return null;
+  }
+}, [currentConversationId, setTempToRealIdMap, setMessagesByConversation, setMessages]);
+
+const addNewMessage = useCallback((conversationId: string, message: MessageResponseModel) => {
+  if (!conversationId || !message) {
+    return;
+  }
+  
+  const currentMessages = messagesByConversation[conversationId] || [];
+  
+  if (isDuplicateMessage(conversationId, message, currentMessages)) {
+    return;
+  }
+  
+  markMessageAsProcessed(conversationId, message);
+  
+  setMessagesByConversation(prev => {
+    const conversationMessages = prev[conversationId] || [];
+    
+    const formattedMessage = {
+      ...message,
+      isTemporary: false,
+      fromServer: true
+    };
+    
+    const updatedMessages = [...conversationMessages, formattedMessage].sort(
+      (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
+    );
+    
+    notifyMessageListeners(conversationId, updatedMessages);
+    
+    if (conversationId === currentConversationId) {
+      setMessages(processMessagesWithDateSeparators(updatedMessages));
+    }
+    
+    return {
+      ...prev,
+      [conversationId]: updatedMessages
+    };
+  });
+  
+  if (message.conversation_id) {
+    syncWebSocketMessage(message);
+  }
+}, [messagesByConversation, currentConversationId, isDuplicateMessage, markMessageAsProcessed, notifyMessageListeners, syncWebSocketMessage]);
 
   const getMessagesForConversation = useCallback((conversationId: string): MessageResponseModel[] => {
     return messagesByConversation[conversationId] || [];
@@ -391,6 +478,8 @@ const sendMessage = useCallback(async (replyToMessage?: MessageResponseModel | n
     setMessageText("");
     
     const currentMessages = messagesByConversation[currentConversationId] || [];
+
+    
     const hasDuplicateContent = currentMessages.some(msg => 
         msg.user_id === user.id && 
         msg.content === messageContent &&
