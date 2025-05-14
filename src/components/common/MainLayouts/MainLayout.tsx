@@ -25,7 +25,7 @@ const { useBreakpoint } = Grid;
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [visible, setVisible] = useState(false);
-  const { backgroundColor, backGround, brandPrimary,menuItem, darkSlate, brandPrimaryTap } = useColor();
+  const { backgroundColor, backGround, brandPrimary,menuItem, darkSlate, borderColor } = useColor();
   const { user, localStrings, onLogout, theme } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -292,6 +292,7 @@ useEffect(() => {
                 padding: "5px 0",
                 display: "flex",
                 justifyContent: "center",
+                border: `1px solid ${borderColor}`,
               }}
             >
               <div
@@ -370,6 +371,7 @@ useEffect(() => {
               left: "50%",
               transform: "translateX(-50%)",
               zIndex: 99,
+              border: `1px solid ${borderColor}`,
             }}
           >
             <div
@@ -442,7 +444,6 @@ useEffect(() => {
           width={700}
           height={700}
           centered
-          bodyStyle={{ maxHeight: "70vh", overflow: "auto" }}
           style={{maxHeight: "70vh", overflowY: "scroll", scrollbarWidth: "none", msOverflowStyle: "none"}}
         >
           <NotificationScreen

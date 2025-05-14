@@ -166,7 +166,7 @@ export const WebSocketProvider: React.FC<{
                 </div>
               ),
               placement: "topRight",
-              duration: 1000,
+              duration: 5,
               description: null,
               key: `message-${message.conversation_id}-${Date.now()}`,
             });
@@ -259,7 +259,7 @@ console.log("theme", theme);
           ),
           placement: "topRight",
           key,
-          duration: 1000,
+          duration: 5,
         });
 
       } catch (error) {

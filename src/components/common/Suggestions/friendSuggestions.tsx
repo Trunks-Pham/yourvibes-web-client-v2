@@ -300,6 +300,7 @@ const FriendSuggestions: React.FC<FriendSuggestionsProps> = ({ postIndex }) => {
         boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
         marginTop: "10px",
         color: brandPrimary,
+        border: `1px solid ${borderColor}`,
       }}
     >
       <div
