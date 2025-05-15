@@ -51,15 +51,14 @@ const Ads = ({ postId }: { postId: string }) => {
     page,
     ads,
     adsAll,
-    getTomorrow,
   } = AdsViewModel(defaultPostRepo);
 
-  // Khởi tạo ngày bắt đầu là ngày mai và ngày kết thúc là ngày mai + 1
-  const [startDate, setStartDate] = useState<Date>(getTomorrow());
+  // Khởi tạo ngày bắt đầu là hôm nay và ngày kết thúc là hôm nay + 1
+  const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(() => {
-    const tomorrow = getTomorrow();
-    const nextDay = new Date(tomorrow);
-    nextDay.setDate(tomorrow.getDate() + 1);
+    const today = new Date();
+    const nextDay = new Date(today);
+    nextDay.setDate(today.getDate() + 1);
     return nextDay;
   });
 
@@ -410,7 +409,7 @@ const Ads = ({ postId }: { postId: string }) => {
                   onChange={handleStartDateChange}
                   style={{ width: "100%", backgroundColor: menuItem, color: brandPrimary, borderColor: borderColor }}
                   disabledDate={(current) => {
-                    if (current && current < dayjs().endOf("day")) {
+                    if (current && current < dayjs().startOf("day")) {
                       return true;
                     }
                     return false;
