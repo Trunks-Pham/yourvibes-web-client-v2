@@ -127,6 +127,7 @@ export const ENGLocalizedStrings = {
       OTP: "OTP Code",
       ConfirmPassword: "Confirm Password",
       Biography: "Biography",
+      PrivacyPolicy: "Privacy Policy and Terms of Service",
     },
     RequiredMessages: {
       FamilyNameRequiredMessage: "Please enter family name!",

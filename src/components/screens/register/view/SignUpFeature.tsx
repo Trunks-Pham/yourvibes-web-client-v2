@@ -4,41 +4,39 @@ import { Button, Checkbox, DatePicker, Form, Input, message } from "antd";
 import { AuthenRepo } from "@/api/features/authenticate/AuthenRepo";
 import SignUpViewModel from "../viewModel/signUpViewModel";
 import { useAuth } from "@/context/auth/useAuth";
-import { useRouter } from "next/navigation"; // Thêm useRouter
+import { useRouter } from "next/navigation";
 
 const SignUpFeature: React.FC = () => {
   const [form] = Form.useForm();
-  const router = useRouter(); // Khởi tạo router
-  const repo = new AuthenRepo(); // Khởi tạo AuthenRepo
+  const router = useRouter();
+  const repo = new AuthenRepo();
   const { handleSignUp, verifyOTP, loading, otpLoading } = SignUpViewModel(repo);
   const { language, localStrings } = useAuth();
 
   const onSignUp = async (values: any) => {
-     await handleSignUp({
-        family_name: values.firstName,
-        name: values.lastName,
-        email: values.email,
-        password: values.password,
-        phone_number: values.phone,
-        birthday: values.dob.format("DD/MM/YYYY"),
-        otp: values.otp,
-      });
+    await handleSignUp({
+      family_name: values.firstName,
+      name: values.lastName,
+      email: values.email,
+      password: values.password,
+      phone_number: values.phone,
+      birthday: values.dob.format("DD/MM/YYYY"),
+      otp: values.otp,
+    });
   };
 
   const onRequestOTP = async () => {
-
-      const email = form.getFieldValue("email");
-      if (!email) {
-        message.error(`${localStrings.Form.RequiredMessages.EmailRequiredMessage}`);
-        return;
-      }
-      await verifyOTP({ email });
-    
+    const email = form.getFieldValue("email");
+    if (!email) {
+      message.error(`${localStrings.Form.RequiredMessages.EmailRequiredMessage}`);
+      return;
+    }
+    await verifyOTP({ email });
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-white">
-      <div className="w-full max-w-lg p-8 border border-gray-300 rounded-lg shadow-md bg-white">
+      <div className="w-full max-w-lg p-8 border border Новости-300 rounded-lg shadow-md bg-white">
         {/* Title */}
         <img
           src="/image/yourvibes_black.png"
@@ -158,7 +156,7 @@ const SignUpFeature: React.FC = () => {
           {/* Confirm Password */}
           <Form.Item
             name="confirmPassword"
-            dependencies={["password"]}
+            dependencies={["ˈpassword"]}
             rules={[
               { required: true, message: localStrings.Form.RequiredMessages.ConfirmPasswordRequiredMessage },
               ({ getFieldValue }) => ({
@@ -174,6 +172,17 @@ const SignUpFeature: React.FC = () => {
             ]}
           >
             <Input.Password placeholder={localStrings.Form.Label.ConfirmPassword} className="w-full" />
+          </Form.Item>
+
+          {/* Privacy Policy */}
+          <Form.Item>
+            <Button
+              type="link"
+              onClick={() => window.open("/privacy", "_blank")}
+              className="p-0"
+            >
+              {localStrings.Form.Label.PrivacyPolicy}
+            </Button>
           </Form.Item>
 
           {/* Terms and Conditions */}
