@@ -122,6 +122,7 @@ export const VnLocalizedStrings = {
       OTP: "Mã OTP",
       ConfirmPassword: "Xác nhận mật khẩu",
       Biography: "Tiểu sử",
+      PrivacyPolicy: "Chính sách bảo mật và điều khoản sử dụng",
     },
     RequiredMessages: {
       FamilyNameRequiredMessage: "Vui lòng nhập họ!",
