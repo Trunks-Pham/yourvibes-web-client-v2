@@ -133,7 +133,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
         </button>
         <div className="flex flex-col md:flex-row gap-4 h-full overflow-y-auto">
           <div className="md:w-1/2 w-full flex justify-center items-center" style={{ minHeight: "250px" }}>
-            {post && (post.is_advertisement === 1 || post.is_advertisement === 2) ? (
+            {post ? (
               <div className="w-full h-full overflow-hidden flex flex-col" style={{ maxHeight: "100%" }}>
                 <Post post={post} noFooter>
                   {post.media && post.media.length > 0 && (
@@ -200,7 +200,7 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200 md:col-span-2">
                 <p>
                   <strong>{localStrings.Ads.StatusActive}:</strong>{" "}
-                  {Number(ad.is_advertisement) === 1 ? localStrings.Ads.Done : localStrings.Ads.Active}
+                  {ad.isActive ? localStrings.Ads.Active : localStrings.Ads.Done}
                 </p>
               </div>
             </div>
@@ -443,7 +443,7 @@ const AdsManagementFeature = () => {
                     className="w-full max-w-full flex justify-center items-center rounded-lg overflow-hidden bg-gray-50"
                     style={{ height: "180px" }}
                   >
-                    {post && (post.is_advertisement === 1 || post.is_advertisement === 2) ? (
+                    {post ? (
                       <div
                         className="w-full h-full flex flex-col justify-between p-2"
                         style={{ backgroundColor: backgroundColor, color: brandPrimary }}
@@ -517,7 +517,7 @@ const AdsManagementFeature = () => {
 
                   <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     {adsForPost.length > 1 ? (
-                      <button
+                      < button
                         className="w-full py-1.5 text-xs text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
                         onClick={() => openHistoryModal(postId)}
                       >
@@ -599,4 +599,4 @@ const AdsManagementFeature = () => {
   );
 };
 
-export default AdsManagementFeature; 
+export default AdsManagementFeature;
