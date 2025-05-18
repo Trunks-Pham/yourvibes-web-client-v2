@@ -168,9 +168,8 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
     try {
       const request: GetUsersPostsRequestModel = {
         user_id: user.id,
-        sort_by: "created_at",
         isDescending: true,
-        limit: 10,
+        limit: 12,
         page,
       };
 
@@ -233,7 +232,18 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
             id: postId,
             content: post.content,
             media: post.media,
-            is_advertisement: 1,
+            parent_post: post.parent_post,
+            user_id: post.user_id,
+            user: post.user,
+            parent_id: post.parent_id,
+            like_count: post.like_count,
+            comment_count: post.comment_count,
+            updated_at: post.updated_at,
+            privacy: post.privacy,
+            location: post.location,
+            is_advertisement: post.is_advertisement,
+            status: post.status,
+            created_at: post.created_at,
           },
           status: adStatus,
           start_date: startDate,
@@ -267,7 +277,6 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
             id: postId,
             content: post.content,
             media: post.media,
-            is_advertisement: 1,
           } as AdvertisePostResponseModel,
         }));
       });
@@ -276,7 +285,7 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
 
       setAds((prevAds) => (page === 1 ? mappedAds : [...prevAds, ...mappedAds]));
       setGroupedAds(grouped);
-      setHasMore(res.data.length === 10);
+      setHasMore(res.data.length === 12);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred");
       setHasMore(false);

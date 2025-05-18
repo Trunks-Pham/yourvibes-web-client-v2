@@ -308,26 +308,44 @@ const AdsManagementFeature = () => {
   }, [isPostListModalVisible]);
 
   const openModal = async (ad: MappedAd) => {
-    if (ad.id && !ad.statistics?.length) {
-      await preloadStatistics(ad.id);
+    if (ad.id && ad.post_id) {
+      try {
+        // Gọi đồng thời getAdvertisePost và getAdvertiseStatistics
+        const [adDetails, statistics] = await Promise.all([
+          repo.getAdvertisePost({ post_id: ad.post_id }),
+          preloadStatistics(ad.id),
+        ]);
+
+        // Cập nhật dữ liệu quảng cáo với chi tiết và thống kê
+        setSelectedAd({
+          ...ad,
+          ...(adDetails?.data && !Array.isArray(adDetails.data) ? adDetails.data : {}),
+          statistics: statistics?.statistics || ad.statistics || [],
+          total_reach: statistics?.total_reach || ad.total_reach,
+          total_clicks: statistics?.total_clicks || ad.total_clicks,
+          total_impression: statistics?.total_impression || ad.total_impression,
+          resultsData: statistics?.statistics?.map((stat: any) => stat.clicks || 0) || ad.resultsData,
+          reachData: statistics?.statistics?.map((stat: any) => stat.reach || 0) || ad.reachData,
+          impressionsData: statistics?.statistics?.map((stat: any) => stat.impression || 0) || ad.impressionsData,
+          labels: statistics?.statistics?.map((stat: any) =>
+            dayjs(stat.aggregation_date).format("HH:mm:ss DD/MM")
+          ) || ad.labels,
+        });
+      } catch (err) {
+        console.error("Error fetching ad details or statistics:", err);
+        setSelectedAd(ad); // Fallback về dữ liệu hiện tại nếu lỗi
+      }
+    } else {
+      setSelectedAd(ad);
     }
-    setSelectedAd(ad);
-    closeHistoryModal();
+    setIsHistoryModalVisible(false); // Đóng modal lịch sử khi mở modal chi tiết
   };
 
   const closeModal = () => {
     setSelectedAd(null);
   };
 
-  const openHistoryModal = async (postId: string) => {
-    const adsForPost = groupedAds[postId] || [];
-    await Promise.all(
-      adsForPost.map(async (ad) => {
-        if (ad.id && !ad.statistics?.length) {
-          await preloadStatistics(ad.id);
-        }
-      })
-    );
+  const openHistoryModal = (postId: string) => {
     setSelectedPostId(postId);
     setIsHistoryModalVisible(true);
   };
@@ -400,6 +418,44 @@ const AdsManagementFeature = () => {
                 hasMore={modalPosts.length % 10 === 0}
                 setPosts={setModalPosts}
               />
+            )}
+          </div>
+        </Modal>
+
+        <Modal
+          title={`${localStrings.Ads.HistoryforPost}: ${
+            selectedPostId && postDetails[selectedPostId]?.content
+              ? postDetails[selectedPostId].content
+              : localStrings.Ads.NoAdsHistory
+          }`}
+          open={isHistoryModalVisible}
+          onCancel={closeHistoryModal}
+          footer={null}
+          width={700}
+          bodyStyle={{ maxHeight: "600px", overflowY: "auto", padding: "16px" }}
+        >
+          <div className="space-y-3">
+            {selectedPostId && groupedAds[selectedPostId] ? (
+              groupedAds[selectedPostId].map((ad) => (
+                <div
+                  key={ad.id}
+                  className="p-3 border rounded-lg hover:border-blue-300 cursor-pointer"
+                  onClick={() => openModal(ad)}
+                >
+                  <p>
+                    <strong>{localStrings.Ads.StartDay}:</strong> {ad.start_date}
+                  </p>
+                  <p>
+                    <strong>{localStrings.Ads.EndDay}:</strong> {ad.end_date}
+                  </p>
+                  <p>
+                    <strong>{localStrings.Ads.Grant}:</strong>{" "}
+                    {ad.bill?.price ? CurrencyFormat(ad.bill.price) : "N/A"}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p>{localStrings.Ads.NoHistoryFound}</p>
             )}
           </div>
         </Modal>
@@ -517,7 +573,7 @@ const AdsManagementFeature = () => {
 
                   <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     {adsForPost.length > 1 ? (
-                      < button
+                      <button
                         className="w-full py-1.5 text-xs text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
                         onClick={() => openHistoryModal(postId)}
                       >
@@ -542,59 +598,6 @@ const AdsManagementFeature = () => {
       {selectedAd && selectedAd.post_id && (
         <AdDetailsModal ad={selectedAd} onClose={closeModal} post={postDetails[selectedAd.post_id]} />
       )}
-
-      <ConfigProvider
-        theme={{
-          token: {
-            colorText: brandPrimary,
-          },
-          components: {
-            Modal: {
-              contentBg: backgroundColor,
-              headerBg: backgroundColor,
-              titleColor: brandPrimary,
-            },
-          },
-        }}
-      >
-        <Modal
-          title={`${localStrings.Ads.HistoryforPost}: ${
-            selectedPostId && postDetails[selectedPostId]?.content
-              ? postDetails[selectedPostId].content
-              : localStrings.Ads.NoAdsHistory
-          }`}
-          open={isHistoryModalVisible}
-          onCancel={closeHistoryModal}
-          footer={null}
-          width={700}
-          bodyStyle={{ maxHeight: "600px", overflowY: "auto", padding: "16px" }}
-        >
-          <div className="space-y-3">
-            {selectedPostId && groupedAds[selectedPostId] ? (
-              groupedAds[selectedPostId].map((ad) => (
-                <div
-                  key={ad.id}
-                  className="p-3 border rounded-lg hover:border-blue-300 cursor-pointer"
-                  onClick={() => openModal(ad)}
-                >
-                  <p>
-                    <strong>{localStrings.Ads.StartDay}:</strong> {ad.start_date}
-                  </p>
-                  <p>
-                    <strong>{localStrings.Ads.EndDay}:</strong> {ad.end_date}
-                  </p>
-                  <p>
-                    <strong>{localStrings.Ads.Grant}:</strong>{" "}
-                    {ad.bill?.price ? CurrencyFormat(ad.bill.price) : "N/A"}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p>{localStrings.Ads.NoHistoryFound}</p>
-            )}
-          </div>
-        </Modal>
-      </ConfigProvider>
     </div>
   );
 };
