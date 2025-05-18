@@ -30,6 +30,7 @@ export const ApiPath = {
   TRENDING_POST: getApiPath("posts/trending"),
 
   //Advertisement
+  GET_ALL_ADVERTISE: getApiPath("advertise/short_advertise"),
   ADVERTISE_POST: getApiPath("advertise/"),
   ADVERTISE_STATISTICS: getApiPath("advertise/statistic/"),
 
