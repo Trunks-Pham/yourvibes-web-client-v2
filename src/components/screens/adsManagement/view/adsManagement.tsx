@@ -58,9 +58,14 @@ interface MappedAd extends AdvertisePostResponseModel {
   total_impression?: number;
 }
 
-const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => void; post?: any }) => {
+const AdDetailsModal = ({ ad, onClose, post, postId, adsForPost }: { ad: MappedAd; onClose: () => void; post?: any; postId: string; adsForPost: MappedAd[] }) => {
   const { localStrings } = useAuth();
   const { backgroundColor, brandPrimary } = useColor();
+
+  const openHistoryModal = () => {
+    onClose();
+    window.dispatchEvent(new CustomEvent('openHistoryModal', { detail: postId }));
+  };
 
   const chartData = ad;
   const data = {
@@ -229,7 +234,15 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
             </div>
           </div>
         </div>
-        <div className="mt-2 text-center">
+        <div className="mt-2 text-center flex justify-center gap-4">
+          {adsForPost.length > 1 && (
+            <Button
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              onClick={openHistoryModal}
+            >
+              {localStrings.Ads.ViewHistory} ({adsForPost.length})
+            </Button>
+          )}
           <Button
             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
             onClick={handleCloseModal}
@@ -308,37 +321,39 @@ const AdsManagementFeature = () => {
   }, [isPostListModalVisible]);
 
   const openModal = async (ad: MappedAd) => {
-    if (ad.id && ad.post_id) {
+    if (ad.post_id) {
       try {
-        // Gọi đồng thời getAdvertisePost và getAdvertiseStatistics
-        const [adDetails, statistics] = await Promise.all([
-          repo.getAdvertisePost({ post_id: ad.post_id }),
-          preloadStatistics(ad.id),
-        ]);
+        // Call getAdvertisePost first to get advertiseId
+        const adDetails = await repo.getAdvertisePost({ post_id: ad.post_id });
+        const adData = Array.isArray(adDetails?.data) ? adDetails?.data[0] : adDetails?.data;
+        const advertiseId = adData?.id || ad.id;
 
-        // Cập nhật dữ liệu quảng cáo với chi tiết và thống kê
+        // Then call getAdvertiseStatistics with advertiseId
+        const statistics = advertiseId ? await preloadStatistics(advertiseId) : null;
+
         setSelectedAd({
           ...ad,
-          ...(adDetails?.data && !Array.isArray(adDetails.data) ? adDetails.data : {}),
+          ...(adData || {}),
+          id: advertiseId,
           statistics: statistics?.statistics || ad.statistics || [],
-          total_reach: statistics?.total_reach || ad.total_reach,
-          total_clicks: statistics?.total_clicks || ad.total_clicks,
-          total_impression: statistics?.total_impression || ad.total_impression,
-          resultsData: statistics?.statistics?.map((stat: any) => stat.clicks || 0) || ad.resultsData,
-          reachData: statistics?.statistics?.map((stat: any) => stat.reach || 0) || ad.reachData,
-          impressionsData: statistics?.statistics?.map((stat: any) => stat.impression || 0) || ad.impressionsData,
+          total_reach: statistics?.total_reach || ad.total_reach || 0,
+          total_clicks: statistics?.total_clicks || ad.total_clicks || 0,
+          total_impression: statistics?.total_impression || ad.total_impression || 0,
+          resultsData: statistics?.statistics?.map((stat: any) => stat.clicks || 0) || ad.resultsData || [],
+          reachData: statistics?.statistics?.map((stat: any) => stat.reach || 0) || ad.reachData || [],
+          impressionsData: statistics?.statistics?.map((stat: any) => stat.impression || 0) || ad.impressionsData || [],
           labels: statistics?.statistics?.map((stat: any) =>
             dayjs(stat.aggregation_date).format("HH:mm:ss DD/MM")
-          ) || ad.labels,
+          ) || ad.labels || [],
         });
       } catch (err) {
         console.error("Error fetching ad details or statistics:", err);
-        setSelectedAd(ad); // Fallback về dữ liệu hiện tại nếu lỗi
+        setSelectedAd(ad); // Fallback to existing ad data
       }
     } else {
       setSelectedAd(ad);
     }
-    setIsHistoryModalVisible(false); // Đóng modal lịch sử khi mở modal chi tiết
+    setIsHistoryModalVisible(false);
   };
 
   const closeModal = () => {
@@ -354,6 +369,17 @@ const AdsManagementFeature = () => {
     setIsHistoryModalVisible(false);
     setSelectedPostId(null);
   };
+
+  useEffect(() => {
+    const handleOpenHistoryModal = (event: CustomEvent) => {
+      setSelectedPostId(event.detail);
+      setIsHistoryModalVisible(true);
+    };
+    window.addEventListener('openHistoryModal', handleOpenHistoryModal as EventListener);
+    return () => {
+      window.removeEventListener('openHistoryModal', handleOpenHistoryModal as EventListener);
+    };
+  }, []);
 
   const uniquePostIds = Array.from(
     new Set(ads.map((ad) => ad.post_id).filter((postId): postId is string => !!postId))
@@ -572,21 +598,12 @@ const AdsManagementFeature = () => {
                   </div>
 
                   <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    {adsForPost.length > 1 ? (
-                      <button
-                        className="w-full py-1.5 text-xs text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
-                        onClick={() => openHistoryModal(postId)}
-                      >
-                        {localStrings.Ads.ViewHistory} ({adsForPost.length})
-                      </button>
-                    ) : (
-                      <button
-                        className="w-full py-1.5 text-xs text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
-                        onClick={() => openModal(firstAd)}
-                      >
-                        {localStrings.Ads.ViewDetails}
-                      </button>
-                    )}
+                    <button
+                      className="w-full py-1.5 text-xs text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
+                      onClick={() => openModal(firstAd)}
+                    >
+                      {localStrings.Ads.ViewDetails}
+                    </button>
                   </div>
                 </div>
               );
@@ -596,7 +613,13 @@ const AdsManagementFeature = () => {
       )}
 
       {selectedAd && selectedAd.post_id && (
-        <AdDetailsModal ad={selectedAd} onClose={closeModal} post={postDetails[selectedAd.post_id]} />
+        <AdDetailsModal
+          ad={selectedAd}
+          onClose={closeModal}
+          post={postDetails[selectedAd.post_id]}
+          postId={selectedAd.post_id}
+          adsForPost={groupedAds[selectedAd.post_id] || []}
+        />
       )}
     </div>
   );
