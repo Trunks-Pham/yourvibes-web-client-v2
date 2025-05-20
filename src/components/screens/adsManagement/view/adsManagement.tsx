@@ -173,12 +173,12 @@ const AdDetailsModal = ({ ad, onClose, post, postId, adsForPost }: { ad: MappedA
             <div className="grid grid-cols-2 gap-2 text-xs text-gray-700">
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                 <p>
-                  <strong>{localStrings.Ads.StartDay}:</strong> {startDate}
+                  <strong>{localStrings.Ads.StartDay}:</strong> {dayjs(startDate).format('DD/MM/YYYY')}
                 </p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                 <p>
-                  <strong>{localStrings.Ads.EndDay}:</strong> {endDate}
+                  <strong>{localStrings.Ads.EndDay}:</strong> {dayjs(endDate).format('DD/MM/YYYY')}
                 </p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
