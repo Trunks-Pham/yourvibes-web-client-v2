@@ -159,7 +159,7 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
       const request: GetUsersPostsRequestModel = {
         user_id: user.id,
         isDescending: true,
-        limit: 12,
+        limit: 100,
         page,
       };
 

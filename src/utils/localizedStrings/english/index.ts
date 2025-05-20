@@ -400,6 +400,7 @@ export const ENGLocalizedStrings = {
     Discount: "Discount",
     LimitDay:
       "- 30-day limit because the MOMO payment method does not support payments beyond 30 days!",
+    GoAds:"Keep promoting your posts to reach more people!",
   },
 
   Report: {
