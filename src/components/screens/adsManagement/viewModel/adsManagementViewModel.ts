@@ -159,8 +159,8 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
       const request: GetUsersPostsRequestModel = {
         user_id: user.id,
         isDescending: true,
-        limit: 12,
-        page,
+        limit: 100,
+        page : 1,
       };
 
       const res = await repo.getAdvertisementPosts(request);

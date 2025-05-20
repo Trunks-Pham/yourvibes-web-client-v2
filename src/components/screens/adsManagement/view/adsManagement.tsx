@@ -202,11 +202,18 @@ const AdDetailsModal = ({ ad, onClose, post, postId, adsForPost }: { ad: MappedA
                   <strong>{localStrings.Ads.Status}:</strong> {paymentStatus}
                 </p>
               </div>
-              <div className="bg-gray-50 p-2 rounded-md border border-gray-200 md:col-span-2">
-                <p>
-                  <strong>{localStrings.Ads.StatusActive}:</strong>{" "}
-                  {ad.isActive ? localStrings.Ads.Active : localStrings.Ads.Done}
-                </p>
+              <div className="bg-gray-50 p-2 text-md text-center rounded-md border border-gray-200 md:col-span-2"> 
+                  {adsForPost.length > 1 && (
+                    <Button
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                      onClick={openHistoryModal}
+                    >
+                      {localStrings.Ads.ViewHistory} ({adsForPost.length})
+                    </Button>
+                  )}
+                  <p>
+                    <strong>{localStrings.Ads.GoAds}</strong>
+                  </p> 
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
@@ -388,7 +395,7 @@ const AdsManagementFeature = () => {
   return (
     <div className="p-6 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <h1 className="text-3xl font-semibold text-gray-800">{localStrings.Ads.AdsManagement}</h1>
+        <h1 className="text-3xl font-semibol" style={{ color: brandPrimary }}>{localStrings.Ads.AdsManagement}</h1>
         <div className="flex gap-3">
           <button
             className="bg-black text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800"
@@ -449,11 +456,10 @@ const AdsManagementFeature = () => {
         </Modal>
 
         <Modal
-          title={`${localStrings.Ads.HistoryforPost}: ${
-            selectedPostId && postDetails[selectedPostId]?.content
+          title={`${localStrings.Ads.HistoryforPost}: ${selectedPostId && postDetails[selectedPostId]?.content
               ? postDetails[selectedPostId].content
               : localStrings.Ads.NoAdsHistory
-          }`}
+            }`}
           open={isHistoryModalVisible}
           onCancel={closeHistoryModal}
           footer={null}
@@ -486,16 +492,6 @@ const AdsManagementFeature = () => {
           </div>
         </Modal>
       </ConfigProvider>
-
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder={localStrings.Ads.SearchAds}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={searchTerm}
-          onChange={(e) => debouncedSetSearchTerm(e.target.value)}
-        />
-      </div>
 
       {loading && filteredAds.length === 0 ? (
         <div className="flex justify-center items-center h-64">
