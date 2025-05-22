@@ -15,6 +15,7 @@ import {
   DatePicker,
   Image,
   Avatar,
+  Spin,
 } from "antd";
 
 import {
@@ -22,6 +23,7 @@ import {
   CameraOutlined,
   CloseOutlined,
   CalendarOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "@/context/auth/useAuth";
 import dayjs from "dayjs";
@@ -31,57 +33,76 @@ import { useRouter } from "next/navigation";
 
 import useColor from "@/hooks/useColor";
 import { space } from "postcss/lib/list";
+import ProfileViewModel from "../../profile/viewModel/ProfileViewModel";
 
 const { Text } = Typography;
 
 const UpdateProfileScreen = () => {
   const { user, localStrings, changeLanguage, language } = useAuth();
-  const { brandPrimaryTap, lightGray } = useColor();
+  const { brandPrimaryTap, lightGray, backgroundColor } = useColor();
   const [showObject, setShowObject] = React.useState(false);
   const [updatedForm] = Form.useForm();
-  const [newAvatar, setNewAvatar] = useState<{
-    url: string;
-    name: string;
-    type: string;
-    file?: File;
-  }>({ url: "", name: "", type: "" });
-  const [newCapwall, setNewCapwall] = useState<{
-    url: string;
-    name: string;
-    type: string;
-    file?: File;
-  }>({ url: "", name: "", type: "" });
-  const [loading, setLoading] = useState(false);
-  const { updateProfile, handleScroll, scrollContainerRef, objectPosition } =
-    UpdateProfileViewModel(defaultProfileRepo);
+  const whiteSpinner = (
+    <LoadingOutlined style={{ fontSize: 24, color: backgroundColor }} />
+  );
+  const {
+    updateProfile,
+    handleScroll,
+    scrollContainerRef,
+    objectPosition,
+    newAvatar,
+    newCapwall,
+    setNewAvatar,
+    setNewCapwall,
+    loading,
+  } = UpdateProfileViewModel(defaultProfileRepo);
   const [showPicker, setShowPicker] = useState(false);
   const router = useRouter();
-
-  console.log(objectPosition);
-
-  useEffect(() => {
+  const {infoUser, fetchUserProfile} = ProfileViewModel();
+  // useEffect(() => {
+  //   updatedForm.setFieldsValue({
+  //     name: user?.name,
+  //     family_name: user?.family_name,
+  //     email: user?.email,
+  //     birthday:
+  //       user?.birthday && dayjs(user.birthday).isValid()
+  //         ? dayjs(user.birthday)
+  //         : dayjs(user?.created_at),
+  //     phone_number: user?.phone_number,
+  //     biography: user?.biography,
+  //   });
+  //   const container = scrollContainerRef.current;
+  //   if (container) {
+  //     container.addEventListener("scroll", handleScroll);
+  //   }
+  //   return () => {
+  //     if (container) {
+  //       container.removeEventListener("scroll", handleScroll);
+  //     }
+  //   };
+  // }, [user, handleScroll]);
+   useEffect(() => {
+     if (user) {
+       fetchUserProfile(user?.id as string);
+     }
+   }, []);
+   useEffect(() => {
+  if (infoUser) {
     updatedForm.setFieldsValue({
-      name: user?.name,
-      family_name: user?.family_name,
-      email: user?.email,
+      name: infoUser.name,
+      family_name: infoUser.family_name,
+      email: infoUser.email,
       birthday:
-        user?.birthday && dayjs(user.birthday).isValid()
-          ? dayjs(user.birthday)
-          : dayjs(user?.created_at),
-      phone_number: user?.phone_number,
-      biography: user?.biography,
+        infoUser.birthday && dayjs(infoUser.birthday).isValid()
+          ? dayjs(infoUser.birthday)
+          : dayjs(infoUser.created_at),
+      phone_number: infoUser.phone_number,
+      biography: infoUser.biography,
     });
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll);
-    }
-    return () => {
-      if (container) {
-        container.removeEventListener("scroll", handleScroll);
-      }
-    };
-  }, [user, handleScroll]);
+  }
+}, [infoUser]);
 
+   
   const pickAvatarImage = (file: File) => {
     // Kiểm tra loại tệp (nếu cần)
     const isImage = file.type.startsWith("image/");
@@ -119,10 +140,6 @@ const UpdateProfileScreen = () => {
   };
 
   const UpdateProfile = () => {
-    setLoading(true);
-    setNewAvatar({ url: "", name: "", type: "" });
-    setNewCapwall({ url: "", name: "", type: "" });
-    // Lấy dữ liệu từ form và chuẩn bị các trường ảnh
     const data = {
       ...updatedForm.getFieldsValue(),
       avatar_url: newAvatar?.file, // Sử dụng tệp avatar thực tế
@@ -195,149 +212,177 @@ const UpdateProfileScreen = () => {
               >
                 <div className="relative">
                   <Avatar
-                  src={newAvatar?.url || user?.avatar_url}
-                  alt="Profile"
-                  shape="circle"
-                  size={{
-                    xs: 150,
-                    sm: 150,
-                    md: 200,
-                    lg: 200,
-                    xl: 200,
-                    xxl: 200,
-                  }}
-                  style={{
-                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                    border: "2px solid #f0f0f0",
-                    cursor: "pointer",
-                  }}
-                />
-                <div className="absolute top-2 left-2.5">
-                <Upload showUploadList={false} beforeUpload={pickAvatarImage}  accept=".jpg, .jpeg, .gif, .png, .svg">
-                  <Button icon={<CameraOutlined />} />
-                </Upload>
-              </div>
-              {newAvatar?.url && (
-                <div className="absolute top-0 right-0">
-                  <Button
-                    icon={<CloseOutlined />}
-                    onClick={() =>
-                      setNewAvatar({ url: "", name: "", type: "" })
-                    }
+                    src={newAvatar?.url || user?.avatar_url}
+                    alt="Profile"
+                    shape="circle"
+                    size={{
+                      xs: 150,
+                      sm: 150,
+                      md: 200,
+                      lg: 200,
+                      xl: 200,
+                      xxl: 200,
+                    }}
+                    style={{
+                      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                      border: "2px solid #f0f0f0",
+                      cursor: "pointer",
+                    }}
                   />
+                  <div className="absolute top-2 left-2.5">
+                    <Upload
+                      showUploadList={false}
+                      beforeUpload={pickAvatarImage}
+                      accept=".jpg, .jpeg, .gif, .png, .svg"
+                    >
+                      <Button icon={<CameraOutlined />} />
+                    </Upload>
+                  </div>
+                  {newAvatar?.url && (
+                    <div className="absolute top-0 right-0">
+                      <Button
+                        icon={<CloseOutlined />}
+                        onClick={() =>
+                          setNewAvatar({ url: "", name: "", type: "" })
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-                </div>
-                
               </Col>
               <Col xs={24} md={14} xl={16} className="md:mt-[60px] mt-0 pt-4">
-          <div className="md:text-left text-center mt-2">
+                <div className="md:text-left text-center mt-2">
                   <text className="text-lg font-bold">
                     {`${user?.family_name} ${user?.name}` ||
                       localStrings.Public.Username}
                   </text>
-                  </div>
-          </Col>
+                </div>
+              </Col>
             </Row>
           </Col>
           <Col xs={24} md={6} className="md:mt-[60px] mt-0 pt-2 flex items-end">
-          <div className="md:block hidden">
+            <div className="md:block hidden">
               <p>{localStrings.Public.Language}</p>
-          <Radio.Group value={language} onChange={changeLanguage}>
-            <Space direction="vertical">
-              <Radio value="en">{localStrings.Public.English}</Radio>
-              <Radio value="vi">{localStrings.Public.Vietnamese}</Radio>
-            </Space>
-          </Radio.Group>
-          </div>
-        
+              <Radio.Group value={language} onChange={changeLanguage}>
+                <Space direction="vertical">
+                  <Radio value="en">{localStrings.Public.English}</Radio>
+                  <Radio value="vi">{localStrings.Public.Vietnamese}</Radio>
+                </Space>
+              </Radio.Group>
+            </div>
           </Col>
         </Row>
-    
-          <Form form={updatedForm} layout="vertical">
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="family_name"
-                  label={localStrings.Form.Label.FamilyName}
-                  rules={[{ required: true }]}
-                >
-                  <Input placeholder={localStrings.Form.Label.FamilyName} />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="name"
-                  label={localStrings.Form.Label.Name}
-                  rules={[{ required: true }]}
-                >
-                  <Input placeholder={localStrings.Form.Label.Name} />
-                </Form.Item>
-              </Col>
-            </Row>
 
-            <Form.Item
-              name="phone_number"
-              label={localStrings.Form.Label.Phone}
-              rules={[{ required: true }]}
-            >
-              <Input placeholder={localStrings.Form.Label.Phone} />
-            </Form.Item>
+        <Form form={updatedForm} layout="vertical">
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="family_name"
+                label={localStrings.Form.Label.FamilyName}
+                rules={[
+                  {
+                    required: true,
+                    message:
+                      localStrings.Form.RequiredMessages
+                        .FamilyNameRequiredMessage,
+                  },
+                ]}
+              >
+                <Input placeholder={localStrings.Form.Label.FamilyName} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="name"
+                label={localStrings.Form.Label.Name}
+                rules={[
+                  {
+                    required: true,
+                    message:
+                      localStrings.Form.RequiredMessages.NameRequiredMessage,
+                  },
+                ]}
+              >
+                <Input placeholder={localStrings.Form.Label.Name} />
+              </Form.Item>
+            </Col>
+          </Row>
 
-            <Form.Item
-              name="birthday"
-              label={localStrings.Form.Label.BirthDay}
-              rules={[
-                {
-                  required: true,
-                  message:
-                    localStrings.Form.RequiredMessages.BirthDayRequiredMessage,
-                },
-              ]}
-            >
-              <DatePicker
-                format="DD/MM/YYYY"
-                className="w-full"
-                placeholder={localStrings.Form.Label.BirthDay}
-                // Gán giá trị ngày sinh từ form
-                value={
-                  updatedForm.getFieldValue("birthday")
-                    ? dayjs(updatedForm.getFieldValue("birthday"))
-                    : null
-                }
-                disabledDate={(current) =>
-                  current && current > dayjs().endOf("day")
-                }
-              />
-            </Form.Item>
+          <Form.Item
+            name="phone_number"
+            label={localStrings.Form.Label.Phone}
+            rules={[
+              {
+                required: true,
+                message:
+                  localStrings.Form.RequiredMessages.PhoneRequiredMessage,
+              },
+              {
+                pattern: /^\d{10}$/,
+                message: localStrings.Form.RequiredMessages.PhoneInvalidMessage,
+              },
+            ]}
+          >
+            <Input placeholder={localStrings.Form.Label.Phone} />
+          </Form.Item>
 
-            <Form.Item
-              name="email"
-              label={localStrings.Form.Label.Email}
-              rules={[{ required: true, type: "email" }]}
-            >
-              <Input placeholder={localStrings.Form.Label.Email} disabled />
-            </Form.Item>
+          <Form.Item
+            name="birthday"
+            label={localStrings.Form.Label.BirthDay}
+            rules={[
+              {
+                required: true,
+                message:
+                  localStrings.Form.RequiredMessages.BirthDayRequiredMessage,
+              },
+            ]}
+          >
+            <DatePicker
+              format="DD/MM/YYYY"
+              className="w-full"
+              placeholder={localStrings.Form.Label.BirthDay}
+              // Gán giá trị ngày sinh từ form
+              value={
+                updatedForm.getFieldValue("birthday")
+                  ? dayjs(updatedForm.getFieldValue("birthday"))
+                  : null
+              }
+              disabledDate={(current) =>
+                current && current > dayjs().endOf("day")
+              }
+            />
+          </Form.Item>
 
-            <Form.Item
-              name="biography"
-              label={localStrings.Form.Label.Biography}
-            >
-              <Input.TextArea placeholder={localStrings.Form.Label.Biography} />
-            </Form.Item>
-          </Form>
-          
-        
+          <Form.Item
+            name="email"
+            label={localStrings.Form.Label.Email}
+            rules={[{ required: true, type: "email" }]}
+          >
+            <Input
+              placeholder={localStrings.Form.Label.Email}
+              readOnly
+              onFocus={(e) => e.target.blur()}
+            />
+          </Form.Item>
+
+          <Form.Item name="biography" label={localStrings.Form.Label.Biography}>
+            <Input.TextArea placeholder={localStrings.Form.Label.Biography} />
+          </Form.Item>
+        </Form>
       </div>
 
-    
-          <div className="flex justify-end">
-            <Button type="primary" onClick={UpdateProfile} loading={loading}>
-              {localStrings.Public.Save}
-            </Button>
+      <div className="flex justify-end">
+        <Button type="primary" onClick={UpdateProfile}>
+          <div style={{ color: backgroundColor }}>
+            {loading ? (
+              <Spin indicator={whiteSpinner} />
+            ) : (
+              localStrings.Public.Save
+            )}
           </div>
-        
+        </Button>
       </div>
+    </div>
   );
 };
 

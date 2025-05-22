@@ -108,7 +108,7 @@ export const VnLocalizedStrings = {
     WhyFactor3: "Hoạt động gần đây trên mạng xã hội",
     WhyConclusion:
       "Chúng tôi sử dụng thuật toán để tìm những người bạn có thể quen biết hoặc muốn kết nối!",
-      NoMoreSuggestions: "Không có gợi ý nữa!",
+    NoMoreSuggestions: "Không có gợi ý nữa!",
   },
   Form: {
     Label: {
@@ -222,7 +222,8 @@ export const VnLocalizedStrings = {
     SharePostFailed: "Chia sẻ bài viết thất bại!",
     SharePost: "Chia sẻ",
     DeleteNewFeed: "Ẩn bài viết",
-    NoContent: "Nội dung không hiển thị",
+    NoContent: "Nội dung không tồn tại",
+    NoContentDetail:"Nội dung đã bị xoá hoặc cài đặt quyền riêng tư bởi người dùng!",
     Sponsor: "Được tài trợ",
     NoPosts: "Không có bài viết nào",
     ShareContent: "Nhập nội dung chia sẻ của bạn...",
@@ -323,10 +324,14 @@ export const VnLocalizedStrings = {
       political: "vì chứa nội dung chính trị không phù hợp",
       violence: "vì chứa nội dung bạo lực",
       abuse: "vì chứa nội dung xâm hại trẻ em",
-      DeactivatePostContent:"bài viết của bạn đã bị chặn vì vi phạm các điều khoản và điều kiện của chúng tôi. Nếu bạn nghĩ rằng đây là một sai lầm, vui lòng liên hệ với bộ phận hỗ trợ của chúng tôi để được xem xét lại.",
-      ActivacePostContent:"bài viết của bạn đã được kích hoạt lại sau khi xem xét. Cảm ơn bạn đã kiên nhẫn chờ đợi.",
-      DeactivateCommentContent:"bình luận của bạn đã bị chặn vì vi phạm các điều khoản và điều kiện của chúng tôi. Nếu bạn nghĩ rằng đây là một sai lầm, vui lòng liên hệ với bộ phận hỗ trợ của chúng tôi để được xem xét lại.",
-      ActivaceCommentContent:"bình luận của bạn đã được kích hoạt lại sau khi xem xét. Cảm ơn bạn đã kiên nhẫn chờ đợi.",
+      DeactivatePostContent:
+        "bài viết của bạn đã bị chặn vì vi phạm các điều khoản và điều kiện của chúng tôi. Nếu bạn nghĩ rằng đây là một sai lầm, vui lòng liên hệ với bộ phận hỗ trợ của chúng tôi để được xem xét lại.",
+      ActivacePostContent:
+        "bài viết của bạn đã được kích hoạt lại sau khi xem xét. Cảm ơn bạn đã kiên nhẫn chờ đợi.",
+      DeactivateCommentContent:
+        "bình luận của bạn đã bị chặn vì vi phạm các điều khoản và điều kiện của chúng tôi. Nếu bạn nghĩ rằng đây là một sai lầm, vui lòng liên hệ với bộ phận hỗ trợ của chúng tôi để được xem xét lại.",
+      ActivaceCommentContent:
+        "bình luận của bạn đã được kích hoạt lại sau khi xem xét. Cảm ơn bạn đã kiên nhẫn chờ đợi.",
     },
   },
   ListFriends: {
@@ -504,34 +509,40 @@ export const VnLocalizedStrings = {
     Decline: "Từ chối",
     Accept: "Chấp nhận",
     Active: "Đang hoạt động",
-    OnlyOwnerCanDeleteConversation: "Chỉ có chủ phòng mới có thể xóa cuộc trò chuyện này",
+    OnlyOwnerCanDeleteConversation:
+      "Chỉ có chủ phòng mới có thể xóa cuộc trò chuyện này",
     MakeOwner: "Chọn làm trưởng nhóm",
     TransferOwnership: "Thay đổi quyền quản trị",
     ConfirmTransferOwnership: "Bạn có chắc muốn chuyển quyền quản trị ?",
     OwnershipTransferredSuccessfully: "Chuyển quyền sở hữu thành công",
     FailedToTransferOwnership: "Không thể chuyển quyền sở hữu",
     GroupNameRequired: "Tên nhóm là bắt buộc",
-    GroupNameRequiredNote: "* Khi tạo nhóm chat với nhiều người, bạn phải đặt tên cho nhóm",
+    GroupNameRequiredNote:
+      "* Khi tạo nhóm chat với nhiều người, bạn phải đặt tên cho nhóm",
     CannotLeaveAsOwner: "Không thể rời nhóm khi là trưởng nhóm",
-    MustTransferOwnershipFirst: "Bạn là chủ nhóm, vui lòng chuyển quyền sở hữu cho thành viên khác trước khi rời nhóm",
-    OwnerCannotLeaveNote: "⚠️ Bạn là chủ nhóm, không thể rời nhóm. Vui lòng chuyển quyền sở hữu cho thành viên khác trước khi rời nhóm",
+    MustTransferOwnershipFirst:
+      "Bạn là chủ nhóm, vui lòng chuyển quyền sở hữu cho thành viên khác trước khi rời nhóm",
+    OwnerCannotLeaveNote:
+      "⚠️ Bạn là chủ nhóm, không thể rời nhóm. Vui lòng chuyển quyền sở hữu cho thành viên khác trước khi rời nhóm",
     CannotLeaveGroup: "Không thể rời nhóm",
     GroupMustHaveAtLeastTwoMembers: "Nhóm phải có ít nhất 2 thành viên",
-    CannotRemoveWhenTwoMembers: "Không thể xóa thành viên khi nhóm chỉ còn 2 người",
-    ConfirmDeleteConversationContent: "Bạn có chắc chắn muốn xóa cuộc trò chuyện này?",
+    CannotRemoveWhenTwoMembers:
+      "Không thể xóa thành viên khi nhóm chỉ còn 2 người",
+    ConfirmDeleteConversationContent:
+      "Bạn có chắc chắn muốn xóa cuộc trò chuyện này?",
     RemoveMember: "Xóa thành viên",
     ConfirmRemoveMember: "Bạn có chắc là muốn xóa thành viên này?",
     MemberRemovedSuccessfully: "Xóa thành viên thành công",
     FailedToRemoveMember: "Xóa thành viên không thành công",
     CannotRemoveYourself: "Không thể xóa chính bạn!",
-    OneOnOneChatNote: "📝 Lưu ý: Trong chat 1-1, bạn không thể xóa thành viên kia.",
+    OneOnOneChatNote:
+      "📝 Lưu ý: Trong chat 1-1, bạn không thể xóa thành viên kia.",
     YouHaveBeenRemoved: "Bạn đã bị xóa khỏi cuộc trò chuyện này",
     ConversationAlreadyExists: "Cuộc trò chuyện đã tồn tại",
-    GroupNameTooLong:"Tên cuộc trò chuyện không quá 30 ký tự",
+    GroupNameTooLong: "Tên cuộc trò chuyện không quá 30 ký tự",
     ConversationCreated: "Đã tạo cuộc trò chuyện",
     ReplyingTo: "Trả lời",
     Yourself: "Chính bạn",
-
   },
   People: {
     FetchUsersFailed: "Tải danh sách người dùng thất bại",

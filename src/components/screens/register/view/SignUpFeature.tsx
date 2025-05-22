@@ -1,13 +1,16 @@
 "use client";
 import React from "react";
-import { Button, Checkbox, DatePicker, Form, Input, message } from "antd";
+import { Button, Checkbox, ConfigProvider, DatePicker, Form, Input, message } from "antd";
 import { AuthenRepo } from "@/api/features/authenticate/AuthenRepo";
 import SignUpViewModel from "../viewModel/signUpViewModel";
 import { useAuth } from "@/context/auth/useAuth";
 import { useRouter } from "next/navigation"; // Thêm useRouter
+import useColor from "@/hooks/useColor";
+import { EyeInvisibleOutlined, EyeOutlined} from '@ant-design/icons';
 
 const SignUpFeature: React.FC = () => {
   const [form] = Form.useForm();
+  const { backgroundColor, brandPrimary, backGround, borderColor, theme, brandPrimaryTap } = useColor();
   const router = useRouter(); // Khởi tạo router
   const repo = new AuthenRepo(); // Khởi tạo AuthenRepo
   const { handleSignUp, verifyOTP, loading, otpLoading } = SignUpViewModel(repo);
@@ -37,11 +40,40 @@ const SignUpFeature: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white">
-      <div className="w-full max-w-lg p-8 border border-gray-300 rounded-lg shadow-md bg-white">
+      <ConfigProvider 
+            theme={{token: {
+              colorPrimary: brandPrimary,
+              colorText: brandPrimary,
+            },
+              components: {
+                Input: {
+                  colorBgContainer: backGround,
+                  colorText: brandPrimary,
+                  colorBorder: brandPrimary,
+                  colorTextPlaceholder: "gray",
+                },
+                Button: {
+                  colorBgContainer: backgroundColor,
+                  colorPrimary: brandPrimary,
+                  colorPrimaryHover: brandPrimaryTap,
+                },
+                DatePicker: {
+                  colorBgContainer: backGround,
+                  colorBorder: brandPrimary,
+                },
+                Checkbox: {
+                  colorBgContainer: backgroundColor,
+                  colorBorder: brandPrimary,
+                },
+              },
+            }}
+          >
+    <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: backGround }}>
+      <div className="w-full max-w-lg p-8 borderrounded-lg shadow-md rounded-lg" style={{ backgroundColor: backgroundColor, border: `1px solid ${borderColor}`, borderRadius: "8px" }}>
+        
         {/* Title */}
         <img
-          src="/image/yourvibes_black.png"
+            src={theme === "light" ? "/image/yourvibes_black.png" : "/image/yourvibes _white.png"} 
           alt="YourVibes"
           className="mx-auto mb-4 w-32 h-auto"
         />
@@ -84,6 +116,7 @@ const SignUpFeature: React.FC = () => {
           >
             <DatePicker
               placeholder={localStrings.Form.Label.BirthDay}
+              
               className="w-full"
               format="DD/MM/YYYY"
               disabledDate={(current) => {
@@ -152,7 +185,14 @@ const SignUpFeature: React.FC = () => {
               },
             ]}
           >
-            <Input.Password placeholder={localStrings.Form.Label.Password} className="w-full" />
+            <Input.Password placeholder={localStrings.Form.Label.Password} className="w-full"  iconRender={(visible) =>
+    visible ? (
+      <EyeOutlined style={{ color: "gray" }} />
+    ) : (
+      <EyeInvisibleOutlined style={{ color: "gray" }} />
+    )
+  } />
+            
           </Form.Item>
 
           {/* Confirm Password */}
@@ -173,7 +213,13 @@ const SignUpFeature: React.FC = () => {
               }),
             ]}
           >
-            <Input.Password placeholder={localStrings.Form.Label.ConfirmPassword} className="w-full" />
+            <Input.Password placeholder={localStrings.Form.Label.ConfirmPassword} className="w-full"  iconRender={(visible) =>
+    visible ? (
+      <EyeOutlined style={{ color: "gray" }} />
+    ) : (
+      <EyeInvisibleOutlined style={{ color: "gray" }} />
+    )
+  }/>
           </Form.Item>
 
           {/* Terms and Conditions */}
@@ -216,6 +262,7 @@ const SignUpFeature: React.FC = () => {
         </Form>
       </div>
     </div>
+    </ConfigProvider>
   );
 };
 
