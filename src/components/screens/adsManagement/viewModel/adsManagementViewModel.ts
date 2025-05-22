@@ -11,7 +11,6 @@ import {
 } from "@/api/features/post/models/AdvertisePostModel";
 import { DateTransfer } from "@/utils/helper/DateTransfer";
 
-// In-memory cache for API responses
 interface CacheEntry {
   data: any;
   timestamp: number;
@@ -55,38 +54,6 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
     const end = dayjs(ad.end_date);
     return end.isValid() && now.isBefore(end, "day");
   }, []);
-
-  const getStatusAction = useCallback(
-    (ad: AdvertisePostResponseModel): string => {
-      if (ad.status !== "success" || ad.bill?.status !== true) {
-        return localStrings.Ads.Pending;
-      }
-      return isAdActive(ad) ? localStrings.Ads.Active : localStrings.Ads.Completed;
-    },
-    [isAdActive, localStrings.Ads]
-  );
-
-  const fetchAdsByPostId = useCallback(
-    async (postId: string): Promise<AdvertisePostResponseModel[] | null> => {
-      const cacheKey = `ads_${postId}`;
-      const cached = cache[cacheKey];
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        return cached.data;
-      }
-
-      try {
-        const params: AdvertisePostRequestModel = { post_id: postId };
-        const response = await repo.getAdvertisePost(params);
-        const data = response?.data ? (Array.isArray(response.data) ? response.data : [response.data]) : null;
-        cache[cacheKey] = { data, timestamp: Date.now() };
-        return data;
-      } catch (err) {
-        console.error(`Error fetching ads for postId ${postId}:`, err);
-        return null;
-      }
-    },
-    [repo]
-  );
 
   const fetchAdStatistics = useCallback(
     async (advertiseId: string): Promise<AdvertisePostResponseModel | null> => {
@@ -191,9 +158,8 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
     try {
       const request: GetUsersPostsRequestModel = {
         user_id: user.id,
-        sort_by: "created_at",
         isDescending: true,
-        limit: 10,
+        limit: 100,
         page,
       };
 
@@ -204,96 +170,84 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
         return;
       }
 
-      const filteredPosts = res.data.filter(
-        (item) => Number(item.is_advertisement) === 1 || Number(item.is_advertisement) === 2
-      );
-      if (filteredPosts.length === 0 && page > 1) {
-        setHasMore(false);
-      }
-
       const mappedAds: MappedAd[] = [];
       const grouped: Record<string, MappedAd[]> = {};
 
-      const adPromises = filteredPosts.map(async (post) => {
-        const adsForPost = await fetchAdsByPostId(post.id || "");
-        if (adsForPost) {
-          grouped[post.id || ""] = [];
-          const mappedAdsForPost = adsForPost.map((ad) => {
-            const startDate = ad.start_date ? DateTransfer(new Date(ad.start_date)) : "N/A";
-            const endDate = ad.end_date ? DateTransfer(new Date(ad.end_date)) : "N/A";
-            const daysRemaining = ad.day_remaining ?? 0;
+      res.data.forEach((item: any) => {
+        const post = item.post;
+        const postId = post.id;
 
-            const statistics: StatisticEntry[] = ad.statistics || [];
-            const resultsData = statistics.map((stat: StatisticEntry) => stat.clicks || 0);
-            const reachData = statistics.map((stat: StatisticEntry) => stat.reach || 0);
-            const impressionsData = statistics.map((stat: StatisticEntry) => stat.impression || 0);
-            const labels = statistics.map((stat: StatisticEntry) =>
-              dayjs(stat.aggregation_date).format("HH:mm:ss DD/MM")
-            );
-
-            let adStatus = ad.status?.toString() || "N/A";
-            if (ad.bill?.status !== undefined) {
-              adStatus = ad.bill.status ? "success" : "failed";
-            }
-
-            const mappedAd: MappedAd = {
-              ...ad,
-              post_id: post.id,
-              status: adStatus,
-              start_date: startDate,
-              end_date: endDate,
-              day_remaining: daysRemaining,
-              resultsData,
-              reachData,
-              impressionsData,
-              labels,
-              bill: ad.bill,
-              isActive: isAdActive(ad),
-              status_action: getStatusAction(ad),
-              total_reach: ad.total_reach || 0,
-              total_clicks: ad.total_clicks || 0,
-              total_impression: ad.total_impression || 0,
-            };
-
-            return mappedAd;
-          });
-
-          mappedAds.push(...mappedAdsForPost);
-          grouped[post.id || ""].push(...mappedAdsForPost);
+        if (!grouped[postId]) {
+          grouped[postId] = [];
         }
-      });
 
-      await Promise.all(adPromises);
+        const startDate = item.start_date ? DateTransfer(new Date(item.start_date)) : "N/A";
+        const endDate = item.end_date ? DateTransfer(new Date(item.end_date)) : "N/A";
+        const daysRemaining =
+          dayjs(item.end_date).diff(dayjs(), "day") >= 0
+            ? dayjs(item.end_date).diff(dayjs(), "day")
+            : 0;
+
+        const adStatus = item.bill_price ? "success" : "failed";
+
+        const mappedAd: MappedAd = {
+          id: postId, // Use postId as fallback since getAdvertisePost is not called
+          post_id: postId,
+          post: {
+            id: postId,
+            content: post.content,
+            media: post.media,
+            parent_post: post.parent_post,
+            user_id: post.user_id,
+            user: post.user,
+            parent_id: post.parent_id,
+            like_count: post.like_count,
+            comment_count: post.comment_count,
+            updated_at: post.updated_at,
+            privacy: post.privacy,
+            location: post.location,
+            is_advertisement: post.is_advertisement,
+            status: post.status,
+            created_at: post.created_at,
+          },
+          status: adStatus,
+          start_date: startDate,
+          end_date: endDate,
+          day_remaining: daysRemaining,
+          resultsData: [],
+          reachData: [],
+          impressionsData: [],
+          labels: [],
+          bill: {
+            price: item.bill_price,
+            status: item.bill_price ? true : false,
+          },
+          isActive: dayjs().isBefore(dayjs(item.end_date), "day"),
+          status_action: dayjs().isBefore(dayjs(item.end_date), "day")
+            ? localStrings.Ads.Active
+            : localStrings.Ads.Completed,
+          total_reach: 0,
+          total_clicks: 0,
+          total_impression: 0,
+          statistics: [],
+        };
+
+        mappedAds.push(mappedAd);
+        grouped[postId].push(mappedAd);
+
+        setPostDetails((prev) => ({
+          ...prev,
+          [postId]: {
+            id: postId,
+            content: post.content,
+            media: post.media,
+          } as AdvertisePostResponseModel,
+        }));
+      });
 
       setAds((prevAds) => (page === 1 ? mappedAds : [...prevAds, ...mappedAds]));
       setGroupedAds(grouped);
-      setHasMore(filteredPosts.length === 10);
-
-      setIsLoadingPostDetails(true);
-      const postIdsToFetch = mappedAds
-        .map((ad) => ad.post_id)
-        .filter((postId): postId is string => !!postId && !postDetails[postId]);
-
-      if (postIdsToFetch.length > 0) {
-        const newPostDetails: Record<string, AdvertisePostResponseModel> = {};
-        await Promise.all(
-          postIdsToFetch.map(async (postId) => {
-            const cacheKey = `post_${postId}`;
-            const cached = cache[cacheKey];
-            if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-              newPostDetails[postId] = cached.data;
-              return;
-            }
-
-            const post = await repo.getPostById(postId);
-            if (post?.data && (post.data.is_advertisement === 1 || post.data.is_advertisement === 2)) {
-              newPostDetails[postId] = post.data as AdvertisePostResponseModel;
-              cache[cacheKey] = { data: post.data, timestamp: Date.now() };
-            }
-          })
-        );
-        setPostDetails((prev) => ({ ...prev, ...newPostDetails }));
-      }
+      setHasMore(res.data.length === 12);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred");
       setHasMore(false);
@@ -301,7 +255,7 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
       setLoading(false);
       setIsLoadingPostDetails(false);
     }
-  }, [user?.id, page, repo, postDetails, localStrings.Ads, isAdActive, getStatusAction]);
+  }, [user?.id, page, repo, localStrings.Ads]);
 
   const loadMoreAds = useCallback(() => {
     if (hasMore && !loading) {

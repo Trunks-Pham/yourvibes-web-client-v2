@@ -122,6 +122,7 @@ export const VnLocalizedStrings = {
       OTP: "Mã OTP",
       ConfirmPassword: "Xác nhận mật khẩu",
       Biography: "Tiểu sử",
+      PrivacyPolicy: "Chính sách bảo mật và điều khoản sử dụng",
     },
     RequiredMessages: {
       FamilyNameRequiredMessage: "Vui lòng nhập họ!",
@@ -369,7 +370,7 @@ export const VnLocalizedStrings = {
       "Quảng cáo đang chờ xử lý, vui lòng kiểm tra lại quá trình.",
     CampaignStatus: "Trạng thái chiến dịch",
     Click: "Tổng số lượt ấn vào",
-    TotalReach: "Tổng số lượt người tiếp cận",
+    TotalReach: "Tổng số lượt tiếp cận",
     TotalImpressions: "Tổng số lượt xem",
     AdsManagement: "Bài quảng cáo",
     SelectAds: "Chọn bài viết để quảng cáo",
@@ -395,6 +396,7 @@ export const VnLocalizedStrings = {
     Discount: "Giảm giá",
     LimitDay:
       "- Giới hạn 30 ngày vì phương thức thanh toán MOMO không hỗ trợ thanh toán vượt hơn 30 ngày!",
+    GoAds:"Hãy tiếp tục quảng cáo bài viết của bạn để tiếp cận nhiều người hơn!",
   },
 
   Report: {

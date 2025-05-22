@@ -58,9 +58,14 @@ interface MappedAd extends AdvertisePostResponseModel {
   total_impression?: number;
 }
 
-const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => void; post?: any }) => {
+const AdDetailsModal = ({ ad, onClose, post, postId, adsForPost }: { ad: MappedAd; onClose: () => void; post?: any; postId: string; adsForPost: MappedAd[] }) => {
   const { localStrings } = useAuth();
   const { backgroundColor, brandPrimary } = useColor();
+
+  const openHistoryModal = () => {
+    onClose();
+    window.dispatchEvent(new CustomEvent('openHistoryModal', { detail: postId }));
+  };
 
   const chartData = ad;
   const data = {
@@ -133,9 +138,9 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
         </button>
         <div className="flex flex-col md:flex-row gap-4 h-full overflow-y-auto">
           <div className="md:w-1/2 w-full flex justify-center items-center" style={{ minHeight: "250px" }}>
-            {post && (post.is_advertisement === 1 || post.is_advertisement === 2) ? (
+            {post ? (
               <div className="w-full h-full overflow-hidden flex flex-col" style={{ maxHeight: "100%" }}>
-                <Post post={post} noFooter>
+                <Post post={post} noHeader noFooter>
                   {post.media && post.media.length > 0 && (
                     <div className="w-full h-auto flex-shrink-0">
                       {post.media.map((media: { media_url: string }, index: number) => {
@@ -168,12 +173,12 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
             <div className="grid grid-cols-2 gap-2 text-xs text-gray-700">
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                 <p>
-                  <strong>{localStrings.Ads.StartDay}:</strong> {startDate}
+                  <strong>{localStrings.Ads.StartDay}:</strong> {dayjs(startDate).format('DD/MM/YYYY')}
                 </p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
                 <p>
-                  <strong>{localStrings.Ads.EndDay}:</strong> {endDate}
+                  <strong>{localStrings.Ads.EndDay}:</strong> {dayjs(endDate).format('DD/MM/YYYY')}
                 </p>
               </div>
               <div className="bg-gray-50 p-2 rounded-md border border-gray-200">
@@ -197,10 +202,17 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
                   <strong>{localStrings.Ads.Status}:</strong> {paymentStatus}
                 </p>
               </div>
-              <div className="bg-gray-50 p-2 rounded-md border border-gray-200 md:col-span-2">
+              <div className="bg-gray-50 p-2 text-md text-center rounded-md border border-gray-200 md:col-span-2">
+                {adsForPost.length > 1 && (
+                  <Button
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    onClick={openHistoryModal}
+                  >
+                    {localStrings.Ads.ViewHistory} ({adsForPost.length})
+                  </Button>
+                )}
                 <p>
-                  <strong>{localStrings.Ads.StatusActive}:</strong>{" "}
-                  {Number(ad.is_advertisement) === 1 ? localStrings.Ads.Done : localStrings.Ads.Active}
+                  <strong>{localStrings.Ads.GoAds}</strong>
                 </p>
               </div>
             </div>
@@ -229,7 +241,15 @@ const AdDetailsModal = ({ ad, onClose, post }: { ad: MappedAd; onClose: () => vo
             </div>
           </div>
         </div>
-        <div className="mt-2 text-center">
+        <div className="mt-2 text-center flex justify-center gap-4">
+          {adsForPost.length > 1 && (
+            <Button
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              onClick={openHistoryModal}
+            >
+              {localStrings.Ads.ViewHistory} ({adsForPost.length})
+            </Button>
+          )}
           <Button
             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
             onClick={handleCloseModal}
@@ -308,26 +328,46 @@ const AdsManagementFeature = () => {
   }, [isPostListModalVisible]);
 
   const openModal = async (ad: MappedAd) => {
-    if (ad.id && !ad.statistics?.length) {
-      await preloadStatistics(ad.id);
+    if (ad.post_id) {
+      try {
+        // Call getAdvertisePost first to get advertiseId
+        const adDetails = await repo.getAdvertisePost({ post_id: ad.post_id });
+        const adData = Array.isArray(adDetails?.data) ? adDetails?.data[0] : adDetails?.data;
+        const advertiseId = adData?.id || ad.id;
+
+        // Then call getAdvertiseStatistics with advertiseId
+        const statistics = advertiseId ? await preloadStatistics(advertiseId) : null;
+
+        setSelectedAd({
+          ...ad,
+          ...(adData || {}),
+          id: advertiseId,
+          statistics: statistics?.statistics || ad.statistics || [],
+          total_reach: statistics?.total_reach || ad.total_reach || 0,
+          total_clicks: statistics?.total_clicks || ad.total_clicks || 0,
+          total_impression: statistics?.total_impression || ad.total_impression || 0,
+          resultsData: statistics?.statistics?.map((stat: any) => stat.clicks || 0) || ad.resultsData || [],
+          reachData: statistics?.statistics?.map((stat: any) => stat.reach || 0) || ad.reachData || [],
+          impressionsData: statistics?.statistics?.map((stat: any) => stat.impression || 0) || ad.impressionsData || [],
+          labels: statistics?.statistics?.map((stat: any) =>
+            dayjs(stat.aggregation_date).format("HH:mm:ss DD/MM")
+          ) || ad.labels || [],
+        });
+      } catch (err) {
+        console.error("Error fetching ad details or statistics:", err);
+        setSelectedAd(ad); // Fallback to existing ad data
+      }
+    } else {
+      setSelectedAd(ad);
     }
-    setSelectedAd(ad);
-    closeHistoryModal();
+    setIsHistoryModalVisible(false);
   };
 
   const closeModal = () => {
     setSelectedAd(null);
   };
 
-  const openHistoryModal = async (postId: string) => {
-    const adsForPost = groupedAds[postId] || [];
-    await Promise.all(
-      adsForPost.map(async (ad) => {
-        if (ad.id && !ad.statistics?.length) {
-          await preloadStatistics(ad.id);
-        }
-      })
-    );
+  const openHistoryModal = (postId: string) => {
     setSelectedPostId(postId);
     setIsHistoryModalVisible(true);
   };
@@ -337,6 +377,17 @@ const AdsManagementFeature = () => {
     setSelectedPostId(null);
   };
 
+  useEffect(() => {
+    const handleOpenHistoryModal = (event: CustomEvent) => {
+      setSelectedPostId(event.detail);
+      setIsHistoryModalVisible(true);
+    };
+    window.addEventListener('openHistoryModal', handleOpenHistoryModal as EventListener);
+    return () => {
+      window.removeEventListener('openHistoryModal', handleOpenHistoryModal as EventListener);
+    };
+  }, []);
+
   const uniquePostIds = Array.from(
     new Set(ads.map((ad) => ad.post_id).filter((postId): postId is string => !!postId))
   );
@@ -344,7 +395,7 @@ const AdsManagementFeature = () => {
   return (
     <div className="p-6 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <h1 className="text-3xl font-semibold text-gray-800">{localStrings.Ads.AdsManagement}</h1>
+        <h1 className="text-3xl font-semibol" style={{ color: brandPrimary }}>{localStrings.Ads.AdsManagement}</h1>
         <div className="flex gap-3">
           <button
             className="bg-black text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800"
@@ -372,9 +423,7 @@ const AdsManagementFeature = () => {
       >
         <Modal
           title={
-            <div
-              style={{ textAlign: "center", fontSize: 24, fontWeight: "bold", color: brandPrimary }}
-            >
+            <div style={{ textAlign: 'center', fontSize: 24, fontWeight: 'bold', color: brandPrimary }}>
               {localStrings.Ads.SelectAds}
             </div>
           }
@@ -383,9 +432,9 @@ const AdsManagementFeature = () => {
           footer={null}
           width={700}
           centered
-          bodyStyle={{ maxHeight: "1500px", overflowY: "auto", padding: "16px" }}
+          bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', padding: 16 }}
         >
-          <div style={{ maxHeight: "1500px", overflowY: "auto", padding: "8px" }}>
+          <div style={{ padding: 8 }}>
             {isLoadingModalPosts ? (
               <div className="flex justify-center">
                 <Spin />
@@ -395,7 +444,7 @@ const AdsManagementFeature = () => {
                 loading={false}
                 posts={modalPosts}
                 loadMorePosts={fetchNonAdPosts}
-                user={{ id: user?.id || "", name: "", family_name: "", avatar_url: "" }}
+                user={{ id: user?.id || '', name: '', family_name: '', avatar_url: '' }}
                 fetchUserPosts={fetchNonAdPosts}
                 hasMore={modalPosts.length % 10 === 0}
                 setPosts={setModalPosts}
@@ -403,17 +452,44 @@ const AdsManagementFeature = () => {
             )}
           </div>
         </Modal>
-      </ConfigProvider>
 
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder={localStrings.Ads.SearchAds}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={searchTerm}
-          onChange={(e) => debouncedSetSearchTerm(e.target.value)}
-        />
-      </div>
+        <Modal
+          title={`${localStrings.Ads.HistoryforPost}: ${selectedPostId && postDetails[selectedPostId]?.content
+            ? postDetails[selectedPostId].content
+            : localStrings.Ads.NoAdsHistory
+            }`}
+          open={isHistoryModalVisible}
+          onCancel={closeHistoryModal}
+          footer={null}
+          width={700}
+          bodyStyle={{ maxHeight: "600px", overflowY: "auto", padding: "16px" }}
+        >
+          <div className="space-y-3">
+            {selectedPostId && groupedAds[selectedPostId] ? (
+              groupedAds[selectedPostId].map((ad) => (
+                <div
+                  key={ad.id}
+                  className="p-3 border rounded-lg hover:border-blue-300 cursor-pointer"
+                  onClick={() => openModal(ad)}
+                >
+                  <p>
+                    <strong>{localStrings.Ads.StartDay}:</strong> {ad.start_date}
+                  </p>
+                  <p>
+                    <strong>{localStrings.Ads.EndDay}:</strong> {ad.end_date}
+                  </p>
+                  <p>
+                    <strong>{localStrings.Ads.Grant}:</strong>{" "}
+                    {ad.bill?.price ? CurrencyFormat(ad.bill.price) : "N/A"}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p>{localStrings.Ads.NoHistoryFound}</p>
+            )}
+          </div>
+        </Modal>
+      </ConfigProvider>
 
       {loading && filteredAds.length === 0 ? (
         <div className="flex justify-center items-center h-64">
@@ -443,7 +519,7 @@ const AdsManagementFeature = () => {
                     className="w-full max-w-full flex justify-center items-center rounded-lg overflow-hidden bg-gray-50"
                     style={{ height: "180px" }}
                   >
-                    {post && (post.is_advertisement === 1 || post.is_advertisement === 2) ? (
+                    {post ? (
                       <div
                         className="w-full h-full flex flex-col justify-between p-2"
                         style={{ backgroundColor: backgroundColor, color: brandPrimary }}
@@ -516,21 +592,12 @@ const AdsManagementFeature = () => {
                   </div>
 
                   <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    {adsForPost.length > 1 ? (
-                      <button
-                        className="w-full py-1.5 text-xs text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
-                        onClick={() => openHistoryModal(postId)}
-                      >
-                        {localStrings.Ads.ViewHistory} ({adsForPost.length})
-                      </button>
-                    ) : (
-                      <button
-                        className="w-full py-1.5 text-xs text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
-                        onClick={() => openModal(firstAd)}
-                      >
-                        {localStrings.Ads.ViewDetails}
-                      </button>
-                    )}
+                    <button
+                      className="w-full py-1.5 text-xs text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200"
+                      onClick={() => openModal(firstAd)}
+                    >
+                      {localStrings.Ads.ViewDetails}
+                    </button>
                   </div>
                 </div>
               );
@@ -540,63 +607,16 @@ const AdsManagementFeature = () => {
       )}
 
       {selectedAd && selectedAd.post_id && (
-        <AdDetailsModal ad={selectedAd} onClose={closeModal} post={postDetails[selectedAd.post_id]} />
+        <AdDetailsModal
+          ad={selectedAd}
+          onClose={closeModal}
+          post={postDetails[selectedAd.post_id]}
+          postId={selectedAd.post_id}
+          adsForPost={groupedAds[selectedAd.post_id] || []}
+        />
       )}
-
-      <ConfigProvider
-        theme={{
-          token: {
-            colorText: brandPrimary,
-          },
-          components: {
-            Modal: {
-              contentBg: backgroundColor,
-              headerBg: backgroundColor,
-              titleColor: brandPrimary,
-            },
-          },
-        }}
-      >
-        <Modal
-          title={`${localStrings.Ads.HistoryforPost}: ${
-            selectedPostId && postDetails[selectedPostId]?.content
-              ? postDetails[selectedPostId].content
-              : localStrings.Ads.NoAdsHistory
-          }`}
-          open={isHistoryModalVisible}
-          onCancel={closeHistoryModal}
-          footer={null}
-          width={700}
-          bodyStyle={{ maxHeight: "600px", overflowY: "auto", padding: "16px" }}
-        >
-          <div className="space-y-3">
-            {selectedPostId && groupedAds[selectedPostId] ? (
-              groupedAds[selectedPostId].map((ad) => (
-                <div
-                  key={ad.id}
-                  className="p-3 border rounded-lg hover:border-blue-300 cursor-pointer"
-                  onClick={() => openModal(ad)}
-                >
-                  <p>
-                    <strong>{localStrings.Ads.StartDay}:</strong> {ad.start_date}
-                  </p>
-                  <p>
-                    <strong>{localStrings.Ads.EndDay}:</strong> {ad.end_date}
-                  </p>
-                  <p>
-                    <strong>{localStrings.Ads.Grant}:</strong>{" "}
-                    {ad.bill?.price ? CurrencyFormat(ad.bill.price) : "N/A"}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p>{localStrings.Ads.NoHistoryFound}</p>
-            )}
-          </div>
-        </Modal>
-      </ConfigProvider>
     </div>
   );
 };
 
-export default AdsManagementFeature; 
+export default AdsManagementFeature;

@@ -120,24 +120,21 @@ const Ads = ({ postId }: { postId: string }) => {
       {
         label: `${localStrings.Ads.Click}`,
         data: ads?.statistics?.map((stat) => stat.clicks) || [],
-        borderColor: brandPrimary,
-        backgroundColor: brandPrimary,
+        borderColor: "#3498db", 
         fill: false,
         borderWidth: 3,
       },
       {
         label: `${localStrings.Ads.TotalReach}`,
         data: ads?.statistics?.map((stat) => stat.reach) || [],
-        borderColor: colorOnl,
-        backgroundColor: colorOnl,
+        borderColor: "#2ecc71", 
         fill: false,
         borderWidth: 3,
       },
       {
         label: `${localStrings.Ads.TotalImpressions}`,
         data: ads?.statistics?.map((stat) => stat.impression) || [],
-        borderColor: brandPrimaryTap,
-        backgroundColor: brandPrimaryTap,
+        borderColor: "#e67e22",
         fill: false,
         borderWidth: 3,
       },
@@ -714,7 +711,7 @@ const Ads = ({ postId }: { postId: string }) => {
                           ? localStrings.Ads.PaymentSuccess
                           : localStrings.Ads.PaymentFailed}
                       </span>
-                    </div>
+                    </div> 
                     <div>
                       <span
                         style={{
@@ -725,7 +722,7 @@ const Ads = ({ postId }: { postId: string }) => {
                         <span style={{ fontWeight: "bold", color: brandPrimary }}>
                           {localStrings.Ads.Click}:
                         </span>{" "}
-                        {item?.total_clicks || 0}
+                        {ads?.total_clicks || 0}
                       </span>
                     </div>
                     <div>
@@ -738,7 +735,7 @@ const Ads = ({ postId }: { postId: string }) => {
                         <span style={{ fontWeight: "bold", color: brandPrimary }}>
                           {localStrings.Ads.TotalReach}:
                         </span>{" "}
-                        {item?.total_reach || 0}
+                        {ads?.total_reach || 0}
                       </span>
                     </div>
                     <div>
@@ -751,7 +748,7 @@ const Ads = ({ postId }: { postId: string }) => {
                         <span style={{ fontWeight: "bold", color: brandPrimary }}>
                           {localStrings.Ads.TotalImpressions}:
                         </span>{" "}
-                        {item?.total_impression || 0}
+                        {ads?.total_impression || 0}
                       </span>
                     </div>
                   </div>

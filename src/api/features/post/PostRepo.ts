@@ -51,9 +51,11 @@ interface IPostRepo {
   advertisePost: (
     params: AdvertisePostRequestModel
   ) => Promise<BaseApiResponseModel<any>>;
+  
   getAdvertisementPosts: (
     params: GetUsersPostsRequestModel
   ) => Promise<BaseApiResponseModel<PostResponseModel[]>>
+
   getAdvertisePost: (
     params: AdvertisePostRequestModel
   ) => Promise<BaseApiResponseModel<AdvertisePostResponseModel>>;
@@ -131,21 +133,7 @@ export class PostRepo implements IPostRepo {
   async getAdvertisementPosts(
     data: GetUsersPostsRequestModel
   ): Promise<BaseApiResponseModel<PostResponseModel[]>> {
-    const data1 = { ...data, is_advertisement: 1 };
-    const data2 = { ...data, is_advertisement: 2 };
-  
-    const [response1, response2] = await Promise.all([
-      client.get(ApiPath.GET_POSTS, data1),
-      client.get(ApiPath.GET_POSTS, data2),
-    ]);
-  
-    const data1Array = Array.isArray(response1.data) ? response1.data : [];
-    const data2Array = Array.isArray(response2.data) ? response2.data : [];
-  
-    return {
-      ...response1,
-      data: [...data1Array, ...data2Array],
-    };
+    return client.get(ApiPath.GET_ALL_ADVERTISE, data);
   }
 
   async getAdvertisePost(

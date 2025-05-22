@@ -17,26 +17,24 @@ const SignUpFeature: React.FC = () => {
   const { language, localStrings } = useAuth();
 
   const onSignUp = async (values: any) => {
-     await handleSignUp({
-        family_name: values.firstName,
-        name: values.lastName,
-        email: values.email,
-        password: values.password,
-        phone_number: values.phone,
-        birthday: values.dob.format("DD/MM/YYYY"),
-        otp: values.otp,
-      });
+    await handleSignUp({
+      family_name: values.firstName,
+      name: values.lastName,
+      email: values.email,
+      password: values.password,
+      phone_number: values.phone,
+      birthday: values.dob.format("DD/MM/YYYY"),
+      otp: values.otp,
+    });
   };
 
   const onRequestOTP = async () => {
-
-      const email = form.getFieldValue("email");
-      if (!email) {
-        message.error(`${localStrings.Form.RequiredMessages.EmailRequiredMessage}`);
-        return;
-      }
-      await verifyOTP({ email });
-    
+    const email = form.getFieldValue("email");
+    if (!email) {
+      message.error(`${localStrings.Form.RequiredMessages.EmailRequiredMessage}`);
+      return;
+    }
+    await verifyOTP({ email });
   };
 
   return (
@@ -198,7 +196,7 @@ const SignUpFeature: React.FC = () => {
           {/* Confirm Password */}
           <Form.Item
             name="confirmPassword"
-            dependencies={["password"]}
+            dependencies={["ˈpassword"]}
             rules={[
               { required: true, message: localStrings.Form.RequiredMessages.ConfirmPasswordRequiredMessage },
               ({ getFieldValue }) => ({
@@ -220,6 +218,17 @@ const SignUpFeature: React.FC = () => {
       <EyeInvisibleOutlined style={{ color: "gray" }} />
     )
   }/>
+          </Form.Item>
+
+          {/* Privacy Policy */}
+          <Form.Item>
+            <Button
+              type="link"
+              onClick={() => window.open("/privacy", "_blank")}
+              className="p-0"
+            >
+              {localStrings.Form.Label.PrivacyPolicy}
+            </Button>
           </Form.Item>
 
           {/* Terms and Conditions */}
