@@ -11,7 +11,7 @@ import {
   ConfigProvider,
   Switch,
 } from "antd";
-import { GoogleOutlined } from "@ant-design/icons";
+import { FcGoogle } from "react-icons/fc";
 import { useRouter } from "next/navigation";
 import LoginViewModel from "../viewModel/loginViewModel";
 import { AuthenRepo } from "@/api/features/authenticate/AuthenRepo";
@@ -19,11 +19,12 @@ import "antd/dist/reset.css";
 import { useAuth } from "@/context/auth/useAuth";
 import { useState } from "react";
 import useColor from "@/hooks/useColor";
+import { EyeInvisibleOutlined, EyeOutlined} from '@ant-design/icons';
 
 const LoginPage = () => {
   const { localStrings, changeLanguage, theme, changeTheme } = useAuth();
   const router = useRouter();
-  const { backgroundColor, brandPrimary, brandPrimaryTap } = useColor();
+  const { backgroundColor, brandPrimary, brandPrimaryTap,borderColor } = useColor();
   const loginViewModel = LoginViewModel(new AuthenRepo());
   const {
     login,
@@ -76,7 +77,10 @@ const LoginPage = () => {
 
   return (
           <ConfigProvider 
-            theme={{
+            theme={{token: {
+              colorPrimary: brandPrimary,
+              colorText: brandPrimary,
+            },
               components: {
                 Input: {
                   colorBgContainer: backgroundColor,
@@ -105,7 +109,7 @@ const LoginPage = () => {
       </Col>
       <Col xs={20} lg={10} className="h-fit">
         <div className="flex justify-end mb-2">
-          <div className="text-brandPrimary">
+          <div className="text-brandPrimary" style={{ color: brandPrimary }}>
             {localStrings.Public.Theme}{" "}
             {theme === "light"
               ? localStrings.Public.LightMode
@@ -118,8 +122,8 @@ const LoginPage = () => {
         </div>
         <Row justify="center" align={"middle"} className="w-full h-full">
           <div
-            className="w-full p-6 border border-gray-300 rounded-lg shadow-lg "
-            style={{ boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", backgroundColor: backgroundColor }}
+            className="w-full p-6 borderrounded-lg shadow-lg "
+            style={{ boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", backgroundColor: backgroundColor, border: `1px solid ${borderColor}`, borderRadius: "8px" }}
           >
             <Spin spinning={isLoggingIn} tip={localStrings.Public.LoginLoading}>
               <Form
@@ -172,6 +176,13 @@ const LoginPage = () => {
                   <Input.Password
                     placeholder={localStrings.Form.Label.Password}
                     className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    iconRender={(visible) =>
+    visible ? (
+      <EyeOutlined style={{ color: "gray" }} />
+    ) : (
+      <EyeInvisibleOutlined style={{ color: "gray" }} />
+    )
+  }
                   />
                 </Form.Item>
                 <div className="mb-4 text-center text-xs">
@@ -213,7 +224,7 @@ const LoginPage = () => {
                 <div className="mt-4 text-center">
                   <Button
                     type="default"
-                    icon={<GoogleOutlined />}
+                    icon={<FcGoogle />}
                     className="w-full flex items-center justify-center"
                     onClick={handleGoogleLoginClick}
                     loading={googleLoading}

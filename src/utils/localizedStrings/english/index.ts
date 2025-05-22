@@ -227,6 +227,7 @@ export const ENGLocalizedStrings = {
     SharePost: "Share",
     DeleteNewFeed: "Delete (hide) new feed",
     NoContent: "Content is empty",
+    NoContentDetail: "This content has been removed or made private by the user!",
     Sponsor: "Sponsored",
     NoPosts: "No posts found",
     ShareContent: "Enter the content you want to share...",

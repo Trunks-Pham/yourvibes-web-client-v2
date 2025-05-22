@@ -44,6 +44,7 @@ import PostDetailsScreen from "@/components/screens/postDetails/view/postDetails
 import { LikeUsersModel } from "@/api/features/post/models/LikeUsersModel";
 import ReportViewModel from "@/components/screens/report/ViewModel/reportViewModel";
 import ReportScreen from "@/components/screens/report/views/Report";
+import { PiSmileySad } from "react-icons/pi";
 
 interface IPost {
   post?: PostResponseModel;
@@ -293,6 +294,7 @@ const Post: React.FC<IPost> = React.memo(
               actionsBg: backgroundColor,
               headerBg: backgroundColor,
               colorBgContainer: backgroundColor,
+              
             },
             Modal: {
               contentBg: backgroundColor,
@@ -481,9 +483,8 @@ const Post: React.FC<IPost> = React.memo(
                   <span>{likedPost?.content}</span>
                 </div>
                 <div style={{ paddingLeft: 5, paddingRight: 5 }}>
-                  <div
+                  <div className="flex flex-col items-center justify-center md:p-[30px_90px] p-[30px]"
                     style={{
-                      padding: 10,
                       borderColor: borderColor,
                       borderWidth: 1,
                       borderRadius: 5,
@@ -499,6 +500,12 @@ const Post: React.FC<IPost> = React.memo(
                     >
                       {localStrings.Post.NoContent}
                     </span>
+                     <span style={{ textAlign: 'center', color: "gray" }}>
+                       <PiSmileySad  size={24} color="gray" />
+                      </span>
+                      <span style={{ textAlign: 'center', fontSize: 14, color: "gray" }}>
+                        {localStrings.Post.NoContentDetail}
+                      </span>
                   </div>
                 </div>
               </div>
