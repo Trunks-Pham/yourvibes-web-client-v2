@@ -24,16 +24,15 @@ const PeopleViewModel = () => {
   const [hasMore, setHasMore] = useState(true);
   const [friendRequestsSent, setFriendRequestsSent] = useState<Set<string>>(new Set());
   const [incomingFriendRequests, setIncomingFriendRequests] = useState<FriendRequest[]>([]);
-  const limit = 20;
+  const limit = 10;
   const { localStrings } = useAuth();
 
-  // Fetch all users (not friends)
   const fetchAllUsers = async (newPage: number = 1) => {
     try {
       setLoading(true);
-      const response = await defaultFriendRepo.getUsersNonFriend();
 
-      // Check if response.data is an array
+      const response = await defaultFriendRepo.getUsersNonFriend({ page: newPage, limit: limit });
+
       if (response?.data && Array.isArray(response.data)) {
         const mappedUsers: UserModel[] = response.data.map((user: GetUserNonFriendsModel) => ({
           id: user.id,
@@ -43,14 +42,14 @@ const PeopleViewModel = () => {
         }));
 
         if (newPage === 1) {
-          setUsers(mappedUsers); // Display data immediately
+          setUsers(mappedUsers);
         } else {
           setUsers((prevUsers) => [...prevUsers, ...mappedUsers]);
         }
 
         const { page: currentPage, limit: currentLimit, total } = response.paging || {};
         setPage(currentPage || newPage);
-        setHasMore(currentPage * currentLimit < total);
+        setHasMore((currentPage || newPage) * (currentLimit || limit) < total);
       } else {
         message.error(`${localStrings.People.FetchUsersFailed}`);
       }
@@ -61,7 +60,6 @@ const PeopleViewModel = () => {
     }
   };
 
-  // Fetch incoming friend requests without pagination
   const fetchIncomingFriendRequests = async () => {
     try {
       setLoadingFriendRequests(true);
@@ -83,36 +81,31 @@ const PeopleViewModel = () => {
         setIncomingFriendRequests([]);
       }
     } catch (error) {
+      // Optional: Handle errors
     } finally {
       setLoadingFriendRequests(false);
     }
   };
 
-  // Handle infinite scroll
   useEffect(() => {
     const handleScroll = () => {
       if (
         window.innerHeight + document.documentElement.scrollTop >=
-          document.documentElement.offsetHeight - 100 && // Trigger 100px before bottom
+          document.documentElement.offsetHeight - 100 &&
         hasMore &&
         !loading
       ) {
-        setLoading(true);
-        setPage((prevPage) => {
-          const nextPage = prevPage + 1;
-          fetchAllUsers(nextPage);
-          return nextPage;
-        });
+        const nextPage = page + 1;
+        fetchAllUsers(nextPage);
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [hasMore, loading]);
+  }, [hasMore, loading, page]);
 
-  // Fetch initial data on mount
   useEffect(() => {
-    fetchAllUsers();
+    fetchAllUsers(1);
     fetchIncomingFriendRequests();
   }, []);
 
@@ -129,11 +122,7 @@ const PeopleViewModel = () => {
         const response = await defaultProfileRepo.sendFriendRequest(userId);
 
         if (response?.code === 20001 && response?.message === "Success") {
-          setFriendRequestsSent((prev) => {
-            const newSet = new Set(prev);
-            newSet.add(userId);
-            return newSet;
-          });
+          setFriendRequestsSent((prev) => new Set(prev).add(userId));
           message.success(`${localStrings.People.FriendRequestSentSuccess}`);
         } else {
           message.error(`${localStrings.People.FriendRequestSentFailed}`);
@@ -142,6 +131,7 @@ const PeopleViewModel = () => {
         message.error(`${localStrings.People.FriendRequestSentError}`);
       }
     },
+
     handleCancelFriend: async (userId: string) => {
       try {
         const response = await defaultProfileRepo.cancelFriendRequest(userId);
@@ -159,6 +149,7 @@ const PeopleViewModel = () => {
         message.error(`${localStrings.People.FriendRequestCanceledError}`);
       }
     },
+
     handleAcceptFriendRequest: async (userId: string) => {
       try {
         const response = await defaultProfileRepo.acceptFriendRequest(userId);
@@ -174,6 +165,7 @@ const PeopleViewModel = () => {
         message.error(`${localStrings.People.AcceptFailed}`);
       }
     },
+
     handleDeclineFriendRequest: async (userId: string) => {
       try {
         const response = await defaultProfileRepo.refuseFriendRequest(userId);
