@@ -198,18 +198,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const router = useRouter();
   const authManager = AuthManager.getInstance(router);
   const [state, setState] = useState({});
-  // const { backgroundColor, brandPrimary, brandPrimaryTap } = useColor();
-
-  // const Noti = useCallback(() => {
-  //   console.log("backgroundColor", backgroundColor);
-  //   notification.open({
-  //     message: "Notification Title",
-  //     description: "This is the content of the notification.",
-  //     placement: "topRight",
-  //     duration: 1,
-  //     style: { backgroundColor: backgroundColor },
-  //   });
-  // }, [backgroundColor]);
 
   useEffect(() => {
     const unsubscribe = authManager.subscribe(() => {
@@ -222,7 +210,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     authManager.checkLanguage();
     authManager.checkAuthStatus();
     authManager.checkTheme();
-  }, []);
+  }, []);  
 
   return (
     <AuthContext.Provider

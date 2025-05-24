@@ -5,3 +5,8 @@ export interface GetUserNonFriendsModel {
     avatar_url: string;
     is_send_friend_request: boolean;
 }
+
+export interface GetUserNonFriendsRequestModel {
+    page: number;
+    limit: number;
+}
