@@ -9,7 +9,7 @@ import { FriendResponseModel } from '@/api/features/profile/model/FriendReponseM
 import { useAuth } from '@/context/auth/useAuth';
 import { useWebSocket } from '@/context/socket/useSocket';
 import useColor from '@/hooks/useColor';
-import { EllipsisOutlined, DeleteOutlined, InboxOutlined, SendOutlined, SearchOutlined, ArrowLeftOutlined, PlusOutlined, SmileOutlined, CloseOutlined, CommentOutlined } from '@ant-design/icons';
+import { EllipsisOutlined, DeleteOutlined, InboxOutlined, SendOutlined, SearchOutlined, ArrowLeftOutlined, PlusOutlined, SmileOutlined, CloseOutlined, CommentOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { Empty, Layout, Skeleton, Typography, Popover, Menu, Dropdown, Popconfirm, Input, Button, Upload, Modal, Form, List, Avatar, Spin, message, Checkbox, Tabs } from 'antd';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useSearchParams } from 'next/navigation';
@@ -67,6 +67,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   const cancelButtonBg = theme === 'dark' ? '#2d2d30' : '#fff';
   const cancelButtonText = theme === 'dark' ? '#ffffff' : '#000000';
   const cancelButtonBorder = theme === 'dark' ? '#6e6e6e' : '#d9d9d9';
+  const addButtonText = theme === 'dark' ? '#9e9999' : '#9e9999';
   const listItemHoverBg = theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
   const listItemSelectedBg = theme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.05)';
   const listBackground = theme === 'dark' ? '#1f1f1f' : '#ffffff';
@@ -475,7 +476,11 @@ return (
       onOk={handleAddMembers}
       confirmLoading={adding}
       okButtonProps={{ 
-        disabled: selectedFriends.length === 0 || activeTab === "currentMembers"
+        disabled: selectedFriends.length === 0 || activeTab === "currentMembers",
+        style:{
+          color: theme === 'dark' ? addButtonText : addButtonText,
+          fontWeight: 600,
+        }
       }}
       styles={{ 
         content: { 
@@ -1133,6 +1138,7 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
   const cancelButtonBg = theme === 'dark' ? '#2d2d30' : '#fff';
   const cancelButtonText = theme === 'dark' ? '#ffffff' : '#000000';
   const cancelButtonBorder = theme === 'dark' ? '#6e6e6e' : '#d9d9d9';
+  const createButtonText = theme === 'dark' ? '#9e9999' : '#9e9999'
   const listItemHoverBg = theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
   const listItemSelectedBg = theme === 'dark' ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.05)';
   const listBackground = theme === 'dark' ? '#1f1f1f' : '#ffffff';
@@ -1367,6 +1373,10 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
             onClick={handleCreateConversation} 
             loading={creating}
             disabled={selectedFriends.length === 0}
+            style={{
+              color: createButtonText,
+              fontWeight: 600,
+            }}
           >
             {localStrings.Messages.Create}
           </Button>
@@ -1882,31 +1892,15 @@ const MessagesFeature: React.FC = () => {
                 <Button
                   type="primary"
                   shape="circle"
-                  icon={<PlusOutlined />}
+                  icon={<UsergroupAddOutlined />}
                   onClick={() => setNewConversationModalVisible(true)}
                   style={{
-                    backgroundColor: button.primaryBg,
-                    borderColor: button.primaryBg,
-                    color: button.primaryText
+
+                    color: theme === 'dark' ? button.secondaryText : button.primaryText
                   }}
                 />
               </div>
-              <style jsx global>{`
-                .ant-btn-primary {
-                  background-color: ${button.primaryBg} !important;
-                  border-color: ${button.primaryBg} !important;
-                }
-                
-                .ant-btn-primary:hover, 
-                .ant-btn-primary:focus {
-                  background-color: ${button.primaryHoverBg} !important;
-                  border-color: ${button.primaryHoverBg} !important;
-                }
-                
-                .ant-btn-primary .anticon {
-                  color: ${button.primaryText} !important;
-                }
-              `}</style>
+
             </div>
             <Search
               placeholder={localStrings.Public.Search}
