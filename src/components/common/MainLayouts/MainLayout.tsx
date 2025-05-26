@@ -169,6 +169,7 @@ useEffect(() => {
             contentBg: backgroundColor,
             headerBg: backgroundColor,
             titleColor: brandPrimary,
+            colorIcon: "gray",
           },
         },
       }}
@@ -444,7 +445,9 @@ useEffect(() => {
           width={700}
           height={700}
           centered
-          style={{maxHeight: "70vh", overflowY: "scroll", scrollbarWidth: "none", msOverflowStyle: "none"}}
+          style={{ padding: 0,
+    maxHeight: "70vh",
+    overflow: "hidden",}}
         >
           <NotificationScreen
             setNotificationModal={setNotificationModal}
@@ -462,7 +465,9 @@ useEffect(() => {
             {localStrings.Public.Cancel}
           </Button>,
           <Button key="confirm" type="primary" onClick={handleLogout}>
+            <span style={{color: backgroundColor}}>
             {localStrings.Public.Confirm}
+            </span>
           </Button>,
         ]}
         centered

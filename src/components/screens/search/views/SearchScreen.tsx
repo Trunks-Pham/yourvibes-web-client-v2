@@ -3,7 +3,7 @@ import useColor from "@/hooks/useColor";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import SearchViewModel from "../viewModel/SearchViewModel";
 import { defaultSearchRepo } from "@/api/features/search/SearchRepository";
-import { AutoComplete, AutoCompleteProps, Input, Spin, Typography } from "antd";
+import { AutoComplete, AutoCompleteProps, ConfigProvider, Input, Spin, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { UserModel } from "@/api/features/authenticate/model/LoginModel";
 
@@ -17,7 +17,7 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
   const [options, setOptions] = useState<AutoCompleteProps["options"]>([]);
   const [keyword, setKeyword] = useState<string>("");
   const { searchUsers, users, loading, total } = SearchViewModel(defaultSearchRepo);
-  const { brandPrimary, backgroundColor } = useColor();
+  const { brandPrimary, backgroundColor, menuItem, borderColor } = useColor();
   const { localStrings } = useAuth();
   const router = useRouter();
   const inputRef = useRef<HTMLDivElement>(null);
@@ -146,6 +146,19 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
   };
 
   return (
+    <ConfigProvider
+      theme={{
+        components: {
+          Input: {
+            colorBgContainer: menuItem,
+            colorText: brandPrimary,
+            colorBorder: borderColor,
+            colorTextPlaceholder: "gray",
+          },
+        },
+      }}
+    >
+
     <div
       ref={inputRef}
       style={{
@@ -168,8 +181,8 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
         <Input
           placeholder={localStrings.Search.Search}
           aria-label={localStrings.Search.Search}
+  
           style={{
-
             borderRadius: 8,
             backgroundColor: backgroundColor,
             color: brandPrimary,
@@ -179,6 +192,7 @@ const SearchScreen = React.memo(({ onSearchResults }: SearchScreenProps) => {
         />
       </AutoComplete>
     </div>
+    </ConfigProvider>
   );
 });
 
