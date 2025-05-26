@@ -125,13 +125,16 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     if (content.includes("violence")) return localStrings.Notification.Items.violence;
     if (content.includes("nsfw")) return localStrings.Notification.Items.nsfw;
     if (content.includes("political")) return localStrings.Notification.Items.political;
+    if (content.includes("abuse")) return localStrings.Notification.Items.abuse;
     return content;
   };
+
+  const ColorItem = theme === 'light' ? 'hover:bg-[#E2E2E2]' : 'hover:bg-[#62676B]';
 
   return (
     <List.Item
       onClick={handleClick}
-      className={`${status ? backgroundColor : backGround} cursor-pointer transition-colors hover:bg-[#31343B]`}
+      className={`${status ? backgroundColor : backGround} cursor-pointer transition-colors ${ColorItem} `}
       role="button"
       aria-label={`${from} ${notificationDetails.type}`}
     >

@@ -711,7 +711,7 @@ const Ads = ({ postId }: { postId: string }) => {
                           ? localStrings.Ads.PaymentSuccess
                           : localStrings.Ads.PaymentFailed}
                       </span>
-                    </div>
+                    </div> 
                     <div>
                       <span
                         style={{
@@ -722,7 +722,7 @@ const Ads = ({ postId }: { postId: string }) => {
                         <span style={{ fontWeight: "bold", color: brandPrimary }}>
                           {localStrings.Ads.Click}:
                         </span>{" "}
-                        {item?.total_clicks || 0}
+                        {ads?.total_clicks || 0}
                       </span>
                     </div>
                     <div>
@@ -735,7 +735,7 @@ const Ads = ({ postId }: { postId: string }) => {
                         <span style={{ fontWeight: "bold", color: brandPrimary }}>
                           {localStrings.Ads.TotalReach}:
                         </span>{" "}
-                        {item?.total_reach || 0}
+                        {ads?.total_reach || 0}
                       </span>
                     </div>
                     <div>
@@ -748,7 +748,7 @@ const Ads = ({ postId }: { postId: string }) => {
                         <span style={{ fontWeight: "bold", color: brandPrimary }}>
                           {localStrings.Ads.TotalImpressions}:
                         </span>{" "}
-                        {item?.total_impression || 0}
+                        {ads?.total_impression || 0}
                       </span>
                     </div>
                   </div>

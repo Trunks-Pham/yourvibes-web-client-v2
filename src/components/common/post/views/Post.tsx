@@ -44,10 +44,12 @@ import PostDetailsScreen from "@/components/screens/postDetails/view/postDetails
 import { LikeUsersModel } from "@/api/features/post/models/LikeUsersModel";
 import ReportViewModel from "@/components/screens/report/ViewModel/reportViewModel";
 import ReportScreen from "@/components/screens/report/views/Report";
+import { PiSmileySad } from "react-icons/pi";
 
 interface IPost {
   post?: PostResponseModel;
   isParentPost?: boolean;
+  noHeader?: boolean;
   noFooter?: boolean;
   children?: React.ReactNode;
   noComment?: boolean;
@@ -64,6 +66,7 @@ const Post: React.FC<IPost> = React.memo(
     post,
     isParentPost = false,
     noFooter = false,
+    noHeader = false,
     children,
     noComment = false,
     fetchUserPosts,
@@ -291,6 +294,7 @@ const Post: React.FC<IPost> = React.memo(
               actionsBg: backgroundColor,
               headerBg: backgroundColor,
               colorBgContainer: backgroundColor,
+              
             },
             Modal: {
               contentBg: backgroundColor,
@@ -329,80 +333,82 @@ const Post: React.FC<IPost> = React.memo(
             borderRadius: 8,
           }}
           title={
-            <Row gutter={[8, 8]} className="m-2">
-              <Col
-                xs={4}
-                md={3}
-                className="hover:cursor-pointer"
-                onClick={() => router.push(`/user/${likedPost?.user?.id}`)}
-              >
-                <Avatar
-                  src={likedPost?.user?.avatar_url}
-                  shape="circle"
-                  size={{ xs: 40, sm: 40, md: 50, lg: 50, xl: 50, xxl: 50 }}
-                />
-              </Col>
-              <Col xs={18} md={20}>
-                <Row>
-                  <Col
-                    span={24}
-                    className="hover:cursor-pointer hover:underline"
-                    onClick={() => router.push(`/user/${likedPost?.user?.id}`)}
-                  >
-                    <span style={{ fontWeight: "bold", fontSize: 14, color: brandPrimary }}>
-                      {likedPost?.user?.family_name} {likedPost?.user?.name}
-                    </span>
-                  </Col>
-                  <Col span={24}>
-                    {likedPost?.is_advertisement === 1 ? (
-                      <div className="flex flex-row items-center">
-                        <span
-                          style={{
-                            color: brandPrimaryTap,
-                            fontSize: 12,
-                            opacity: 0.5,
-                            marginRight: 10,
-                          }}
-                        >
-                          {localStrings.Post.Sponsor}
-                        </span>
-                        <RiAdvertisementLine size={24} color={brandPrimaryTap} />
-                      </div>
-                    ) : (
-                      <div className="flex flex-row items-center">
-                        <span
-                          style={{
-                            color: brandPrimaryTap,
-                            fontSize: 12,
-                            opacity: 0.5,
-                            marginRight: 10,
-                          }}
-                        >
-                          {getTimeDiff(likedPost?.created_at, localStrings)}
-                        </span>
-                        {renderPrivacyIcon()}
-                      </div>
-                    )}
-                  </Col>
-                </Row>
-              </Col>
-              {isParentPost || noFooter ? null : (
-                <Col xs={2} md={1} className="hover:cursor-pointer">
-                  <Dropdown trigger={["click"]} menu={{ items }}>
-                    <HiDotsVertical size={16} color={brandPrimary} />
-                  </Dropdown>
-                  <Modal
-                    centered
-                    title={localStrings.Public.ReportFriend}
-                    open={showModal}
-                    onCancel={() => setShowModal(false)}
-                    footer={null}
-                  >
-                    <ReportScreen postId={post?.id} setShowModal={setShowModal} />
-                  </Modal>
+            noHeader ? undefined : (
+              <Row gutter={[8, 8]} className="m-2">
+                <Col
+                  xs={4}
+                  md={3}
+                  className="hover:cursor-pointer"
+                  onClick={() => router.push(`/user/${likedPost?.user?.id}`)}
+                >
+                  <Avatar
+                    src={likedPost?.user?.avatar_url}
+                    shape="circle"
+                    size={{ xs: 40, sm: 40, md: 50, lg: 50, xl: 50, xxl: 50 }}
+                  />
                 </Col>
-              )}
-            </Row>
+                <Col xs={18} md={20}>
+                  <Row>
+                    <Col
+                      span={24}
+                      className="hover:cursor-pointer hover:underline"
+                      onClick={() => router.push(`/user/${likedPost?.user?.id}`)}
+                    >
+                      <span style={{ fontWeight: "bold", fontSize: 14, color: brandPrimary }}>
+                        {likedPost?.user?.family_name} {likedPost?.user?.name}
+                      </span>
+                    </Col>
+                    <Col span={24}>
+                      {likedPost?.is_advertisement === 1 ? (
+                        <div className="flex flex-row items-center">
+                          <span
+                            style={{
+                              color: brandPrimaryTap,
+                              fontSize: 12,
+                              opacity: 0.5,
+                              marginRight: 10,
+                            }}
+                          >
+                            {localStrings.Post.Sponsor}
+                          </span>
+                          <RiAdvertisementLine size={24} color={brandPrimaryTap} />
+                        </div>
+                      ) : (
+                        <div className="flex flex-row items-center">
+                          <span
+                            style={{
+                              color: brandPrimaryTap,
+                              fontSize: 12,
+                              opacity: 0.5,
+                              marginRight: 10,
+                            }}
+                          >
+                            {getTimeDiff(likedPost?.created_at, localStrings)}
+                          </span>
+                          {renderPrivacyIcon()}
+                        </div>
+                      )}
+                    </Col>
+                  </Row>
+                </Col>
+                {isParentPost || noFooter ? null : (
+                  <Col xs={2} md={1} className="hover:cursor-pointer">
+                    <Dropdown trigger={["click"]} menu={{ items }}>
+                      <HiDotsVertical size={16} color={brandPrimary} />
+                    </Dropdown>
+                    <Modal
+                      centered
+                      title={localStrings.Public.ReportFriend}
+                      open={showModal}
+                      onCancel={() => setShowModal(false)}
+                      footer={null}
+                    >
+                      <ReportScreen postId={post?.id} setShowModal={setShowModal} />
+                    </Modal>
+                  </Col>
+                )}
+              </Row>
+            )
           }
           actions={
             isParentPost || noFooter
@@ -477,9 +483,8 @@ const Post: React.FC<IPost> = React.memo(
                   <span>{likedPost?.content}</span>
                 </div>
                 <div style={{ paddingLeft: 5, paddingRight: 5 }}>
-                  <div
+                  <div className="flex flex-col items-center justify-center md:p-[30px_90px] p-[30px]"
                     style={{
-                      padding: 10,
                       borderColor: borderColor,
                       borderWidth: 1,
                       borderRadius: 5,
@@ -495,6 +500,12 @@ const Post: React.FC<IPost> = React.memo(
                     >
                       {localStrings.Post.NoContent}
                     </span>
+                     <span style={{ textAlign: 'center', color: "gray" }}>
+                       <PiSmileySad  size={24} color="gray" />
+                      </span>
+                      <span style={{ textAlign: 'center', fontSize: 14, color: "gray" }}>
+                        {localStrings.Post.NoContentDetail}
+                      </span>
                   </div>
                 </div>
               </div>
@@ -651,7 +662,7 @@ const Post: React.FC<IPost> = React.memo(
                   </Form.Item>
                 )}
                 <Form.Item>
-                <TextArea
+                  <TextArea
                     value={shareContent}
                     onChange={(e) => setShareContent(e.target.value)}
                     placeholder={localStrings.Post.ShareContent}

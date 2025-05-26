@@ -1,4 +1,5 @@
 "use client"
+import { UserModel } from '@/api/features/authenticate/model/LoginModel';
 import { PostResponseModel } from '@/api/features/post/models/PostResponseModel';
 import { defaultPostRepo } from '@/api/features/post/PostRepo';
 import { FriendResponseModel } from '@/api/features/profile/model/FriendReponseModel';
@@ -23,6 +24,7 @@ const ProfileViewModel = () => {
   const [friendCount, setFriendCount] = useState(0);
   const [search, setSearch] = useState<string>("");
   const [resultCode, setResultCode] = useState(0);
+  const [infoUser, setInfoUser] = useState<UserModel>();
   const getFriendCount = () => friendCount;
   const fetchUserPosts = async (newPage: number = 1) => {
     try {
@@ -118,6 +120,7 @@ const fetchUserProfile = async (id: string) => {
     const response = await defaultProfileRepo.getProfile(id);
     
     if (!response?.error) {
+      setInfoUser(response?.data)
       setResultCode(response?.code);
     } else {
     }
@@ -149,7 +152,8 @@ const fetchUserProfile = async (id: string) => {
     setProfileLoading,
     setPosts,
     hasMoreFriends,
-    loadMoreFriends
+    loadMoreFriends,
+    infoUser
   };
 };
 

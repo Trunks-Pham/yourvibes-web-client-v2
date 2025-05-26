@@ -86,7 +86,7 @@ const SettingsTab = ({
           {language === "vi"
             ? localStrings.Public.Vietnamese
             : localStrings.Public.English}{" "}
-          <Switch defaultChecked onChange={changeLanguage} />
+          <Switch style={{marginLeft:5}} defaultChecked onChange={changeLanguage} />
         </div>
 
         <div className="text-brandPrimary">
@@ -95,6 +95,7 @@ const SettingsTab = ({
             ? localStrings.Public.LightMode
             : localStrings.Public.DarkMode}
           <Switch
+          style={{marginLeft:5}}
             checked={theme === "dark"}
             onChange={(checked) => changeTheme?.(checked ? "dark" : "light")}
           />

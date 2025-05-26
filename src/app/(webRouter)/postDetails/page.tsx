@@ -2,7 +2,6 @@
 
 import { useSearchParams } from 'next/navigation';
 import PostDetailsScreen from '@/components/screens/postDetails/view/postDetailsScreen';
-import { Suspense } from 'react';
 
 const Content = () => {
   const searchParams = useSearchParams();

@@ -55,16 +55,6 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
     return end.isValid() && now.isBefore(end, "day");
   }, []);
 
-  const getStatusAction = useCallback(
-    (ad: AdvertisePostResponseModel): string => {
-      if (ad.status !== "success" || ad.bill?.status !== true) {
-        return localStrings.Ads.Pending;
-      }
-      return isAdActive(ad) ? localStrings.Ads.Active : localStrings.Ads.Completed;
-    },
-    [isAdActive, localStrings.Ads]
-  );
-
   const fetchAdStatistics = useCallback(
     async (advertiseId: string): Promise<AdvertisePostResponseModel | null> => {
       const cacheKey = `stats_${advertiseId}`;
@@ -169,7 +159,7 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
       const request: GetUsersPostsRequestModel = {
         user_id: user.id,
         isDescending: true,
-        limit: 12,
+        limit: 100,
         page,
       };
 
@@ -183,30 +173,13 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
       const mappedAds: MappedAd[] = [];
       const grouped: Record<string, MappedAd[]> = {};
 
-      const adPromises = res.data.map(async (item: any) => {
+      res.data.forEach((item: any) => {
         const post = item.post;
         const postId = post.id;
 
         if (!grouped[postId]) {
           grouped[postId] = [];
         }
-
-        // Gọi getAdvertisePost để lấy advertiseId
-        const params: AdvertisePostRequestModel = { post_id: postId };
-        const adResponse = await repo.getAdvertisePost(params);
-        const adsForPost = adResponse?.data
-          ? Array.isArray(adResponse.data)
-            ? adResponse.data
-            : [adResponse.data]
-          : [];
-
-        // Tìm quảng cáo khớp với start_date và end_date
-        const matchedAd = adsForPost.find(
-          (ad) =>
-            ad.start_date === item.start_date && ad.end_date === item.end_date
-        );
-
-        const advertiseId = matchedAd?.id || postId; // Fallback về postId nếu không tìm thấy
 
         const startDate = item.start_date ? DateTransfer(new Date(item.start_date)) : "N/A";
         const endDate = item.end_date ? DateTransfer(new Date(item.end_date)) : "N/A";
@@ -215,18 +188,10 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
             ? dayjs(item.end_date).diff(dayjs(), "day")
             : 0;
 
-        const statistics: StatisticEntry[] = matchedAd?.statistics || [];
-        const resultsData = statistics.map((stat: StatisticEntry) => stat.clicks || 0);
-        const reachData = statistics.map((stat: StatisticEntry) => stat.reach || 0);
-        const impressionsData = statistics.map((stat: StatisticEntry) => stat.impression || 0);
-        const labels = statistics.map((stat: StatisticEntry) =>
-          dayjs(stat.aggregation_date).format("HH:mm:ss DD/MM")
-        );
-
         const adStatus = item.bill_price ? "success" : "failed";
 
         const mappedAd: MappedAd = {
-          id: advertiseId,
+          id: postId, // Use postId as fallback since getAdvertisePost is not called
           post_id: postId,
           post: {
             id: postId,
@@ -249,10 +214,10 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
           start_date: startDate,
           end_date: endDate,
           day_remaining: daysRemaining,
-          resultsData,
-          reachData,
-          impressionsData,
-          labels,
+          resultsData: [],
+          reachData: [],
+          impressionsData: [],
+          labels: [],
           bill: {
             price: item.bill_price,
             status: item.bill_price ? true : false,
@@ -261,16 +226,15 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
           status_action: dayjs().isBefore(dayjs(item.end_date), "day")
             ? localStrings.Ads.Active
             : localStrings.Ads.Completed,
-          total_reach: matchedAd?.total_reach || 0,
-          total_clicks: matchedAd?.total_clicks || 0,
-          total_impression: matchedAd?.total_impression || 0,
-          statistics,
+          total_reach: 0,
+          total_clicks: 0,
+          total_impression: 0,
+          statistics: [],
         };
 
         mappedAds.push(mappedAd);
         grouped[postId].push(mappedAd);
 
-        // Lưu post details
         setPostDetails((prev) => ({
           ...prev,
           [postId]: {
@@ -280,8 +244,6 @@ const useAdsManagement = (repo: PostRepo = defaultPostRepo) => {
           } as AdvertisePostResponseModel,
         }));
       });
-
-      await Promise.all(adPromises);
 
       setAds((prevAds) => (page === 1 ? mappedAds : [...prevAds, ...mappedAds]));
       setGroupedAds(grouped);

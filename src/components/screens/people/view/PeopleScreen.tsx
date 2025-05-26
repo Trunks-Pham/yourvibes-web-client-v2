@@ -55,7 +55,8 @@ const PeopleScreens: React.FC = () => {
                 {incomingFriendRequests.map((request) => (
                   <div
                     key={request.id}
-                    className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300 border border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between w-full lg:w-2/3"
+                    className="rounded-lg shadow-sm p-4 hover:shadow-md transition-all duration-300 border border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between w-full lg:w-2/3"
+                    style={{backgroundColor: backgroundColor}}
                   >
                     <div className="flex items-center space-x-4 flex-1 min-w-0 mb-3 sm:mb-0">
                       <div className="relative">
@@ -67,8 +68,9 @@ const PeopleScreens: React.FC = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3
-                          className="text-base font-medium text-gray-900 truncate cursor-pointer hover:text-gray-600"
+                          className="text-base font-medium truncate cursor-pointer hover:text-gray-600"
                           onClick={() => router.push(`/user/${request.from_user.id}`)}
+                          style={{color: brandPrimary}}
                         >
                          {request.from_user.family_name} {request.from_user.name} 
                         </h3>
@@ -78,10 +80,11 @@ const PeopleScreens: React.FC = () => {
                       <Button
                         type="primary"
                         onClick={() => handleAcceptFriendRequest(request.from_user.id || "")}
-                        className="bg-green-500 hover:bg-green-600 border-none"
                         size="small"
                       >
+                        <span style={{color: backgroundColor}}>
                         {localStrings.Public.Accept}
+                        </span>
                       </Button>
                       <Button
                         danger
@@ -161,7 +164,10 @@ const PeopleScreens: React.FC = () => {
                           onClick={() => handleAddFriend(user.id || "")}
                           size="small"
                         >
+                          <span style={{color: backgroundColor}}>
+                          
                           {localStrings.Public.AddFriend}
+                          </span>
                         </Button>
                       )}
                     </div>

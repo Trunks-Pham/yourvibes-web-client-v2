@@ -127,7 +127,7 @@ export const WebSocketProvider: React.FC<{
 
             notification.open({
               message: (
-                <div style={{ display: "flex", alignItems: "flex-start", backgroundColor: backgroundColor }}>
+                <div style={{ display: "flex", alignItems: "flex-start"}}>
                   <Avatar
                     src={message.user?.avatar_url}
                     size={40}
@@ -139,7 +139,7 @@ export const WebSocketProvider: React.FC<{
                   >
                     {!message.user?.avatar_url && (message.user?.name?.charAt(0) || "U")}
                   </Avatar>
-                  <div style={{ maxWidth: 250, color: brandPrimary }}>
+                  <div style={{ maxWidth: 250 }}>
                     <div
                       style={{
                         fontWeight: 500,
@@ -237,7 +237,7 @@ console.log("theme", theme);
         
         notification.open({
           message: (
-            <div style={{ display: "flex", alignItems: "center", }}>
+            <div style={{ display: "flex", alignItems: "center"}}>
               <Avatar
                 src={avatar_url}
                 size={40}
@@ -247,7 +247,7 @@ console.log("theme", theme);
                   flexShrink: 0, // Ngăn avatar bị co lại
                 }}
               />
-              <div style={{ flex: 1, overflow: "hidden", color: brandPrimary }}>
+              <div style={{ flex: 1, overflow: "hidden"}}>
                 <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {`${userName} ${notificationContent}`}
                 </div>

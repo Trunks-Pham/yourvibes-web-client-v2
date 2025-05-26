@@ -19,8 +19,14 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
   notificationModal,
 }) => {
   const { brandPrimary, backgroundColor } = useColor();
-  const { notifications, loading, fetchNotifications, updateNotification, updateAllNotification, hasMore } =
-    NotifiCationViewModel(defaultNotificationRepo);
+  const {
+    notifications,
+    loading,
+    fetchNotifications,
+    updateNotification,
+    updateAllNotification,
+    hasMore,
+  } = NotifiCationViewModel(defaultNotificationRepo);
   const { localStrings } = useAuth();
 
   const loadMoreNotifi = useCallback(() => {
@@ -36,12 +42,14 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
   }, [notificationModal, notifications.length, fetchNotifications]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-[70vh]">
       <div
         className="w-full py-3 px-4 flex justify-between items-center border-b border-gray-200"
         style={{ backgroundColor }}
       >
-        <span className="text-base font-semibold">{localStrings.Notification.Notification}</span>
+        <span className="text-base font-semibold">
+          {localStrings.Notification.Notification}
+        </span>
         <Button
           type="text"
           icon={<CheckOutlined />}
@@ -49,17 +57,23 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
           aria-label="Đánh dấu tất cả thông báo là đã đọc"
         />
       </div>
+
       <div
         id="scrollable-notification"
-        className="px-2.5 overflow-y-auto no-scrollbar"
-        style={{ maxHeight: "min(70vh, 700px)" }}
+        className="px-2.5 overflow-y-auto no-scrollbar flex-1"
       >
         {notifications.length > 0 ? (
           <InfiniteScroll
             dataLength={notifications.length}
             next={loadMoreNotifi}
             hasMore={hasMore}
-            loader={<Spin indicator={<LoadingOutlined spin />} size="large" className="my-4" />}
+            loader={
+              <Spin
+                indicator={<LoadingOutlined spin />}
+                size="large"
+                className="my-4"
+              />
+            }
             scrollableTarget="scrollable-notification"
           >
             {notifications.map((item) => (
