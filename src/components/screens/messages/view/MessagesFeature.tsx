@@ -479,7 +479,7 @@ return (
         disabled: selectedFriends.length === 0 || activeTab === "currentMembers",
         style:{
           color: theme === 'dark' ? addButtonText : addButtonText,
-          fontWeight: 500,
+          fontWeight: 600,
         }
       }}
       styles={{ 
