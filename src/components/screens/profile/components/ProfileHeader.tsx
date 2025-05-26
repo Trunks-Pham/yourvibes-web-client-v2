@@ -250,7 +250,9 @@ const ProfileHeader = ({
                 }}
                 loading={sendRequestLoading}
               >
+                <span style={{ color: backgroundColor }}>
                 {localStrings.Public.AcceptFriendRequest}
+                </span>
               </Button>
               <Button
                 style={{ width: "48%" }}
