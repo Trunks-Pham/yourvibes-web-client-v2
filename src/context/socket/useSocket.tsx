@@ -211,7 +211,6 @@ export const WebSocketProvider: React.FC<{
     ws.onmessage = (e) => {
       try {
         const notificationData = JSON.parse(e.data);
-console.log("theme", theme);
 
         
         const { from: userName, content, notification_type: type, from_url: avatar_url } = notificationData;

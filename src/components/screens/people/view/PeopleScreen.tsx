@@ -28,7 +28,7 @@ const PeopleScreens: React.FC = () => {
 
   if (loading && users.length === 0 && loadingFriendRequests && incomingFriendRequests.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen bg-white">
+      <div className="flex justify-center items-center h-screen">
         <Spin size="large" tip="Loading..." />
       </div>
     );

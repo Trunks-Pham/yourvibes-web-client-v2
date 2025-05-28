@@ -8,7 +8,7 @@ import { useSearchParams } from 'next/navigation';
 
 const ProfileTabs = ({
   posts,
-  hasMore,
+  loading,
   profileLoading,
   loadMorePosts,
   userInfo,
@@ -16,20 +16,36 @@ const ProfileTabs = ({
   friends,
   resultCode,
   fetchUserPosts,
-  loading,
+  hasMore,
   setPosts,
+  hasMoreFriends,
+  loadMoreFriends,
+  fetchFriends,
+  setFriends,
+  loadingFriends,
+  friendsModal,
+  setFriendsModal,
+  fetchFriendsModal
 }: {
-  posts: PostResponseModel[],
-  hasMore: boolean,
-  profileLoading: boolean,
-  loadMorePosts: () => void,
-  userInfo: UserModel,
-  friendCount: number,
-  friends: FriendResponseModel[],
-  resultCode: number,
-  fetchUserPosts: () => void,
-  loading: boolean,
-  setPosts: React.Dispatch<React.SetStateAction<PostResponseModel[]>>,
+  posts: PostResponseModel[];
+  loading: boolean;
+  profileLoading: boolean;
+  loadMorePosts: () => void;
+  userInfo: UserModel;
+  friendCount: number;
+  friends: FriendResponseModel[];
+  resultCode: number;
+  fetchUserPosts: (newPage?: number) => Promise<void>;
+  hasMore: boolean;
+  setPosts: React.Dispatch<React.SetStateAction<PostResponseModel[]>>;
+  hasMoreFriends: boolean;
+  loadMoreFriends: () => void;
+  fetchFriends: (page?: number) => Promise<void>;
+  setFriends: React.Dispatch<React.SetStateAction<FriendResponseModel[]>>;
+  loadingFriends: boolean;
+  friendsModal: FriendResponseModel[];
+  setFriendsModal: React.Dispatch<React.SetStateAction<FriendResponseModel[]>>;
+  fetchFriendsModal: (page?: number) => Promise<void>;
 }) => {
   const searchParams = useSearchParams();  
   const tab = searchParams.get('tab');  
@@ -44,17 +60,25 @@ const ProfileTabs = ({
 
   return (
     <AboutTab
-      user={userInfo}
+      posts={posts}
       loading={loading}
       profileLoading={profileLoading}
+      loadMorePosts={loadMorePosts}
+      user={userInfo}
       friendCount={friendCount}
       friends={friends}
       resultCode={resultCode}
-      posts={posts}
-      loadMorePosts={loadMorePosts}
       fetchUserPosts={fetchUserPosts}
       hasMore={hasMore}
       setPosts={setPosts}
+      hasMoreFriends={hasMoreFriends}
+      loadMoreFriends={loadMoreFriends}
+      fetchFriends={fetchFriends}
+      setFriends={setFriends}
+      loadingFriends={loadingFriends}
+      friendsModal={friendsModal}
+      setFriendsModal={setFriendsModal}
+      fetchFriendsModal={fetchFriendsModal}
     />
   );
 };

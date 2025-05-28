@@ -432,7 +432,7 @@ const AdsManagementFeature = () => {
           footer={null}
           width={700}
           centered
-          bodyStyle={{ maxHeight: '80vh', overflowY: 'auto', padding: 16 }}
+          style={{ maxHeight: '80vh', overflowY: 'auto', padding: 16 }}
         >
           <div style={{ padding: 8 }}>
             {isLoadingModalPosts ? (
@@ -462,7 +462,7 @@ const AdsManagementFeature = () => {
           onCancel={closeHistoryModal}
           footer={null}
           width={700}
-          bodyStyle={{ maxHeight: "600px", overflowY: "auto", padding: "16px" }}
+          style={{ maxHeight: "600px", overflowY: "auto", padding: "16px" }}
         >
           <div className="space-y-3">
             {selectedPostId && groupedAds[selectedPostId] ? (

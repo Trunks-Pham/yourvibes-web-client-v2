@@ -59,28 +59,6 @@ const UpdateProfileScreen = () => {
   const [showPicker, setShowPicker] = useState(false);
   const router = useRouter();
   const {infoUser, fetchUserProfile} = ProfileViewModel();
-  // useEffect(() => {
-  //   updatedForm.setFieldsValue({
-  //     name: user?.name,
-  //     family_name: user?.family_name,
-  //     email: user?.email,
-  //     birthday:
-  //       user?.birthday && dayjs(user.birthday).isValid()
-  //         ? dayjs(user.birthday)
-  //         : dayjs(user?.created_at),
-  //     phone_number: user?.phone_number,
-  //     biography: user?.biography,
-  //   });
-  //   const container = scrollContainerRef.current;
-  //   if (container) {
-  //     container.addEventListener("scroll", handleScroll);
-  //   }
-  //   return () => {
-  //     if (container) {
-  //       container.removeEventListener("scroll", handleScroll);
-  //     }
-  //   };
-  // }, [user, handleScroll]);
    useEffect(() => {
      if (user) {
        fetchUserProfile(user?.id as string);
@@ -104,14 +82,11 @@ const UpdateProfileScreen = () => {
 
    
   const pickAvatarImage = (file: File) => {
-    // Kiểm tra loại tệp (nếu cần)
     const isImage = file.type.startsWith("image/");
     if (!isImage) {
-      // Nếu không phải ảnh, trả về false để không cho phép tải lên
       return false;
     }
 
-    // Cập nhật trạng thái với thông tin tệp
     setNewAvatar({
       url: URL.createObjectURL(file), // Tạo URL tạm thời từ tệp
       name: file.name, // Tên tệp
@@ -139,20 +114,23 @@ const UpdateProfileScreen = () => {
     return true;
   };
 
-  const UpdateProfile = () => {
+const UpdateProfile = async () => {
+  try {
+    const values = await updatedForm.validateFields(); // Tự động kiểm tra required
     const data = {
-      ...updatedForm.getFieldsValue(),
-      avatar_url: newAvatar?.file, // Sử dụng tệp avatar thực tế
-      capwall_url: newCapwall?.file, // Sử dụng tệp capwall thực tế
+      ...values,
+      avatar_url: newAvatar?.file,
+      capwall_url: newCapwall?.file,
       birthday: (
-        dayjs(updatedForm.getFieldValue("birthday"), "DD/MM/YYYY").format(
-          "YYYY-MM-DDT00:00:00"
-        ) + "Z"
+        dayjs(values.birthday, "DD/MM/YYYY").format("YYYY-MM-DDT00:00:00") + "Z"
       ).toString(),
     };
-    // Gọi hàm updateProfile với dữ liệu đã chuẩn bị
     updateProfile(data);
-  };
+  } catch (err) {
+    message.error(localStrings.Profile.ErrorRequired);
+  }
+};
+
 
   return (
     <div className="p-2.5">
@@ -356,7 +334,7 @@ const UpdateProfileScreen = () => {
           <Form.Item
             name="email"
             label={localStrings.Form.Label.Email}
-            rules={[{ required: true, type: "email" }]}
+            rules={[{type: "email" }]}
           >
             <Input
               placeholder={localStrings.Form.Label.Email}

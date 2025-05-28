@@ -268,6 +268,7 @@ export const ENGLocalizedStrings = {
     ScrollLoading: "Scroll to load more comments",
   },
   Profile: {
+    ErrorRequired: "Please enter all required information!",
     Posts: {
       GetPostsFailed: "Failed to get posts!",
       GetOnePostFailed: "Failed to get post!",

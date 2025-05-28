@@ -279,11 +279,6 @@ const Post: React.FC<IPost> = React.memo(
       }
     }, [isVisible, likedPost]);
 
-    const isContentLengthValid = () => {
-      const contentLength = shareContent.trim().length;
-      return contentLength >= 2 && contentLength <= 10000;
-    };
-
     const currentCharCount = shareContent.length;
 
     return (
@@ -523,7 +518,7 @@ const Post: React.FC<IPost> = React.memo(
             )}
           </Row>
           <Modal
-            visible={isEditModalVisible}
+            open={isEditModalVisible}
             centered
             width={800}
             footer={null}
@@ -542,7 +537,7 @@ const Post: React.FC<IPost> = React.memo(
             )}
           </Modal>
           <Modal
-            visible={isCommentModalVisible}
+            open={isCommentModalVisible}
             centered
             footer={null}
             closable={true}
@@ -560,7 +555,7 @@ const Post: React.FC<IPost> = React.memo(
             <PostDetailsScreen postId={likedPost?.id} isModal={true} />
           </Modal>
           <Modal
-            visible={isShareModalVisible}
+            open={isShareModalVisible}
             centered
             onCancel={() => setIsShareModalVisible(false)}
             footer={[
@@ -576,7 +571,6 @@ const Post: React.FC<IPost> = React.memo(
                 type="primary"
                 loading={shareLoading}
                 onClick={handleSubmitShare}
-                disabled={!isContentLengthValid()}
                 style={{ backgroundColor: brandPrimary, borderColor: brandPrimary }}
               >
                 {shareLoading ? (
@@ -710,7 +704,7 @@ const Post: React.FC<IPost> = React.memo(
                 </span>
               </div>
             }
-            visible={isVisible}
+            open={isVisible}
             onCancel={() => setIsVisible(false)}
             footer={null}
             width={500}

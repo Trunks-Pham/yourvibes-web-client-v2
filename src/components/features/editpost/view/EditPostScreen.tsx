@@ -61,10 +61,13 @@ const EditPostScreen = ({
   }, [id]);
 
   // Hàm kiểm tra độ dài nội dung hợp lệ
-  const isContentLengthValid = () => {
-    const contentLength = postContent.trim().length;
-    return contentLength >= 2 && contentLength <= 10000;
-  };
+const isSubmitEnabled = () => {
+  const contentLength = postContent.trim().length;
+  const hasValidContent = contentLength >= 2 && contentLength <= 10000;
+  const hasMedia = selectedMediaFiles.length > 0;
+  return hasValidContent || hasMedia;
+};
+
 
   // Tính số ký tự hiện tại
   const currentCharCount = postContent.length;
@@ -77,7 +80,7 @@ const EditPostScreen = ({
   );
 
   const handleSubmitEditPost = async () => {
-    if (!isContentLengthValid() && selectedMediaFiles.length === 0) {
+    if (!isSubmitEnabled()) {
       message.error("Content must be between 2 and 10,000 characters or include media.");
       return;
     }
@@ -85,8 +88,7 @@ const EditPostScreen = ({
     try {
       await handleSubmit();
       if (fetchUserPosts) {
-        console.log("fetchUserPosts");
-        fetchUserPosts(); // Fetch lại bài đăng của người dùng ở trang Profile
+        fetchUserPosts(); 
       }
       if (onEditPostSuccess) {
         onEditPostSuccess();
@@ -199,7 +201,7 @@ const EditPostScreen = ({
           <Button
             type="primary"
             onClick={handleSubmitEditPost}
-            disabled={!isContentLengthValid() && selectedMediaFiles.length === 0}
+            disabled={!isSubmitEnabled()}
             loading={updateLoading}
           >
             {localStrings.Public.Save}

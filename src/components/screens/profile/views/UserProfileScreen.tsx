@@ -4,36 +4,44 @@ import { Button, Drawer, Modal, Skeleton, Space, Typography } from 'antd';
 import ProfileHeader from '../components/ProfileHeader';
 import ProfileTabs from '../components/ProfileTabs';
 import UserProfileViewModel from '../viewModel/UserProfileViewModel';
-import { useAuth } from '@/context/auth/useAuth';
-import { useRouter } from 'next/navigation';
 import { UserModel } from '@/api/features/authenticate/model/LoginModel';
 
 
 const UserProfileScreen = ({ id }: { id: string }) => {
-  const { localStrings } = useAuth();
-  const [tab, setTab] = useState(0);
-  const router = useRouter();
-
   const {
     loading,
+    profileLoading,
     posts,
+    fetchUserPosts,
     loadMorePosts,
     total,
-    fetchUserProfile,
-    profileLoading,
-    userInfo,
     friends,
     friendCount,
     resultCode,
+    fetchUserProfile,
+    fetchFriends,
+    page,
+    userInfo,
     hasMore,
-    fetchFriends
-  } = UserProfileViewModel();
+    hasMoreFriends,
+    loadMoreFriends,
+    setPosts,
+    setFriends,
+    loadingFriends,
+    setFriendsModal,
+    friendsModal,
+    fetchFriendsModal
+  } = UserProfileViewModel(id);
 
 
-  useEffect(() => {
-    if (!id) return;
-    fetchUserProfile(id);
-  }, [id]);
+useEffect(() => {
+    if (id) {
+      fetchUserProfile(id);
+      // fetchFriends(page);
+      fetchUserPosts();
+    }
+  }
+, [id]);
 
   return (
     <div>
@@ -60,9 +68,17 @@ const UserProfileScreen = ({ id }: { id: string }) => {
           friendCount={friendCount}
           friends={friends}
           resultCode={resultCode}
-          fetchUserPosts={() => { }}
+          fetchUserPosts={fetchUserPosts}
           hasMore={hasMore}
-          setPosts={() => { }}
+          setPosts={setPosts}
+          hasMoreFriends={hasMoreFriends}
+          loadMoreFriends={loadMoreFriends}
+          fetchFriends={async (page?: number) => { await fetchFriends(page); }}
+          setFriends={setFriends}
+          loadingFriends={loadingFriends}
+          friendsModal={friendsModal}
+          setFriendsModal={setFriendsModal}
+          fetchFriendsModal={async (page?: number) => { await fetchFriendsModal(page); }}
         />
       </>
       )}

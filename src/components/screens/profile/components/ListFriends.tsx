@@ -1,52 +1,55 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useAuth } from "@/context/auth/useAuth";
-import { IoEllipsisVerticalSharp } from "react-icons/io5";
-import { FriendResponseModel } from "@/api/features/profile/model/FriendReponseModel";
+import { useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Avatar, Dropdown, MenuProps, Modal } from "antd";
-import UserProfileViewModel from "../viewModel/UserProfileViewModel";
+import { Avatar, Dropdown, Empty, Modal, Spin } from "antd";
+import { IoEllipsisVerticalSharp } from "react-icons/io5";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { LoadingOutlined } from "@ant-design/icons";
+import { FriendResponseModel } from "@/api/features/profile/model/FriendReponseModel";
+import { useAuth } from "@/context/auth/useAuth";
 import useColor from "@/hooks/useColor";
+import UserProfileViewModel from "../viewModel/UserProfileViewModel";
 
 const ListFriends = ({
-  friends: initialFriends,
-  page,
-  setPage,
-  totalPage,
-  fetchFriends,
+  friends,
+  hasMoreFriends,
+  friendModal,
+  loadMoreFriends,
+  setFriends,
+  fetchFriendsModal,
   loadingFriends,
 }: {
   friends: FriendResponseModel[];
-  page: number;
-  setPage: (page: number) => void;
-  totalPage: number;
-  fetchFriends: (page: number) => Promise<FriendResponseModel[] | undefined>;
+  hasMoreFriends: boolean;
+  friendModal: boolean;
+  loadMoreFriends: () => void;
+  setFriends: React.Dispatch<React.SetStateAction<FriendResponseModel[]>>;
+  fetchFriendsModal: (page?: number) => Promise<void>;
   loadingFriends: boolean;
 }) => {
   const { localStrings, isLoginUser } = useAuth();
   const router = useRouter();
   const { unFriend } = UserProfileViewModel();
-  const [friends, setFriends] = useState<FriendResponseModel[]>(initialFriends);
   const { colorOnl } = useColor();
-
-  useEffect(() => {
-    setFriends(initialFriends); // Đồng bộ với initialFriends
-  }, [initialFriends]);
 
   const handleUnfriend = async (friendId: string) => {
     try {
       await unFriend(friendId);
-      setFriends((prevFriends) => prevFriends.filter((friend) => friend.id !== friendId));
-    } catch (error) {
-      console.error("Failed to unfriend:", error);
+      setFriends(friends.filter((f) => f.id !== friendId));
+    } catch (err) {
+      console.error("Unfriend failed:", err);
     }
   };
+  useEffect(() => {
+    if (friendModal) {
+      fetchFriendsModal(1);
+    }
+  }, [friendModal]);
 
-  const itemsFriend = (friend: FriendResponseModel): MenuProps["items"] => [
+  const itemsFriend = (friend: FriendResponseModel) => [
     {
       key: "1",
       label: localStrings.Public.UnFriend,
-      type: "item",
       onClick: () => {
         Modal.confirm({
           centered: true,
@@ -61,58 +64,101 @@ const ListFriends = ({
     {
       key: "2",
       label: localStrings.ListFriends.ViewProfile,
-      type: "item",
-      onClick: () => {
-        router.push(`/user/${friend.id}`);
-      },
+      onClick: () => router.push(`/user/${friend.id}`),
     },
   ];
 
   return (
-    <div className="m-2">
-      <div className="grid md:grid-cols-2 gap-x-4 gap-y-2 cursor-pointer">
-        {friends.map((friend, index) => (
-          <div key={index} className="flex flex-row items-center p-2 border rounded-md">
+    <div
+      id="scrollableFriendList"
+      className="overflow-y-auto h-[60vh] px-2 no-scrollbar"
+    >
+      {friends && friends.length > 0 ? (
+        <InfiniteScroll
+          dataLength={friends.length}
+          next={() => {
+            console.log("NEXT TRIGGERED!");
+            loadMoreFriends();
+          }}
+          hasMore={hasMoreFriends}
+          loader={
+            <Spin
+              indicator={<LoadingOutlined spin />}
+              size="large"
+              className="my-4"
+            />
+          }
+          scrollableTarget="scrollableFriendList" // **Rất quan trọng để scroll trong vùng này**
+          scrollThreshold={0.7} // Khi cuộn đến 70% thì gọi next()
+        >
+          {friends.map((friendItem, index) => (
             <div
-              className="flex flex-row items-center"
-              onClick={() => router.push(`/user/${friend.id}`)}
+              key={friendItem.id ?? index}
+              className="flex flex-row items-center p-2 border rounded-md mb-5"
             >
-              <div style={{ position: "relative", display: "inline-block" }}>
-                <Avatar
-                  src={friend.avatar_url}
-                  alt={friend.name}
-                  size={50}
-                  style={{
-                    boxShadow: "0 2px 4px rgba(186, 141, 167, 0.1)",
-                  }}
-                />
-                {friend.active_status && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                      right: 0,
-                      width: 12,
-                      height: 12,
-                      backgroundColor: colorOnl || "#00CED1",
-                      border: "2px solid white",
-                      borderRadius: "50%",
-                    }}
+              <div
+                className="flex flex-row items-center"
+                onClick={() => router.push(`/user/${friendItem.id}`)}
+              >
+                <div style={{ position: "relative", display: "inline-block" }}>
+                  <Avatar
+                    src={friendItem.avatar_url}
+                    size={50}
+                    alt={`${friendItem.family_name} ${friendItem.name}`}
                   />
-                )}
+
+                  {friendItem.active_status && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        bottom: 0,
+                        right: 0,
+                        width: 12,
+                        height: 12,
+                        backgroundColor: colorOnl || "#00CED1",
+                        border: "2px solid white",
+                        borderRadius: "50%",
+                      }}
+                    />
+                  )}
+                </div>
+                <span className="ml-4 text-lg font-semibold">
+                  {friendItem.family_name} {friendItem.name}
+                </span>
               </div>
-              <span className="ml-4 text-lg font-semibold">
-                {friend.family_name} {friend.name}
-              </span>
+
+              {friendItem.id && !isLoginUser(friendItem.id) && (
+                <Dropdown
+                  menu={{ items: itemsFriend(friendItem) }}
+                  placement="bottom"
+                  arrow
+                >
+                  <IoEllipsisVerticalSharp className="ml-auto" />
+                </Dropdown>
+              )}
             </div>
-            {friend.id && !isLoginUser(friend.id) && (
-              <Dropdown menu={{ items: itemsFriend(friend) }} placement="bottom" arrow>
-                <IoEllipsisVerticalSharp className="ml-auto" />
-              </Dropdown>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </InfiniteScroll>
+      ) : (
+        <div className="flex flex-col items-center justify-center h-full">
+          {loadingFriends ? (
+            <Spin
+              indicator={<LoadingOutlined spin />}
+              size="large"
+              className="my-4"
+            />
+          ) : (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={
+                <span style={{ color: "gray" }}>
+                  {localStrings.Public.AllUsers}
+                </span>
+              }
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -265,6 +265,7 @@ export const VnLocalizedStrings = {
     ScrollLoading: "Cuộn để tải thêm bình luận",
   },
   Profile: {
+    ErrorRequired: "Vui lòng nhập đầy đủ thông tin bắt buộc!",
     Posts: {
       GetPostsFailed: "Lấy danh sách bài viết thất bại!",
       GetOnePostFailed: "Lấy bài viết thất bại!",

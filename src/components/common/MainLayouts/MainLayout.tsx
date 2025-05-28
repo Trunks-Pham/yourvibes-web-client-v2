@@ -171,6 +171,11 @@ useEffect(() => {
             titleColor: brandPrimary,
             colorIcon: "gray",
           },
+          Select:{
+            optionSelectedColor: brandPrimary,
+            optionSelectedBg: menuItem,
+          
+          }
         },
       }}
     >
