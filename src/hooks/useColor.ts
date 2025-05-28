@@ -167,6 +167,7 @@ const useColor = () => {
     defaultHoverBg: Color.gray5,
     primaryBg: Color.blue,
     primaryText: Color.white,
+    secondaryText: Color.black,
     primaryHoverBg: Color.blue2,
   });
 
@@ -288,6 +289,7 @@ const useColor = () => {
         defaultHoverBg: Color.darkMode.background4,
         primaryBg: Color.blue3,
         primaryText: Color.white,
+        secondaryText: Color.black,
         primaryHoverBg: Color.blue5,
       });
 
@@ -408,6 +410,7 @@ const useColor = () => {
         defaultHoverBg: Color.gray5,
         primaryBg: Color.blue,
         primaryText: Color.white,
+        secondaryText: Color.black,
         primaryHoverBg: Color.blue2,
       });
 
