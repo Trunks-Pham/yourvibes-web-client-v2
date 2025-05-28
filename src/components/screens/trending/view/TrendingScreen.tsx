@@ -33,8 +33,8 @@ const TrendingScreen = () => {
   const { friends, fetchMyFriends, page } = ProfileViewModel();
 
   useEffect(() => {
-    fetchTrendingPosts();
     if (user) {
+      fetchTrendingPosts(page);
       fetchMyFriends(page);
       fetchBirthdayFriends();
     }
@@ -314,12 +314,6 @@ const TrendingScreen = () => {
 
   return (
     <div className="lg:flex mt-4">
-      {/* {loading ? (
-        <div className="flex justify-center items-center fixed inset-0 bg-gray">
-          <Spin size="large" tip="Loading" style={{ color: "#4B5563" }} />
-        </div>
-      ) : (
-        <> */}
           <div className="flex-auto w-auto flex flex-col items-center justify-center">
             <div style={{ width: "100%", maxWidth: "600px" }}>
               {trendingPosts.length > 0 ? (
@@ -353,8 +347,6 @@ const TrendingScreen = () => {
           <div className="flex-initial w-[320px] hidden xl:block">
             {renderFriends()}
           </div>
-        {/* </>
-      )} */}
     </div>
   );
 };

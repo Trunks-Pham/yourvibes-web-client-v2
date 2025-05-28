@@ -21,15 +21,13 @@ const TrendingViewModel = (postRepo: PostRepo, friendRepo: FriendRepo) => {
   const fetchTrendingPosts = async (newPage: number = 1) => {
     try {
       setLoading(true);
-      const requestData: GetUsersPostsRequestModel = {
+      const response = await postRepo.getPostsTrending({
         page: newPage,
         limit: limit,
-      };
-      const response: BaseApiResponseModel<PostResponseModel[]> =
-        await postRepo.getPostsTrending(requestData);
+      })
 
       if (!response.error) {
-        const newPosts = response.data || [];
+        const newPosts = response?.data || [];
         if (newPage === 1) {
           setTrendingPosts(newPosts);
         } else {
