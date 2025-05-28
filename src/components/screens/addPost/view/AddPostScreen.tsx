@@ -99,13 +99,6 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
             colorBorder: borderColor,
             colorTextPlaceholder: "gray",
           },
-          Select: {
-            colorBgContainer: menuItem,
-            colorText: brandPrimary,
-            colorBorder: borderColor,
-            colorBgElevated: menuItem,
-            colorPrimary: brandPrimary,
-          },
           Upload: {
             colorBorder: borderColor,
             colorText: brandPrimary,
@@ -191,16 +184,16 @@ const AddPostScreen = ({ onPostSuccess, fetchNewFeeds, fetchUserPosts }: AddPost
           <Select
             value={viewModel.privacy}
             onChange={(value) => viewModel.setPrivacy(value)}
-            style={{
-              width: 120,
-              marginLeft: "10px",
-              backgroundColor: menuItem,
-              color: brandPrimary,
-            }}
-            dropdownStyle={{
-              backgroundColor: menuItem,
-              color: brandPrimary,
-            }}
+            // style={{
+            //   width: 120,
+            //   marginLeft: "10px",
+            //   backgroundColor: menuItem,
+            //   color: brandPrimary,
+            // }}
+            // dropdownStyle={{
+            //   backgroundColor: menuItem,
+            //   color: brandPrimary,
+            // }}
             options={[
               { label: localStrings.Public.Everyone, value: Privacy.PUBLIC },
               { label: localStrings.Public.Friend, value: Privacy.FRIEND_ONLY },

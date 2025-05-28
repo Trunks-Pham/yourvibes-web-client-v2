@@ -17,11 +17,6 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
           token: {   colorPrimary: brandPrimary,
           colorBorder: borderColor,
           colorBgBase: borderColor,
-           },
-          components: {
-            Select: {
-              optionSelectedColor: brandPrimary,
-            },
           },
         }}
       >

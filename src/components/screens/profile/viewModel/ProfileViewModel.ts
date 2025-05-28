@@ -21,6 +21,7 @@ const ProfileViewModel = () => {
   const [hasMore, setHasMore] = useState(false);
   const limit = 10;
   const [friends, setFriends] = useState<FriendResponseModel[]>([]);
+   const [friendsModal, setFriendsModal] = useState<FriendResponseModel[]>([]);
   const [friendCount, setFriendCount] = useState(0);
   const [search, setSearch] = useState<string>("");
   const [resultCode, setResultCode] = useState(0);
@@ -69,7 +70,7 @@ const ProfileViewModel = () => {
     }
   };
 
-  const fetchMyFriends = async (page: number) => {
+  const fetchMyFriends = async (page: number = 1) => {
     try {
       setLoadingFriends(true);
       const response = await defaultProfileRepo.getListFriends({
@@ -105,11 +106,48 @@ const ProfileViewModel = () => {
   }
 }
 
+  const fetchFriendsModal = async (page: number = 1) => {
+    try {
+      setLoadingFriends(true);
+      const response = await defaultProfileRepo.getListFriends({
+        page: page,
+        limit: 10,
+        user_id: user?.id,
+      });
+      if (!response?.error) {
+        
+        if (page === 1) {
+          setFriendsModal(response?.data);
+        } else {
+          setFriendsModal((prevFriends) => [...prevFriends, ...response?.data]);
+        }
+        const {
+          page: currentPage,
+          limit: currentLimit,
+          total: totalRecords,
+        } = response?.paging;
+
+        setTotalFriends(totalRecords);
+        setPageFriend(currentPage);
+        setFriendCount(totalRecords);
+        setHasMoreFriends(currentPage * currentLimit < totalRecords);
+      }
+      
+    return friendsModal;
+  }
+  catch (error: any) {
+    console.error(error);
+  }finally {
+    setLoadingFriends(false);
+  }
+}
+
 const loadMoreFriends = () => {
+  console.log("loadMoreFriends called", loadingFriends, hasMoreFriends);
   
   if (!loadingFriends && hasMoreFriends) {
     setPageFriend((prevPage) => prevPage + 1);
-    fetchMyFriends(pageFriend + 1);
+    fetchFriendsModal(pageFriend + 1);
   }
 }
 
@@ -153,7 +191,13 @@ const fetchUserProfile = async (id: string) => {
     setPosts,
     hasMoreFriends,
     loadMoreFriends,
-    infoUser
+    infoUser,
+    setFriends,
+    setFriendsModal,
+    setPage,
+    loadingFriends,
+    friendsModal,
+    fetchFriendsModal,
   };
 };
 

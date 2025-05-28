@@ -26,14 +26,9 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
     updateNotification,
     updateAllNotification,
     hasMore,
+    loadMoreNotifi
   } = NotifiCationViewModel(defaultNotificationRepo);
   const { localStrings } = useAuth();
-
-  const loadMoreNotifi = useCallback(() => {
-    if (!loading && hasMore) {
-      fetchNotifications(notifications.length / 10 + 1);
-    }
-  }, [fetchNotifications, notifications.length, loading, hasMore]);
 
   useEffect(() => {
     if (notificationModal && notifications.length === 0) {
@@ -62,7 +57,7 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
         id="scrollable-notification"
         className="px-2.5 overflow-y-auto no-scrollbar flex-1"
       >
-        {notifications.length > 0 ? (
+        {notifications && notifications.length > 0 ? (
           <InfiniteScroll
             dataLength={notifications.length}
             next={loadMoreNotifi}
@@ -90,7 +85,9 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({
             {loading ? (
               <Spin indicator={<LoadingOutlined spin />} size="large" />
             ) : (
-              <Empty description={localStrings.Notification.NoNotification} />
+              <Empty description={  <span style={{ color: 'gray' }}>
+      {localStrings.Notification.NoNotification}
+    </span>} />
             )}
           </div>
         )}

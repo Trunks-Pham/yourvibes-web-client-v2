@@ -19,6 +19,7 @@ const UserProfileViewModel = (userId?: string) => {
   const [newFriendStatus, setNewFriendStatus] = useState<FriendStatus | undefined>(undefined);
   const [search, setSearch] = useState<string>("");
   const [friends, setFriends] = useState<FriendResponseModel[]>([]);
+   const [friendsModal, setFriendsModal] = useState<FriendResponseModel[]>([]);
   const [friendCount, setFriendCount] = useState(0);
   const [resultCode, setResultCode] = useState(0);
   const [totalPageFriends, setTotalPageFriends] = useState(0);
@@ -165,7 +166,7 @@ const UserProfileViewModel = (userId?: string) => {
     }
   };
 
-  const fetchFriends = async (newPage: number = 1): Promise<FriendResponseModel[] | undefined> => {
+  const fetchFriends = async (page: number = 1): Promise<FriendResponseModel[] | undefined> => {
     if (!userId && !userInfo?.id) {
       console.error("No user ID provided for fetching friends");
       return undefined;
@@ -173,14 +174,14 @@ const UserProfileViewModel = (userId?: string) => {
     try {
       setLoadingFriends(true);
       const response = await defaultProfileRepo.getListFriends({
-        page: newPage,
+        page: page,
         limit: 10,
         user_id: userId || userInfo?.id,
       });
 
       if (!response?.error && response?.data) {
         const newFriends = response.data;
-        if (newPage === 1) {
+        if (page === 1) {
           setFriends(newFriends);
         } else {
           setFriends((prevFriends) => [...prevFriends, ...newFriends]);
@@ -205,18 +206,67 @@ const UserProfileViewModel = (userId?: string) => {
     }
   };
 
-  useEffect(() => {
-    if (userId) {
-      fetchUserProfile(userId);
+    const fetchFriendsModal = async (page: number = 1): Promise<FriendResponseModel[] | undefined> => {
+    if (!userId && !userInfo?.id) {
+      console.error("No user ID provided for fetching friends");
+      return undefined;
     }
-  }, [userId]);
+    try {
+      setLoadingFriends(true);
+      const response = await defaultProfileRepo.getListFriends({
+        page: page,
+        limit: 10,
+        user_id: userId || userInfo?.id,
+      });
 
-  useEffect(() => {
-    if (userId || userInfo?.id) {
-      fetchUserPosts();
-      fetchFriends(1);
+      if (!response?.error && response?.data) {
+        const newFriends = response.data;
+        if (page === 1) {
+          setFriendsModal(newFriends);
+        } else {
+          setFriendsModal((prevFriends) => [...prevFriends, ...newFriends]);
+        }
+        const { page: currentPage, limit: currentLimit, total: totalRecords } = response.paging;
+        setFriendCount(totalRecords);
+        setHasMoreFriends(currentPage * currentLimit < totalRecords);
+        const totalPage = Math.ceil(totalRecords / currentLimit);
+        setTotalPageFriends(totalPage);
+        setPage(currentPage);
+        return newFriends;
+      } else {
+        console.error("response.data is null or error occurred");
+        setFriendsModal([]);
+        return undefined;
+      }
+    } catch (error: any) {
+      console.error(error);
+      return undefined;
+    } finally {
+      setLoadingFriends(false);
     }
-  }, [userId, userInfo]);
+  };
+
+  const loadMoreFriends = () => {
+    console.log("loadMoreFriends called", loadingFriends, hasMoreFriends);
+    
+    if (!loadingFriends && hasMoreFriends) {
+      setPage((prevPage) => prevPage + 1);
+      fetchFriendsModal(page + 1);
+    }
+  };
+
+  // useEffect(() => {
+  //   if (userId) {
+  //     fetchUserProfile(userId);
+  //   }
+  // }, [userId]);
+
+  // useEffect(() => {
+  //   if (userId || userInfo?.id) {
+  //     fetchUserPosts();
+  //     fetchFriends(1);
+  //   }
+  // }, [userId, userInfo]);
 
   return {
     loading,
@@ -249,6 +299,11 @@ const UserProfileViewModel = (userId?: string) => {
     hasMoreFriends,
     loadingFriends,
     setPosts,
+    setFriends,
+    loadMoreFriends,
+    friendsModal,
+    setFriendsModal,
+    fetchFriendsModal,
   };
 };
 

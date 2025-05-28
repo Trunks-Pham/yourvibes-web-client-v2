@@ -22,48 +22,63 @@ import PostList from "./PostList";
 import { PostResponseModel } from "@/api/features/post/models/PostResponseModel";
 import ListFriends from "./ListFriends";
 import { CustomStatusCode } from "@/utils/helper/CustomStatus";
-import UserProfileViewModel from "@/components/screens/profile/viewModel/UserProfileViewModel";
 
 const AboutTab = ({
-  user,
+  posts,
   loading,
   profileLoading,
-  friendCount,
-  friends: initialFriends,
-  resultCode,
-  posts,
   loadMorePosts,
+  user,
+  friendCount,
+  friends,
+  resultCode,
   fetchUserPosts,
   hasMore,
   setPosts,
+  hasMoreFriends,
+  loadMoreFriends,
+  fetchFriends,
+  setFriends,
+  loadingFriends,
+  friendsModal,
+  setFriendsModal,
+  fetchFriendsModal
 }: {
-  user: UserModel;
+  posts: PostResponseModel[];
   loading: boolean;
   profileLoading: boolean;
+  loadMorePosts: () => void;
+  user: UserModel;
   friendCount: number;
   friends: FriendResponseModel[];
   resultCode: number;
-  posts: PostResponseModel[];
-  loadMorePosts: () => void;
-  fetchUserPosts: () => void;
+  fetchUserPosts: (newPage?: number) => Promise<void>;
   hasMore: boolean;
   setPosts: React.Dispatch<React.SetStateAction<PostResponseModel[]>>;
+  hasMoreFriends: boolean;
+  loadMoreFriends: () => void;
+  fetchFriends: (page?: number) => Promise<void>;
+  setFriends: React.Dispatch<React.SetStateAction<FriendResponseModel[]>>;
+  loadingFriends: boolean;
+  friendsModal: FriendResponseModel[];
+  setFriendsModal: React.Dispatch<React.SetStateAction<FriendResponseModel[]>>;
+  fetchFriendsModal: (page?: number) => Promise<void>;
 }) => {
   const router = useRouter();
-  const { brandPrimaryTap, backgroundColor, colorOnl, brandPrimary, borderColor } = useColor();
+  const {
+    brandPrimaryTap,
+    backgroundColor,
+    colorOnl,
+    brandPrimary,
+    borderColor,
+  } = useColor();
   const { isLoginUser, localStrings } = useAuth();
-  const { fetchFriends, page, setPage, totalPage, hasMoreFriends, loadingFriends, friends: viewModelFriends } = UserProfileViewModel(user?.id);
   const [showObject, setShowObject] = useState(false);
   const [showFriend, setShowFriend] = useState(false);
-  const [friends, setFriends] = useState<FriendResponseModel[]>(initialFriends);
   const [friendsToShow, setFriendsToShow] = useState(8);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-  // Đồng bộ friends với viewModelFriends
-  useEffect(() => {
-    setFriends(viewModelFriends);
-  }, [viewModelFriends]);
 
   // Cập nhật số lượng bạn bè hiển thị dựa trên kích thước màn hình
   useEffect(() => {
@@ -81,37 +96,10 @@ const AboutTab = ({
     };
   }, []);
 
-  // Gọi fetchFriends khi mở modal
   useEffect(() => {
-    if (showFriend && !friends.length && !loadingFriends && user.id) {
-      fetchFriends(1); // Tải lại trang đầu tiên nếu danh sách rỗng
-    }
-  }, [showFriend, friends, loadingFriends, fetchFriends, user?.id]);
-
-  // Thiết lập IntersectionObserver để tải thêm bạn bè khi cuộn
-  useEffect(() => {
-    if (!showFriend || !hasMoreFriends || loadingFriends) return;
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setPage(page + 1);
-          fetchFriends(page + 1); // Tải trang tiếp theo
-        }
-      },
-      { threshold: 1.0 }
-    );
-
-    if (loadMoreRef.current) {
-      observerRef.current.observe(loadMoreRef.current);
-    }
-
-    return () => {
-      if (observerRef.current && loadMoreRef.current) {
-        observerRef.current.unobserve(loadMoreRef.current);
-      }
-    };
-  }, [showFriend, hasMoreFriends, loadingFriends, page, fetchFriends, setPage]);
+    if(user)
+      fetchFriends(1);
+  }, [user]);
 
   const renderPrivacyIcon = () => {
     switch (user?.privacy) {
@@ -129,19 +117,29 @@ const AboutTab = ({
   return (
     <div className="mt-4 lg:mx-16 xl:mx-32">
       <Row gutter={[16, 16]} align={"top"} justify={"center"}>
-        <Col xs={24} xl={8} className="w-full xl:sticky xl:top-20" style={{ position: "sticky" }}>
+        <Col
+          xs={24}
+          xl={8}
+          className="w-full xl:sticky xl:top-20"
+          style={{ position: "sticky" }}
+        >
           {profileLoading ? (
             <Skeleton active />
           ) : (
             <div
               className="w-full mx-auto max-w-[600px] flex flex-col px-5 rounded-md"
-              style={{ backgroundColor: backgroundColor, border: `1px solid ${borderColor}` }}
+              style={{
+                backgroundColor: backgroundColor,
+                border: `1px solid ${borderColor}`,
+              }}
             >
               {/* Detail */}
               <div className="py-2" style={{ color: brandPrimary }}>
                 <div>
                   <div className="flex justify-between mb-2">
-                    <span className="font-bold text-lg">{localStrings.Public.Detail}</span>
+                    <span className="font-bold text-lg">
+                      {localStrings.Public.Detail}
+                    </span>
                     {isLoginUser(user?.id as string) && (
                       <div>
                         <div className="flex flex-row items-center">
@@ -157,7 +155,9 @@ const AboutTab = ({
                           onCancel={() => setShowObject(false)}
                           footer={null}
                         >
-                          <ModalObjectProfile closedModalObject={() => setShowObject(false)} />
+                          <ModalObjectProfile
+                            closedModalObject={() => setShowObject(false)}
+                          />
                         </Modal>
                       </div>
                     )}
@@ -168,38 +168,52 @@ const AboutTab = ({
                       <div className="flex flex-row mb-2">
                         <MailFilled />
                         <span className="ml-2">
-                          {localStrings.Public.Mail}: <span className="font-bold">{user?.email}</span>
+                          {localStrings.Public.Mail}:{" "}
+                          <span className="font-bold">{user?.email}</span>
                         </span>
                       </div>
                       {/* Phone */}
                       <div className="flex flex-row mb-2">
                         <PhoneFilled />
                         <span className="ml-2">
-                          {localStrings.Public.Phone}: <span className="font-bold">{user?.phone_number}</span>
+                          {localStrings.Public.Phone}:{" "}
+                          <span className="font-bold">
+                            {user?.phone_number}
+                          </span>
                         </span>
                       </div>
                       {/* Birthday */}
                       <div className="flex flex-row mb-2">
                         <CreditCardFilled />
                         <span className="ml-2">
-                          {localStrings.Public.Birthday}: <span className="font-bold">{DateTransfer(user?.birthday)}</span>
+                          {localStrings.Public.Birthday}:{" "}
+                          <span className="font-bold">
+                            {DateTransfer(user?.birthday)}
+                          </span>
                         </span>
                       </div>
                       {/* Created At */}
                       <div className="flex flex-row mb-2">
                         <CreditCardFilled />
                         <span className="ml-2">
-                          {localStrings.Public.Active}: <span className="font-bold">{DateTransfer(user?.created_at)}</span>
+                          {localStrings.Public.Active}:{" "}
+                          <span className="font-bold">
+                            {DateTransfer(user?.created_at)}
+                          </span>
                         </span>
                       </div>
                     </div>
                   ) : resultCode === CustomStatusCode.UserPrivateAccess ? (
                     <span className="text-center">
-                      {`${user?.family_name || ""} ${user?.name || ""} ${localStrings.Public.HideInfo}`}
+                      {`${user?.family_name || ""} ${user?.name || ""} ${
+                        localStrings.Public.HideInfo
+                      }`}
                     </span>
                   ) : resultCode === CustomStatusCode.UserFriendAccess ? (
                     <span className="text-center">
-                      {`${user?.family_name || ""} ${user?.name || ""} ${localStrings.Public.HideInfo} ${localStrings.Public.FriendOnly}`}
+                      {`${user?.family_name || ""} ${user?.name || ""} ${
+                        localStrings.Public.HideInfo
+                      } ${localStrings.Public.FriendOnly}`}
                     </span>
                   ) : null}
                 </div>
@@ -209,7 +223,10 @@ const AboutTab = ({
               <div className="py-2 flex-1">
                 <div className="flex mb-2">
                   <div className="flex flex-col flex-1">
-                    <span className="font-bold text-lg" style={{ color: brandPrimary }}>
+                    <span
+                      className="font-bold text-lg"
+                      style={{ color: brandPrimary }}
+                    >
                       {localStrings.Public.Friend}
                     </span>
                     <span className="text-sm" style={{ color: brandPrimary }}>
@@ -218,7 +235,10 @@ const AboutTab = ({
                     </span>
                   </div>
                   <div className="cursor-pointer">
-                    <span style={{ color: brandPrimaryTap }} onClick={() => router.push("#")}>
+                    <span
+                      style={{ color: brandPrimaryTap }}
+                      onClick={() => router.push("#")}
+                    >
                       {localStrings.Public.FriendFind}
                     </span>
                   </div>
@@ -232,7 +252,12 @@ const AboutTab = ({
                         style={{ color: brandPrimary }}
                         onClick={() => router.push(`/user/${friend?.id}`)}
                       >
-                        <div style={{ position: "relative", display: "inline-block" }}>
+                        <div
+                          style={{
+                            position: "relative",
+                            display: "inline-block",
+                          }}
+                        >
                           <Avatar
                             src={friend.avatar_url}
                             alt={friend.name}
@@ -256,7 +281,10 @@ const AboutTab = ({
                             />
                           )}
                         </div>
-                        <div className="mt-2 truncate w-full" style={{ whiteSpace: "nowrap" }}>
+                        <div
+                          className="mt-2 truncate w-full"
+                          style={{ whiteSpace: "nowrap" }}
+                        >
                           {friend?.family_name} {friend?.name}
                         </div>
                       </div>
@@ -269,37 +297,35 @@ const AboutTab = ({
                 >
                   {localStrings.Public.FriendView}
                 </div>
-                <Modal
-                  bodyStyle={{ maxHeight: "70vh", overflowY: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}
-                  title={<span className="text-xl font-bold">{localStrings.ListFriends.ListFriends}</span>}
-                  open={showFriend}
-                  onCancel={() => setShowFriend(false)}
-                  footer={null}
-                  centered
-                  width={1000}
-                >
-                  {loadingFriends && !friends.length ? (
-                    <div className="flex justify-center py-4">
-                      <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
-                    </div>
-                  ) : friends.length === 0 ? (
-                    <Empty description={localStrings.Public.AllUsers} />
-                  ) : (
+                {showFriend && (
+                  <Modal
+                    title={
+                      <span className="text-xl font-bold">
+                        {localStrings.ListFriends.ListFriends}
+                      </span>
+                    }
+                    open={showFriend}
+                    onCancel={() => setShowFriend(false)}
+                    footer={null}
+                    width={700}
+                    centered
+                    style={{
+                      maxHeight: "70vh",
+                      overflow: "hidden",
+                      padding: 0,
+                    }} // quan trọng
+                  >
                     <ListFriends
-                      friends={friends}
-                      page={page}
-                      setPage={setPage}
-                      totalPage={totalPage}
-                      fetchFriends={fetchFriends}
+                      friends={friendsModal}
+                      loadMoreFriends={loadMoreFriends}
+                      hasMoreFriends={hasMoreFriends ?? false}
+                      friendModal={showFriend}
+                      setFriends={setFriendsModal}
+                      fetchFriendsModal={fetchFriendsModal}
                       loadingFriends={loadingFriends}
                     />
-                  )}
-                  {hasMoreFriends && (
-                    <div ref={loadMoreRef} className="flex justify-center py-4">
-                      <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
-                    </div>
-                  )}
-                </Modal>
+                  </Modal>
+                )}
               </div>
             </div>
           )}

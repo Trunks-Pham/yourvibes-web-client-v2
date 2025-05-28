@@ -14,7 +14,6 @@ import { Skeleton, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 
 const ProfileFeature = () => {
-  const { backgroundColor } = useColor();
   const { user, localStrings } = useAuth();
 
   const {
@@ -32,12 +31,19 @@ const ProfileFeature = () => {
     page,
     hasMore,
     setPosts,
+    hasMoreFriends,
+    loadMoreFriends,
+    setFriends,
+    loadingFriends,
+    setFriendsModal,
+    friendsModal,
+    fetchFriendsModal
   } = ProfileViewModel();
 
   useEffect(() => {
     if (user) {
       fetchUserProfile(user?.id as string);
-      fetchMyFriends(page);
+      // fetchMyFriends(page);
       fetchUserPosts();
     }
   }, []);
@@ -67,6 +73,14 @@ const ProfileFeature = () => {
             fetchUserPosts={fetchUserPosts}
             hasMore={hasMore}
             setPosts={setPosts}
+            hasMoreFriends={hasMoreFriends}
+            loadMoreFriends={loadMoreFriends}
+            fetchFriends={async (page?: number) => { await fetchMyFriends(page); }}
+            setFriends={setFriends}
+            loadingFriends={loadingFriends}
+            friendsModal={friendsModal}
+            setFriendsModal={setFriendsModal}
+            fetchFriendsModal={async (page?: number) => { await fetchFriendsModal(page); }}
           />
         </>
       )}
