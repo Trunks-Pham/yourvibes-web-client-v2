@@ -1658,10 +1658,17 @@ const MessagesFeature: React.FC = () => {
   
   const handleSelectConversation = (conversation: ConversationResponseModel) => {
     if (currentConversation?.id === conversation.id) {
+      if (isMobile) {
+        setShowConversation(false);
+      }
       return;
     }
-  
+
     setCurrentConversation(conversation);
+    
+    if (isMobile) {
+      setShowConversation(false);
+    }
   };
 
   const onEmojiClick = (emojiData: EmojiClickData) => {
