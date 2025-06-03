@@ -148,15 +148,15 @@ const UpdateProfile = async () => {
         {/* Cove Image */}
         <div className="relative" style={{ backgroundColor: lightGray }}>
           <div
-            ref={scrollContainerRef}
-            className="w-full md:h-[375px] h-[250px] overflow-y-auto"
+            className="w-full md:h-[375px] h-[250px]"
           >
             <Image
               src={newCapwall?.url || user?.capwall_url}
               alt="Cover"
-              className="w-full md:h-[375px] h-[250px] object-cover object-center"
+                className="w-full md:max-h-[375px] max-h-[250px] object-cover hover:cursor-pointer"
               width="100%"
               style={{ objectPosition: objectPosition }}
+                preview={{ mask: null }}
             />
           </div>
           <div className="absolute top-4 left-4">
