@@ -201,7 +201,7 @@ export const useConversationViewModel = () => {
         setCurrentConversation(null);
       }
     } catch (error) {
-      console.error("Error deleting conversation:", error);
+      console.error("Error while deleting conversation:", error);
       message.error(localStrings.Public.Error);
     } finally {
       await fetchConversations();
