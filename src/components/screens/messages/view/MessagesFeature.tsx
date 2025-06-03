@@ -1665,6 +1665,7 @@ const MessagesFeature: React.FC = () => {
     }
 
     setCurrentConversation(conversation);
+
     
     if (isMobile) {
       setShowConversation(false);
