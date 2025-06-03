@@ -195,7 +195,7 @@ const Ads = ({ postId }: { postId: string }) => {
     const finalPrice = AdsCalculate(diffDay, price) * (1 - discount);
     return (
       <>
-        {post?.is_advertisement ? (
+        {post?.is_advertisement === 1 ? (
           <>
             {/* Advertisement history */}
             <div style={{ paddingLeft: 10, paddingRight: 10, paddingTop: 10 }}>
