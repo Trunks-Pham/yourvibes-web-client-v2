@@ -191,20 +191,20 @@ export const useConversationViewModel = () => {
 
   const deleteConversation = useCallback(async (conversationId: string) => {
     if (!user?.id || !conversationId) return;
-    
+
     try {
       await defaultMessagesRepo.deleteConversation({ conversation_id: conversationId });
-      
+
       processedConversationsRef.current.delete(conversationId);
-      
-      await fetchConversations();
-      
+
       if (currentConversation?.id === conversationId) {
         setCurrentConversation(null);
       }
     } catch (error) {
-      console.error("Error deleting conversation:", error);
+      console.error("Error while deleting conversation:", error);
       message.error(localStrings.Public.Error);
+    } finally {
+      await fetchConversations();
     }
   }, [user?.id, currentConversation?.id, fetchConversations, localStrings.Public.Error]);
 
