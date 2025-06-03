@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Spin, Empty, Avatar, Skeleton } from "antd";
 import InfiniteScroll from "react-infinite-scroll-component";
 import Post from "@/components/common/post/views/Post";
@@ -31,6 +31,10 @@ const TrendingScreen = () => {
     fetchBirthdayFriends,
   } = TrendingViewModel(defaultPostRepo, defaultFriendRepo);
   const { friends, fetchMyFriends, page } = ProfileViewModel();
+  // State lưu danh sách id các post đang visible
+  const [visiblePosts, setVisiblePosts] = useState<string[]>([]);
+  // Ref lưu các DOM node của từng post
+  const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     if (user) {
@@ -312,6 +316,39 @@ const TrendingScreen = () => {
     };
   }, []);
 
+    // Intersection Observer để theo dõi post nào đang visible
+    useEffect(() => {
+      if (!trendingPosts.length) return;
+  
+      const observer = new IntersectionObserver(
+        (entries) => {
+          // Lọc các post đang intersect với viewport (visible)
+          const currentlyVisible: string[] = [];
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const postId = entry.target.getAttribute("data-postid");
+              if (postId) currentlyVisible.push(postId);
+            }
+          });
+          setVisiblePosts(currentlyVisible);
+        },
+        {
+          root: null, // viewport
+          threshold: 0.5, // khi 50% phần tử hiển thị
+        }
+      );
+  
+      // Quan sát tất cả các phần tử post
+      Object.values(postRefs.current).forEach((el) => {
+        if (el) observer.observe(el);
+      });
+  
+      // Cleanup khi unmount hoặc posts thay đổi
+      return () => {
+        observer.disconnect();
+      };
+    }, [trendingPosts]);
+
   return (
     <div className="lg:flex mt-4">
           <div className="flex-auto w-auto flex flex-col items-center justify-center">
@@ -324,11 +361,25 @@ const TrendingScreen = () => {
                   loader={<Skeleton avatar paragraph={{ rows: 4 }} />}
                 >
                   {trendingPosts.map((post) => (
-                    <Post
+                    <div
                       key={post.id}
-                      post={post}
-                      onDeletePost={handleDeletePost}
-                    />
+                      data-postid={post.id}
+                      ref={(el) => {
+                        if (post.id !== undefined) {
+                          postRefs.current[post.id] = el;
+                        }
+                      }}>
+                        <Post
+                          key={post.id}
+                          post={post}
+                          onDeletePost={handleDeletePost}
+                          isVisiblePost={visiblePosts.includes(post.id || "")}
+                        >
+                            {post?.parent_post && (
+                    <Post post={post?.parent_post} isParentPost isVisiblePost={visiblePosts.includes(post?.parent_post.id || "")} />
+                  )}
+                        </Post>
+                      </div>
                   ))}
                 </InfiniteScroll>
               ) : (

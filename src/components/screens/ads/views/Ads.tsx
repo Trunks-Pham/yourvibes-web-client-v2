@@ -32,7 +32,7 @@ const { Text } = Typography;
 
 const Ads = ({ postId }: { postId: string }) => {
   const price = 30000;
-  const { brandPrimary, brandPrimaryTap, backgroundColor, menuItem, borderColor, darkGray, colorOnl } = useColor();
+  const { brandPrimary, brandPrimaryTap, backgroundColor, menuItem, borderColor, darkGray, colorOnl, backGround } = useColor();
   const [method, setMethod] = useState("momo");
   const [showCampaign, setShowCampaign] = useState(false);
   const { language, localStrings } = useAuth();
@@ -195,7 +195,7 @@ const Ads = ({ postId }: { postId: string }) => {
     const finalPrice = AdsCalculate(diffDay, price) * (1 - discount);
     return (
       <>
-        {post?.is_advertisement ? (
+        {post?.is_advertisement === 1 ? (
           <>
             {/* Advertisement history */}
             <div style={{ paddingLeft: 10, paddingRight: 10, paddingTop: 10 }}>
@@ -562,7 +562,7 @@ const Ads = ({ postId }: { postId: string }) => {
         },
       }}
     >
-      <div className="p-2.5 h-[100vh]" style={{ backgroundColor: backgroundColor }}>
+      <div className="p-2.5 h-[100vh]" style={{ backgroundColor: backGround }}>
         <div className="mb-2 flex items-center">
           <Button
             icon={<CloseOutlined style={{ color: brandPrimary }} />}
@@ -596,8 +596,7 @@ const Ads = ({ postId }: { postId: string }) => {
           open={showCampaign}
           onCancel={() => setShowCampaign(false)}
           footer={null}
-          style={{ maxHeight: "70vh", overflowY: "auto" }}
-          bodyStyle={{ backgroundColor: backgroundColor }}
+          style={{ maxHeight: "70vh", overflowY: "auto",  backgroundColor: menuItem }}
         >
           {(adsAll?.length ?? 0) > 0 ? (
             (adsAll ?? []).map((item, index) => (
