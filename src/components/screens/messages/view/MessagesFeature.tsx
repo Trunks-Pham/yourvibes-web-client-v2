@@ -1750,14 +1750,20 @@ const MessagesFeature: React.FC = () => {
       cancelText: localStrings.Public.No,
       onOk: async () => {
         try {
+          setCurrentConversation(null);
+          
           await deleteConversation(conversationId);
+          
+          await fetchConversations();
+          
           message.success(localStrings.Messages.ConversationDeleted);
         } catch (error) {
           message.error(localStrings.Public.Error);
+          await fetchConversations();
         }
       }
     });
-  };
+  };  
   
   const fetchExistingMembers = async (conversationId: string) => {
     try {

@@ -189,24 +189,29 @@ export const useConversationViewModel = () => {
     }
   }, [currentConversation?.id, localStrings.Public.Error]);
 
-  const deleteConversation = useCallback(async (conversationId: string) => {
-    if (!user?.id || !conversationId) return;
+const deleteConversation = useCallback(async (conversationId: string) => {
+  if (!user?.id || !conversationId) return;
 
-    try {
-      await defaultMessagesRepo.deleteConversation({ conversation_id: conversationId });
+  try {
+    await defaultMessagesRepo.deleteConversation({ conversation_id: conversationId });
 
-      processedConversationsRef.current.delete(conversationId);
+    setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+    
+    processedConversationsRef.current.delete(conversationId);
 
-      if (currentConversation?.id === conversationId) {
-        setCurrentConversation(null);
-      }
-    } catch (error) {
-      console.error("Error while deleting conversation:", error);
-      message.error(localStrings.Public.Error);
-    } finally {
-      await fetchConversations();
+    if (currentConversation?.id === conversationId) {
+      setCurrentConversation(null);
     }
-  }, [user?.id, currentConversation?.id, fetchConversations, localStrings.Public.Error]);
+    
+    await fetchConversations();
+    
+  } catch (error) {
+    console.error("Error deleting conversation:", error);
+    message.error(localStrings.Public.Error);
+    
+    await fetchConversations();
+  }
+}, [user?.id, currentConversation?.id, fetchConversations, localStrings.Public.Error]);
 
   return {
     // State
