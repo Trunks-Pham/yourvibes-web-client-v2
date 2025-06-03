@@ -6,10 +6,12 @@ import { useAuth } from "@/context/auth/useAuth";
 import { defaultMessagesRepo } from "@/api/features/messages/MessagesRepo";
 import { ConversationResponseModel, UpdateConversationRequestModel } from "@/api/features/messages/models/ConversationModel";
 import { ConversationDetailResponseModel } from "@/api/features/messages/models/ConversationDetailModel";
+import { MessageResponseModel } from "@/api/features/messages/models/MessageModel";
 
 export const useConversationViewModel = () => {
   const { user, localStrings } = useAuth();
 
+  const [messages, setMessages] = useState<MessageResponseModel[]>([]);
   const [conversations, setConversations] = useState<ConversationResponseModel[]>([]);
   const [currentConversation, setCurrentConversation] = useState<ConversationResponseModel | null>(null);
   const [conversationsLoading, setConversationsLoading] = useState<boolean>(false);
@@ -201,6 +203,7 @@ const deleteConversation = useCallback(async (conversationId: string) => {
 
     if (currentConversation?.id === conversationId) {
       setCurrentConversation(null);
+      setMessages([]);
     }
     
     await fetchConversations();
