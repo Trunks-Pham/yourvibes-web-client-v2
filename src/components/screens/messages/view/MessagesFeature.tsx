@@ -1582,6 +1582,7 @@ const MessagesFeature: React.FC = () => {
     messageText,
     setSearchText,
     setMessageText,
+    setMessages,
     setCurrentConversation,
     sendMessage,
     messageListRef,
@@ -1664,6 +1665,7 @@ const MessagesFeature: React.FC = () => {
       return;
     }
 
+    setMessages([]);
     setCurrentConversation(conversation);
 
     

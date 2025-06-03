@@ -20,7 +20,7 @@ export const useMessagesViewModel = () => {
   const processedSocketMessagesRef = useRef<Set<string>>(new Set());
 
   const { 
-    messages, messagesLoading, messageText, setMessageText,
+    messages, messagesLoading, messageText, setMessageText, setMessages,
     isMessagesEnd, messageListRef, initialMessagesLoaded,
     currentConversationId,
     fetchMessages, sendMessage, deleteMessage, loadMoreMessages,
@@ -242,6 +242,7 @@ export const useMessagesViewModel = () => {
     existingMemberIds,
     
     // Setters
+    setMessages,
     setSearchText,
     setMessageText,
     setCurrentConversation,
