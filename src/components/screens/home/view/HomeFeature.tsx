@@ -40,8 +40,11 @@ const Homepage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [posts, setPosts] = useState<PostResponseModel[]>([]);
   const { deletePost } = EditPostViewModel(defaultPostRepo, user?.id || "", "");
+  // State lưu danh sách id các post đang visible
+  const [visiblePosts, setVisiblePosts] = useState<string[]>([]);
+  // Ref lưu các DOM node của từng post
+  const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     if (user) {
@@ -424,6 +427,40 @@ const Homepage = () => {
     };
   }, []);
 
+    // Intersection Observer để theo dõi post nào đang visible
+  useEffect(() => {
+    if (!newFeeds.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Lọc các post đang intersect với viewport (visible)
+        const currentlyVisible: string[] = [];
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const postId = entry.target.getAttribute("data-postid");
+            if (postId) currentlyVisible.push(postId);
+          }
+        });
+        setVisiblePosts(currentlyVisible);
+      },
+      {
+        root: null, // viewport
+        threshold: 0.5, // khi 50% phần tử hiển thị
+      }
+    );
+
+    // Quan sát tất cả các phần tử post
+    Object.values(postRefs.current).forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    // Cleanup khi unmount hoặc posts thay đổi
+    return () => {
+      observer.disconnect();
+    };
+  }, [newFeeds]);
+  
+
   return (
     <ConfigProvider
       theme={{
@@ -471,15 +508,22 @@ const Homepage = () => {
                     {newFeeds.map((item, index) => (
                       <div
                         key={item?.id}
+                        data-postid={item?.id}
+                           ref={(el) => {
+                  if (item.id !== undefined) {
+                    postRefs.current[item.id] = el;
+                  }
+                }}
                         style={{ width: "100%", maxWidth: "600px" }}
                       >
                         <Post
                           post={item}
                           onDeleteNewFeed={handleDeleteNewFeed}
                           onDeletePost={deletePost}
+                          isVisiblePost={visiblePosts.includes(item.id || "")}
                         >
                           {item?.parent_post && (
-                            <Post post={item?.parent_post} isParentPost />
+                            <Post post={item?.parent_post} isParentPost isVisiblePost={visiblePosts.includes(item?.parent_post.id || "")} />
                           )}
                         </Post>
                       </div>
