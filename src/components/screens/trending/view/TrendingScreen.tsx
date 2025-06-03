@@ -318,7 +318,8 @@ const TrendingScreen = () => {
 
     // Intersection Observer để theo dõi post nào đang visible
     useEffect(() => {
-      if (!trendingPosts.length) return;
+      if (!Array.isArray(trendingPosts) || trendingPosts.length === 0) return;
+
   
       const observer = new IntersectionObserver(
         (entries) => {
