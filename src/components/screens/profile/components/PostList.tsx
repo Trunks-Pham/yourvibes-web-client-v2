@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import {
   Spin,
   Modal,
@@ -40,6 +40,11 @@ const PostList = ({
   const { isLoginUser, localStrings } = useAuth();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { deletePost } = EditPostViewModel(defaultPostRepo, user?.id || "", "");
+
+  // State lưu danh sách id các post đang visible
+  const [visiblePosts, setVisiblePosts] = useState<string[]>([]);
+  // Ref lưu các DOM node của từng post
+  const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const handlePostSuccess = () => {
     setIsModalVisible(false);
@@ -83,7 +88,7 @@ const PostList = ({
             </p>
             <p style={{ color: "gray" }}>{localStrings.Public.Today}</p>
           </div>
-           <span
+          <span
             style={{
               position: "absolute",
               right: "10px",
@@ -133,12 +138,45 @@ const PostList = ({
     );
   }, [user, backgroundColor, lightGray, localStrings, isModalVisible]);
 
+  // Intersection Observer để theo dõi post nào đang visible
+  useEffect(() => {
+    if (!posts.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Lọc các post đang intersect với viewport (visible)
+        const currentlyVisible: string[] = [];
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const postId = entry.target.getAttribute("data-postid");
+            if (postId) currentlyVisible.push(postId);
+          }
+        });
+        setVisiblePosts(currentlyVisible);
+      },
+      {
+        root: null, // viewport
+        threshold: 0.5, // khi 50% phần tử hiển thị
+      }
+    );
+
+    // Quan sát tất cả các phần tử post
+    Object.values(postRefs.current).forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    // Cleanup khi unmount hoặc posts thay đổi
+    return () => {
+      observer.disconnect();
+    };
+  }, [posts]);
+
   return (
     <div className="w-auto flex flex-col items-center justify-center xl:items-end">
-      {/* Add Post Button */}
+      {/* Nút thêm bài post */}
       {isLoginUser(user?.id as string) && renderAddPost()}
 
-      {/* Posts List */}
+      {/* Danh sách bài post */}
       <div style={{ width: "100%" }}>
         {posts && posts.length > 0 ? (
           <InfiniteScroll
@@ -150,15 +188,22 @@ const PostList = ({
             {posts.map((item) => (
               <div
                 key={item?.id}
+                data-postid={item?.id}
+                ref={(el) => {
+                  if (item.id !== undefined) {
+                    postRefs.current[item.id] = el;
+                  }
+                }}
                 className="w-full flex flex-col items-center xl:items-end"
               >
                 <Post
                   post={item}
                   fetchUserPosts={fetchUserPosts}
                   onDeletePost={handleDeletePost}
+                  isVisiblePost={visiblePosts.includes(item.id || "")}
                 >
                   {item?.parent_post && (
-                    <Post post={item?.parent_post} isParentPost />
+                    <Post post={item?.parent_post} isParentPost isVisiblePost={visiblePosts.includes(item?.parent_post.id || "")} />
                   )}
                 </Post>
               </div>

@@ -1,19 +1,20 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import useColor from "@/hooks/useColor";
 import { PostMediaModel } from "@/api/features/post/models/PostResponseModel";
 import ReactPlayer from "react-player";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import { Image } from "antd";
+
 interface MediaViewProps {
   mediaItems: PostMediaModel[];
+  isVisible?: boolean; // ✅ Thêm prop để điều khiển video
 }
 
-const MediaView: React.FC<MediaViewProps> = React.memo(({ mediaItems }) => {
+const MediaView: React.FC<MediaViewProps> = React.memo(({ mediaItems, isVisible = true }) => {
   const { brandPrimary, lightGray } = useColor();
+  const videoRefs = useRef<Record<string, React.RefObject<ReactPlayer | null>>>({});
 
   const settings = {
     dots: true,
@@ -35,28 +36,47 @@ const MediaView: React.FC<MediaViewProps> = React.memo(({ mediaItems }) => {
     dotsClass: "slick-dots",
   };
 
+  // Cập nhật play/pause khi isVisible thay đổi
+  useEffect(() => {
+    Object.values(videoRefs.current).forEach((ref) => {
+      const internalPlayer = ref?.current?.getInternalPlayer?.();
+      if (internalPlayer?.play && internalPlayer?.pause) {
+        if (isVisible) {
+          internalPlayer.play().catch(() => {});
+        } else {
+          internalPlayer.pause();
+        }
+      }
+    });
+  }, [isVisible]);
+
   return (
     <div style={{ position: "relative", width: "100%", overflow: "hidden" }}>
       <Slider {...settings}>
         {mediaItems?.map((media, index) => {
           const isVideo =
             media?.media_url?.endsWith(".mp4") ||
-            media?.media_url?.endsWith(".mov"); 
+            media?.media_url?.endsWith(".mov");
+
+          if (isVideo) {
+            if (!videoRefs.current[media.id || index]) {
+              videoRefs.current[media.id || index] = React.createRef<ReactPlayer>();
+            }
+          }
+
           return (
             <div key={index}>
               {isVideo ? (
                 <ReactPlayer
+                  ref={videoRefs.current[media.id || index]}
                   url={media?.media_url || ""}
                   controls
                   loop
                   muted
-                  playing
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    maxWidth: "100%",
-                    objectFit: "cover",
-                  }}
+                  playing={isVisible}
+                  width="100%"
+                  height="100%"
+                  style={{ maxWidth: "100%", objectFit: "cover" }}
                 />
               ) : (
                 <Image
@@ -67,11 +87,10 @@ const MediaView: React.FC<MediaViewProps> = React.memo(({ mediaItems }) => {
                   preview={{ mask: null }}
                   className="hover:cursor-pointer"
                 />
-              ) }
+              )}
             </div>
           );
         })}
-       
       </Slider>
     </div>
   );

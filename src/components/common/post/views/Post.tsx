@@ -56,6 +56,7 @@ interface IPost {
   fetchUserPosts?: () => void;
   onDeletePost?: (postId: string) => void;
   onDeleteNewFeed?: (postId: string) => void;
+  isVisiblePost?: boolean;
 }
 
 const { TextArea } = Input;
@@ -72,6 +73,7 @@ const Post: React.FC<IPost> = React.memo(
     fetchUserPosts,
     onDeletePost = () => {},
     onDeleteNewFeed = () => {},
+    isVisiblePost = false,
   }) => {
     const router = useRouter();
     const { brandPrimary, brandPrimaryTap, backgroundColor, borderColor, menuItem, backgroundAddPost } =
@@ -512,7 +514,7 @@ const Post: React.FC<IPost> = React.memo(
                   </span>
                 )}
                 {likedPost?.media && likedPost?.media?.length > 0 && (
-                  <MediaView mediaItems={likedPost?.media} />
+                  <MediaView mediaItems={likedPost?.media} isVisible={isVisiblePost} />
                 )}
               </Col>
             )}
@@ -652,7 +654,7 @@ const Post: React.FC<IPost> = React.memo(
                 )}
                 {likedPost?.media && likedPost?.media?.length > 0 && (
                   <Form.Item>
-                    <MediaView mediaItems={likedPost?.media} />
+                    <MediaView mediaItems={likedPost?.media} isVisible={isVisiblePost} />
                   </Form.Item>
                 )}
                 <Form.Item>
