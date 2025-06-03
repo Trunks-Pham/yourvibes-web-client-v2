@@ -206,7 +206,7 @@ const deleteConversation = useCallback(async (conversationId: string) => {
     await fetchConversations();
     
   } catch (error) {
-    console.error("Error while deleting conversation:", error);
+    console.error("Error deleting conversation:", error);
     message.error(localStrings.Public.Error);
     
     await fetchConversations();
