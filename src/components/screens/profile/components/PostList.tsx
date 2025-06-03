@@ -140,7 +140,8 @@ const PostList = ({
 
   // Intersection Observer để theo dõi post nào đang visible
   useEffect(() => {
-    if (!posts.length) return;
+  if (!Array.isArray(posts) || posts.length === 0) return;
+
 
     const observer = new IntersectionObserver(
       (entries) => {

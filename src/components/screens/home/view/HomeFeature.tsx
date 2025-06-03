@@ -429,7 +429,8 @@ const Homepage = () => {
 
     // Intersection Observer để theo dõi post nào đang visible
   useEffect(() => {
-    if (!newFeeds.length) return;
+  if (!Array.isArray(newFeeds) || newFeeds.length === 0) return;
+
 
     const observer = new IntersectionObserver(
       (entries) => {
