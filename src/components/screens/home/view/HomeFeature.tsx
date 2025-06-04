@@ -41,8 +41,6 @@ const Homepage = () => {
   const [startY, setStartY] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { deletePost } = EditPostViewModel(defaultPostRepo, user?.id || "", "");
-  // State lưu danh sách id các post đang visible
-  const [visiblePosts, setVisiblePosts] = useState<string[]>([]);
   // Ref lưu các DOM node của từng post
   const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -426,40 +424,6 @@ const Homepage = () => {
       document.head.removeChild(styleSheet);
     };
   }, []);
-
-    // Intersection Observer để theo dõi post nào đang visible
-  useEffect(() => {
-  if (!Array.isArray(newFeeds) || newFeeds.length === 0) return;
-
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Lọc các post đang intersect với viewport (visible)
-        const currentlyVisible: string[] = [];
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const postId = entry.target.getAttribute("data-postid");
-            if (postId) currentlyVisible.push(postId);
-          }
-        });
-        setVisiblePosts(currentlyVisible);
-      },
-      {
-        root: null, // viewport
-        threshold: 0.5, // khi 50% phần tử hiển thị
-      }
-    );
-
-    // Quan sát tất cả các phần tử post
-    Object.values(postRefs.current).forEach((el) => {
-      if (el) observer.observe(el);
-    });
-
-    // Cleanup khi unmount hoặc posts thay đổi
-    return () => {
-      observer.disconnect();
-    };
-  }, [newFeeds]);
   
 
   return (
@@ -521,10 +485,9 @@ const Homepage = () => {
                           post={item}
                           onDeleteNewFeed={handleDeleteNewFeed}
                           onDeletePost={deletePost}
-                          isVisiblePost={visiblePosts.includes(item.id || "")}
                         >
                           {item?.parent_post && (
-                            <Post post={item?.parent_post} isParentPost isVisiblePost={visiblePosts.includes(item?.parent_post.id || "")} />
+                            <Post post={item?.parent_post} isParentPost />
                           )}
                         </Post>
                       </div>

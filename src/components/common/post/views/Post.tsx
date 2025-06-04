@@ -45,6 +45,7 @@ import { LikeUsersModel } from "@/api/features/post/models/LikeUsersModel";
 import ReportViewModel from "@/components/screens/report/ViewModel/reportViewModel";
 import ReportScreen from "@/components/screens/report/views/Report";
 import { PiSmileySad } from "react-icons/pi";
+import { log } from "console";
 
 interface IPost {
   post?: PostResponseModel;
@@ -73,7 +74,7 @@ const Post: React.FC<IPost> = React.memo(
     fetchUserPosts,
     onDeletePost = () => {},
     onDeleteNewFeed = () => {},
-    isVisiblePost = false,
+    isVisiblePost,
   }) => {
     const router = useRouter();
     const { brandPrimary, brandPrimaryTap, backgroundColor, borderColor, menuItem, backgroundAddPost } =
@@ -110,7 +111,6 @@ const Post: React.FC<IPost> = React.memo(
     const [isVisible, setIsVisible] = useState(false);
     const [isShareModalVisible, setIsShareModalVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-
     const handleLikeClick = useCallback(() => {
       if (likedPost?.id) {
         likePost(likedPost.id);
@@ -283,6 +283,9 @@ const Post: React.FC<IPost> = React.memo(
 
     const currentCharCount = shareContent.length;
 
+    console.log("likedPost", likedPost);
+    console.log("post", post);  
+    
     return (
       <ConfigProvider
         theme={{
@@ -514,7 +517,7 @@ const Post: React.FC<IPost> = React.memo(
                   </span>
                 )}
                 {likedPost?.media && likedPost?.media?.length > 0 && (
-                  <MediaView mediaItems={likedPost?.media} isVisible={isVisiblePost} />
+                  <MediaView mediaItems={likedPost?.media}/>
                 )}
               </Col>
             )}
@@ -556,6 +559,7 @@ const Post: React.FC<IPost> = React.memo(
           >
             <PostDetailsScreen postId={likedPost?.id} isModal={true} />
           </Modal>
+          {/* Share Modal */}
           <Modal
             open={isShareModalVisible}
             centered
@@ -654,7 +658,7 @@ const Post: React.FC<IPost> = React.memo(
                 )}
                 {likedPost?.media && likedPost?.media?.length > 0 && (
                   <Form.Item>
-                    <MediaView mediaItems={likedPost?.media} isVisible={isVisiblePost} />
+                    <MediaView mediaItems={likedPost?.media} />
                   </Form.Item>
                 )}
                 <Form.Item>
