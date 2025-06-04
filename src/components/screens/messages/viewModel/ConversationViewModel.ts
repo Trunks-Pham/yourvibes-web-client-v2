@@ -6,10 +6,12 @@ import { useAuth } from "@/context/auth/useAuth";
 import { defaultMessagesRepo } from "@/api/features/messages/MessagesRepo";
 import { ConversationResponseModel, UpdateConversationRequestModel } from "@/api/features/messages/models/ConversationModel";
 import { ConversationDetailResponseModel } from "@/api/features/messages/models/ConversationDetailModel";
+import { MessageResponseModel } from "@/api/features/messages/models/MessageModel";
 
 export const useConversationViewModel = () => {
   const { user, localStrings } = useAuth();
 
+  const [messages, setMessages] = useState<MessageResponseModel[]>([]);
   const [conversations, setConversations] = useState<ConversationResponseModel[]>([]);
   const [currentConversation, setCurrentConversation] = useState<ConversationResponseModel | null>(null);
   const [conversationsLoading, setConversationsLoading] = useState<boolean>(false);
@@ -189,24 +191,30 @@ export const useConversationViewModel = () => {
     }
   }, [currentConversation?.id, localStrings.Public.Error]);
 
-  const deleteConversation = useCallback(async (conversationId: string) => {
-    if (!user?.id || !conversationId) return;
+const deleteConversation = useCallback(async (conversationId: string) => {
+  if (!user?.id || !conversationId) return;
 
-    try {
-      await defaultMessagesRepo.deleteConversation({ conversation_id: conversationId });
+  try {
+    await defaultMessagesRepo.deleteConversation({ conversation_id: conversationId });
 
-      processedConversationsRef.current.delete(conversationId);
+    setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+    
+    processedConversationsRef.current.delete(conversationId);
 
-      if (currentConversation?.id === conversationId) {
-        setCurrentConversation(null);
-      }
-    } catch (error) {
-      console.error("Error while deleting conversation:", error);
-      message.error(localStrings.Public.Error);
-    } finally {
-      await fetchConversations();
+    if (currentConversation?.id === conversationId) {
+      setCurrentConversation(null);
+      setMessages([]);
     }
-  }, [user?.id, currentConversation?.id, fetchConversations, localStrings.Public.Error]);
+    
+    await fetchConversations();
+    
+  } catch (error) {
+    console.error("Error deleting conversation:", error);
+    message.error(localStrings.Public.Error);
+    
+    await fetchConversations();
+  }
+}, [user?.id, currentConversation?.id, fetchConversations, localStrings.Public.Error]);
 
   return {
     // State
