@@ -58,6 +58,8 @@ const EditPostViewModel = (
     any[]
   >([]);
 
+  console.log("likedPost view", likedPost);
+  
   const getDetailPost = async (id: string) => {
     if (!repo) return;
 
@@ -243,6 +245,8 @@ const EditPostViewModel = (
       page: 1,
       limit: 10,
     });
+
+
     setUserLikePost(response?.data);
   };
 

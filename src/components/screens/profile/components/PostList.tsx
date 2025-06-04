@@ -41,8 +41,6 @@ const PostList = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { deletePost } = EditPostViewModel(defaultPostRepo, user?.id || "", "");
 
-  // State lưu danh sách id các post đang visible
-  const [visiblePosts, setVisiblePosts] = useState<string[]>([]);
   // Ref lưu các DOM node của từng post
   const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -138,39 +136,6 @@ const PostList = ({
     );
   }, [user, backgroundColor, lightGray, localStrings, isModalVisible]);
 
-  // Intersection Observer để theo dõi post nào đang visible
-  useEffect(() => {
-  if (!Array.isArray(posts) || posts.length === 0) return;
-
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Lọc các post đang intersect với viewport (visible)
-        const currentlyVisible: string[] = [];
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const postId = entry.target.getAttribute("data-postid");
-            if (postId) currentlyVisible.push(postId);
-          }
-        });
-        setVisiblePosts(currentlyVisible);
-      },
-      {
-        root: null, // viewport
-        threshold: 0.5, // khi 50% phần tử hiển thị
-      }
-    );
-
-    // Quan sát tất cả các phần tử post
-    Object.values(postRefs.current).forEach((el) => {
-      if (el) observer.observe(el);
-    });
-
-    // Cleanup khi unmount hoặc posts thay đổi
-    return () => {
-      observer.disconnect();
-    };
-  }, [posts]);
 
   return (
     <div className="w-auto flex flex-col items-center justify-center xl:items-end">
@@ -201,10 +166,9 @@ const PostList = ({
                   post={item}
                   fetchUserPosts={fetchUserPosts}
                   onDeletePost={handleDeletePost}
-                  isVisiblePost={visiblePosts.includes(item.id || "")}
                 >
                   {item?.parent_post && (
-                    <Post post={item?.parent_post} isParentPost isVisiblePost={visiblePosts.includes(item?.parent_post.id || "")} />
+                    <Post post={item?.parent_post} isParentPost />
                   )}
                 </Post>
               </div>
