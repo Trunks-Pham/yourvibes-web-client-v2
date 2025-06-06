@@ -4,7 +4,7 @@
 
 The YourVibes ecosystem consists of several components working together to deliver a complete social media platform:
 
-- **Backend Golang** ([yourVibes_GoApi](https://github.com/poin4003/yourVibes_GoApi.git)): Backend with Golang.
+- **Backend Golang** ([yourVibes_GoApi](https://github.com/poin4003/yourVibes_GoApi.git)): Built with Golang.
 - **Go API (Gin-Gonic)**: The core backend service, handling API requests, business logic, and integrations.
 - **Redis**: Used for caching to improve performance for frequently accessed data.
 - **RabbitMQ**: Facilitates asynchronous communication, including pushing notifications and interacting with the Python-based AI service.
