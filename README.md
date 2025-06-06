@@ -4,6 +4,7 @@
 
 The YourVibes ecosystem consists of several components working together to deliver a complete social media platform:
 
+- **Backend Golang** ([yourVibes_GoApi](https://github.com/poin4003/yourVibes_GoApi.git)): Backend with Golang.
 - **Go API (Gin-Gonic)**: The core backend service, handling API requests, business logic, and integrations.
 - **Redis**: Used for caching to improve performance for frequently accessed data.
 - **RabbitMQ**: Facilitates asynchronous communication, including pushing notifications and interacting with the Python-based AI service.
@@ -12,9 +13,8 @@ The YourVibes ecosystem consists of several components working together to deliv
 - **AI Service**: A Python-based service ([yourvibes_ai_service](https://github.com/poin4003/yourvibes_ai_service.git)) for content moderation (e.g., censoring sensitive content in posts and comments).
 - **Clients**:
    - **Mobile App** ([yourvibes_app_V2](https://github.com/Thanh-Phuog/yourvibes_app_V2.git)): Built with React Native for mobile app users.
-   - **Web App** ([yourvibes-web-client-v2](https://github.com/Trunks-Pham/yourvibes-web-client-v2.git)): Built with React for web app users.
-   - **CMS for Admin** ([yourvibes-web-cms-v2](https://github.com/Trunks-Pham/yourvibes-web-cms-v2.git)): Built with React for admin management.
-   - **Backend Golang** ([yourVibes_GoApi](https://github.com/poin4003/yourVibes_GoApi.git)): Backend with Golang.
+   - **Web App** ([yourvibes-web-client-v2](https://github.com/Trunks-Pham/yourvibes-web-client-v2.git)): Built with React (NextJS & TypeScript) for web app users.
+   - **CMS for Admin** ([yourvibes-web-cms-v2](https://github.com/Trunks-Pham/yourvibes-web-cms-v2.git)): Built with React (NextJS & TypeScript) for admin management.
    
 - **The ecosystem architecture is illustrated below**:
 
